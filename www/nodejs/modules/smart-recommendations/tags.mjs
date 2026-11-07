@@ -515,21 +515,44 @@ export class Tags extends EventEmitter{
         }
         manualTags = this.equalize(manualTags, 1)
 
-        // Inject default tags with low score to ensure diversity even with few/zero tags
-        // Defaults fill gaps without overwriting existing tags
-        const defaultTags = getDefaultTags(lang?.locale, limit)
+        // Seed tags from the content profile first: while nothing is known about the
+        // viewer they must lead the recommendations, and they give way as the engine
+        // learns the real taste (1.0 with no tags -> 0 with 8 or more).
+        const profileTags = global.lists?.contentProfile?.seedTags?.() || {}
+        const learned = Object.keys(this.manualTags || {}).length
+        const profileWeight = learned >= 8 ? 0 : 1 - (learned / 8)
+        if (profileWeight > 0) {
+            for (const [tag, score] of Object.entries(profileTags)) {
+                const weight = score * profileWeight
+                if (weight > (manualTags[tag] || 0)) {
+                    manualTags[tag] = weight
+                }
+            }
+        }
+
+        // Inject default tags with low score to ensure diversity even with few/zero
+        // tags. They are deliberately absolute and small, and never replace a tag the
+        // user or the profile already provided, so they can't drown the profile.
+        // Tags from another profile's vocabulary are dropped though: they would drag
+        // the recommendations away from the profile the user chose.
+        const defaultTags = global.lists?.contentProfile?.filterDefaultTags?.(getDefaultTags(lang?.locale, limit)) || getDefaultTags(lang?.locale, limit)
         for (const [tag, score] of Object.entries(defaultTags)) {
             if (!(tag in manualTags)) {
-                manualTags[tag] = score * 0.05 // Low base score — real interests will dominate
+                manualTags[tag] = score * 0.05
             }
         }
 
         const shouldIncludeAdditionalSources = !ignoreExternalTrends && Object.keys(manualTags).length < limit
 
         if (shouldIncludeAdditionalSources) {
-            const channelsTags = this.equalize(this.caching.channels || {}, 0.1)
-            const trendingTags = this.equalize(this.caching.trending || {}, 0.2)
-            const programmeTags = this.equalize(this.caching.programmes || {}, 1)
+            // External vocabulary comes straight from whatever the lists carry, so it
+            // has to obey the same profile filter as the defaults: otherwise tags like
+            // "espn", "filmes" or "doramas" drag the recommendations away from the
+            // content profile the user chose.
+            const filterTags = tags => global.lists?.contentProfile?.filterDefaultTags?.(tags) ?? tags
+            const channelsTags = this.equalize(filterTags(this.caching.channels || {}), 0.1)
+            const trendingTags = this.equalize(filterTags(this.caching.trending || {}), 0.2)
+            const programmeTags = this.equalize(filterTags(this.caching.programmes || {}), 1)
             const allTags = this.equalize(this.mergeTags(channelsTags, this.mergeTags(programmeTags, trendingTags, 'sum'), 'sum'), 0.25)
             return this.equalize(this.prepare(this.mergeTags(manualTags, allTags, 'max'), limit))
         }

@@ -1,17 +1,52 @@
 import { ESMitter as EventEmitter } from 'esm-itter'
 import { main } from '../../../modules/bridge/renderer'
 
+/**
+ * Validates/normalizes a URL before handing it to the OS browser.
+ * Remote-provided URLs (e.g. `premium-url` in the configure payload) may come
+ * without a scheme or with stray whitespace; those make the browser open with
+ * no page at all, so reject/normalize them here.
+ */
+function normalizeExternalURL(url) {
+	if (typeof url !== 'string') return null
+	url = url.trim()
+	if (!url) return null
+	if (!/^[a-z][a-z0-9+.-]*:/i.test(url)) url = 'https://' + url
+	let parsed
+	try {
+		parsed = new URL(url)
+	} catch (e) {
+		return null
+	}
+	if (!['http:', 'https:', 'mailto:'].includes(parsed.protocol)) return null
+	return parsed.href
+}
+
 class WindowActions extends EventEmitter {
 	constructor(){
 		super()
 		this.backgroundModeLocks = []
 	}
 	openExternalURL(url) {
-		if (parent.electron) { // electron
-			parent.electron.openExternal(url)
-		} else {
-			window.open(url, '_system')
+		const target = normalizeExternalURL(url)
+		if (!target) {
+			console.error('openExternalURL: invalid URL', url)
+			return false
 		}
+		console.log('openExternalURL', target)
+		if (typeof parent !== 'undefined' && parent.electron?.openExternal) { // electron
+			try {
+				const ret = parent.electron.openExternal(target)
+				if (ret && typeof ret.catch === 'function') {
+					ret.catch(err => console.error('openExternalURL: openExternal failed', target, err))
+				}
+			} catch (err) {
+				console.error('openExternalURL: openExternal failed', target, err)
+			}
+		} else {
+			window.open(target, '_system')
+		}
+		return true
 	}
 	backgroundModeLock(name){
 		if(!this.backgroundModeLocks.includes(name)){

@@ -675,6 +675,13 @@ class Streamer extends StreamerGoNext {
                 });
                 intent.on('type-mismatch', () => this.typeMismatchCheck());
                 intent.on('fail', err => {
+                    if (intent != this.active || intent.stopping) {
+                        // the intent was already replaced by another one (f.ex. the user switched
+                        // broadcast) or is being torn down, so its failure is stale: reporting it
+                        // would show a bogus alert over the stream that is playing fine
+                        console.warn('Ignoring failure of inactive or stopping intent:', err, intent.data && intent.data.url);
+                        return;
+                    }
                     this.emit('uncommit', intent);
                     if (this.opts.debug) {
                         console.log('INTENT FAILED !!');

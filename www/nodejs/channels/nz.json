@@ -15,30 +15,45 @@
   "Kids": [
     {
       "name": "Zoo Moo",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Nickelodeon",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "CBeebies",
       "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Baby TV",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Disney Channel",
+      "isFree": false,
       "priority": 5
     }
   ],
   "Music Videos": [
     {
       "name": "Breeze",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "The Edge",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.theedge.co.nz/home/shows/edge-tv.html",
       "priority": 5
     },
     {
       "name": "MTV Hits",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mtv.com.au/tv-schedule/mtv-hits-new-zealand",
       "priority": 5
     }
@@ -46,37 +61,37 @@
   "Entertainment": [
     {
       "name": "Firstlight",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Juice",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kordia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Maori",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Maori Television",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rialto",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TVNZ",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -87,242 +102,245 @@
     {
       "name": "TVNZ Duke",
       "isFree": true,
+      "keywords": "duke",
       "priority": 5
     },
     {
       "name": "TVSN",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Te Reo",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Three",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Wairarapa",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Bravo",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.bravotv.co.nz/",
       "priority": 5
     },
     {
       "name": "Channel 200",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ch200.co.nz/watch-live/",
       "priority": 5
     },
     {
       "name": "Comedy Central",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.skygo.co.nz/",
       "priority": 5
     },
     {
       "name": "Country",
-      "isFree": true,
+      "isFree": null,
       "website": "https://countrytv.co.nz/",
       "priority": 5
     },
     {
       "name": "Discovery",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.discoverychannel.co.uk/au/",
       "priority": 7
     },
     {
       "name": "E!",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "eden",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.threenow.co.nz/search?genre=eden",
       "priority": 5
     },
     {
       "name": "Face",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.facetv.co.nz/",
       "priority": 5
     },
     {
       "name": "Food Network",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/food-network",
       "priority": 5
     },
     {
       "name": "HGTV",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.hgtv.co.nz/",
       "priority": 5
     },
     {
       "name": "JONES!",
-      "isFree": true,
+      "isFree": null,
       "keywords": "jones -too",
       "website": "https://www.sky.co.nz/jones",
       "priority": 5
     },
     {
       "name": "JONES! too",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sky.co.nz/jones",
       "priority": 5
     },
     {
       "name": "Living",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sky.co.nz/living-channel",
       "priority": 5
     },
     {
       "name": "MTV",
-      "isFree": true,
+      "isFree": false,
       "keywords": "mtv -hits",
       "website": "https://www.mtv.com.au/tv-schedule/mtv-new-zealand",
       "priority": 5
     },
     {
       "name": "Pasifika",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.pasifikatv.co.nz/",
       "priority": 5
     },
     {
       "name": "RNZ",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rnz.co.nz/",
       "priority": 5
     },
     {
       "name": "Rush",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.threenow.co.nz/search?genre=rush",
       "priority": 5
     },
     {
       "name": "Shine",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.shinetv.co.nz/",
       "priority": 5
     },
     {
       "name": "Sky 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/discover/sky-starter",
       "priority": 5
     },
     {
       "name": "Sky Arena",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-arena",
       "priority": 5
     },
     {
       "name": "Sky Arts",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.sky.co.nz/sky-arts",
       "priority": 5
     },
     {
       "name": "Sky Box Office 040",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-box-office",
       "priority": 5
     },
     {
       "name": "Sky Box Office 041",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-box-office",
       "priority": 5
     },
     {
       "name": "Sky Box Office 042",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-box-office",
       "priority": 5
     },
     {
       "name": "Sky Box Office 043",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-box-office",
       "priority": 5
     },
     {
       "name": "Sky Box Sets",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/boxsets",
       "priority": 5
     },
     {
       "name": "Sky Movies Comedy",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-movies",
       "priority": 5
     },
     {
       "name": "Sky Open",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/skyopen",
       "priority": 5
     },
     {
       "name": "SoHo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sky.co.nz/soho",
       "priority": 5
     },
     {
       "name": "SoHo 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sky.co.nz/soho",
       "priority": 5
     },
     {
       "name": "TAB Trackside",
-      "isFree": true,
+      "isFree": null,
+      "keywords": "trackside 1 | trackside",
       "website": "http://www.tab.co.nz/",
       "priority": 5
     },
     {
       "name": "TAB Trackside 2",
-      "isFree": true,
+      "isFree": null,
+      "keywords": "trackside 2",
       "website": "http://www.tab.co.nz/",
       "priority": 5
     },
     {
       "name": "TLC",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/tlc",
       "priority": 5
     },
     {
       "name": "TV 32",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bne.co.nz/",
       "priority": 5
     },
     {
       "name": "Universal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sky.co.nz/universal-tv",
       "priority": 5
     },
     {
       "name": "Vibe",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.skytv.co.nz/vibe/",
       "priority": 5
     },
@@ -331,18 +349,173 @@
       "isFree": true,
       "website": "https://www.maoritelevision.com/live",
       "priority": 5
+    },
+    {
+      "name": "Arirang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KBS World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AXN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "tvN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "BBC Earth",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "History",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Channel",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Lifetime",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Crime & Investigation",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "PRIME",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Animal Planet",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "BBC First",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC UKTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CNN",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Colors",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Star Plus",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Star Gold",
+      "isFree": false,
+      "priority": 5
     }
   ],
   "News": [
     {
       "name": "Parliament",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sky News New Zealand",
       "isFree": true,
       "website": "https://tvguide.sky.co.nz/channel/085",
+      "priority": 5
+    },
+    {
+      "name": "France 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DW",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NHK World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CGTN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CCTV-4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABC Australia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNBC",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Euronews",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV5 Monde",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fox News",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Sky News",
+      "isFree": true,
       "priority": 5
     }
   ],
@@ -361,7 +534,7 @@
     },
     {
       "name": "Investigation Discovery",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/id",
       "priority": 7
     }
@@ -375,6 +548,7 @@
     {
       "name": "Hope Channel New Zealand",
       "isFree": true,
+      "keywords": "hope channel",
       "website": "https://www.hopechannel.nz/",
       "priority": 4
     }
@@ -382,43 +556,43 @@
   "Movies & Series": [
     {
       "name": "Sky Movies Action",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-movies",
       "priority": 5
     },
     {
       "name": "Sky Movies Classics",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-movies",
       "priority": 5
     },
     {
       "name": "Sky Movies Collection",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-movies",
       "priority": 5
     },
     {
       "name": "Sky Movies Family",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/kids-family-movies",
       "priority": 5
     },
     {
       "name": "Sky Movies Greats",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-movies",
       "priority": 5
     },
     {
       "name": "Sky Movies Premiere",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-movies",
       "priority": 5
     },
     {
       "name": "Sky Movies Vintage",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-movies",
       "priority": 5
     }
@@ -426,76 +600,96 @@
   "Sports": [
     {
       "name": "Sky Sport",
-      "isFree": true,
+      "isFree": false,
       "keywords": "sky sport -1 -2 -3 -4 -5 -6 -7 -8 -9 -news -premier -league -select",
       "website": "https://www.sky.co.nz/sky-sport",
       "priority": 10
     },
     {
       "name": "Sky Sport 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-sport",
       "priority": 10
     },
     {
       "name": "Sky Sport 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-sport",
       "priority": 10
     },
     {
       "name": "Sky Sport 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-sport",
       "priority": 10
     },
     {
       "name": "Sky Sport 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-sport",
       "priority": 10
     },
     {
       "name": "Sky Sport 6",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-sport",
       "priority": 10
     },
     {
       "name": "Sky Sport 7",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-sport",
       "priority": 10
     },
     {
       "name": "Sky Sport 8",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-sport",
       "priority": 10
     },
     {
       "name": "Sky Sport 9",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-sport",
       "priority": 10
     },
     {
       "name": "Sky Sport News",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-sport",
       "priority": 10
     },
     {
       "name": "Sky Sport Premier League",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-sport",
       "priority": 10
     },
     {
       "name": "Sky Sport Select",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.co.nz/sky-sport",
       "priority": 10
+    },
+    {
+      "name": "beIN Sports",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "SPOTV",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "ESPN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "ESPN2",
+      "isFree": false,
+      "priority": 5
     }
   ]
 }

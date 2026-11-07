@@ -35,7 +35,7 @@
     },
     {
       "name": "Sky 99.5 FM",
-      "isFree": true,
+      "isFree": false,
       "website": "https://sky995fm.com/",
       "priority": 4
     },

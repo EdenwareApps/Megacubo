@@ -673,6 +673,10 @@ class Search extends EventEmitter {
                 ys = await this[this.searchMediaType == 'live' ? 'fetchYouTubeLive' : 'fetchYouTubeVideos'](terms).catch(err => console.error(err));
             }
             Array.isArray(ys) && es.push(...ys)
+            // Entries coming from non-list sources (YouTube) get the same theme filter
+            if (es.length) {
+                es = lists.contentProfile.filter(es)
+            }
             // Conditionally apply parental filter only if opts.parentalControl is true
             if (opts.parentalControl && es.length) {
                 es = lists.parentalControl.filter(es);

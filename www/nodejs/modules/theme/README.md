@@ -1,30 +1,31 @@
 # Theme Module
 
-A comprehensive theming system that provides dynamic UI theming, color management, and visual customization capabilities.
+Applies the fixed dark palette used by the current UI and exposes the few remaining
+visual preferences (font, grid size, navigation effect) under **Tools › Customize**.
 
-## Features
+Colors, background images/videos and animations are no longer user-configurable — the
+layout depends on a fixed dark background, so those options were removed.
 
-- **Dynamic Theming**: Real-time theme switching
-- **Color Management**: Advanced color manipulation and blending
-- **Background Support**: Image and video backgrounds
-- **Font Management**: Dynamic font size and family control
-- **Animation Support**: Smooth theme transitions
+## Structure
+
+- `theme.js` — backend (main process): builds the "Customize" menu entries and keeps
+  `font-family`, `font-size`, `uppercase-letters-menu`, `layout-grid-size` and
+  `fx-nav-intensity` in sync with the renderer.
+- `renderer.js` — renderer side: injects the CSS variables (`--background-color`,
+  `--font-color`, `--alpha-background-color`, `--radius`, `--entries-per-row`, …) and
+  handles the curtains effect shown while the player is open.
 
 ## Usage
 
 ```javascript
-import theme from './theme.js';
+import theme from './theme.js'
 
-// Apply theme
-await theme.load('dark-theme.json');
+// Rebuild the Customize menu (call after config changes done outside the menu)
+theme.refresh()
 
-// Update colors
-theme.update({
-    backgroundColor: '#1a1a1a',
-    fontColor: '#ffffff',
-    animate: true
-});
+// Warn the renderer to re-read the config and re-inject the CSS variables
+theme.update()
+```
 
-// Get available themes
-const themes = await theme.localThemes();
-``` 
+Entries are exposed through `theme.entries()` and hooked into `lang.TOOLS` automatically,
+so no manual registration is needed.

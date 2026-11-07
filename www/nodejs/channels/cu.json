@@ -207,32 +207,12 @@
       "priority": 5
     },
     {
-      "name": "Cubavisión",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "Multivisión",
-      "isFree": true,
-      "priority": 5
-    },
-    {
       "name": "RT en Español",
       "isFree": true,
       "priority": 5
     },
     {
       "name": "ArTV",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "Islavisión",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "Perlavisión",
       "isFree": true,
       "priority": 5
     },
@@ -248,11 +228,6 @@
     },
     {
       "name": "TV Camagüey",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "Tunasvisión",
       "isFree": true,
       "priority": 5
     }

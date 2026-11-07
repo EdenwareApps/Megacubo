@@ -2,13 +2,9 @@
   "Sports": [
     {
       "name": "Türkmenistan Sport",
-      "priority": 10
-    },
-    {
-      "name": "Turkmenistan Sport",
       "isFree": true,
-      "website": "http://turkmentv.gov.tm/",
-      "priority": 10
+      "priority": 10,
+      "website": "http://turkmentv.gov.tm/"
     }
   ],
   "Entertainment": [
@@ -20,7 +16,8 @@
     {
       "name": "Aşgabat",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "http://turkmentv.gov.tm/"
     },
     {
       "name": "Miras",
@@ -36,7 +33,8 @@
       "name": "Türkmenistan",
       "isFree": true,
       "keywords": "turkmenistan -sport",
-      "priority": 5
+      "priority": 5,
+      "website": "http://turkmentv.gov.tm/"
     },
     {
       "name": "Ýaşlyk",
@@ -46,19 +44,6 @@
     {
       "name": "Arkadag",
       "isFree": true,
-      "website": "http://turkmentv.gov.tm/",
-      "priority": 5
-    },
-    {
-      "name": "Asgabat",
-      "isFree": true,
-      "website": "http://turkmentv.gov.tm/",
-      "priority": 5
-    },
-    {
-      "name": "Turkmenistan",
-      "isFree": true,
-      "keywords": "turkmenistan -sport",
       "website": "http://turkmentv.gov.tm/",
       "priority": 5
     }

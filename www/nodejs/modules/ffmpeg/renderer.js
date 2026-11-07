@@ -93,7 +93,6 @@ class FFmpegController {
                 keepIds.push(this.executionIds[k])
             }
         })
-        const ffmpeg = ffmpeg
         if(this.master.abort) {
             this.master.abort(executionId)
         } else {

@@ -39,7 +39,7 @@ class Language extends EventEmitter {
         }
         
         this.availableLocales = files.filter(f => f.substr(-5).toLowerCase() == '.json').map(f => f.split('.').shift());
-        this.hints = this.parseLanguageHint(this.languageHint);
+        this.hints = this.parseLanguageHint(this.languageHints || this.languageHint);
         this.userAvailableLocales = this.hints.langs.filter(l => this.availableLocales.includes(l));
         return this.hints.langs;
     }
@@ -70,34 +70,73 @@ class Language extends EventEmitter {
         }
         
         const countriesTz = this.countries.getCountriesFromTZ(this.timezone.minutes);
-        const countriesHintsTz = this.hints.countries.filter(c => countriesTz.includes(c));
+        const ranked = this.rankCountryCandidates(this.hints, countriesTz);
         if (force !== true) {
             const country = config.get('country');
             if (country) {
                 this.isTrusted = true;
-                this.alternateCountries = countriesHintsTz.filter(c => c != country);
+                this.alternateCountries = ranked.map(c => c.code).filter(c => c != country).slice(0, 8);
                 this.countryCode = country;
                 return this.countryCode;
             }
         }
-        if (countriesHintsTz.length) { // country in navigator hints, right timezone
-            this.alternateCountries = countriesHintsTz;
-            this.isTrusted = this.alternateCountries.length == 1;
-            return this.countryCode = this.alternateCountries.shift();
+        this.alternateCountries = ranked.slice(1).map(c => c.code).slice(0, 8); // keep the country picker short
+        // Trust the detection when the country comes from the OS region setting (the user did
+        // choose it, even if running the system in another language), when the best candidate is
+        // the only one, or when it is the region of the top system language matching the timezone.
+        // Otherwise the wizard/options will offer the alternatives to the user.
+        const top = ranked[0]
+        const primaryRegion = this.hints.countries && this.hints.countries[0]
+        const regionMatches = !!top && !!this.systemRegion && top.code === this.systemRegion
+        // A near tie means the winner was decided by the language weighting (or by population),
+        // which is a guess: it is better to let the wizard ask the country than to silently keep
+        // a wrong one. A region hint (pt-BR) or the OS region gives the winner a wide margin.
+        const ambiguous = !!top && ranked.length > 1 && (top.score - ranked[1].score) <= 3
+        this.isTrusted = !!top && !ambiguous && (regionMatches || (countriesTz.includes(top.code) && (ranked.length == 1 || top.code === primaryRegion)))
+        return this.countryCode = top ? top.code : 'us';
+    }
+    /**
+     * Scores every country implied by the system region and language hints and
+     * returns them in descending order of confidence. The region setting of the
+     * OS ("país ou região" on Windows, "Region" on macOS) is the strongest
+     * signal, as it does not follow the display language; a region subtag such
+     * as pt-BR comes next, and a bare language weighs the least because it is
+     * shared by many countries. Hints earlier in the list (system preference
+     * order) win over later ones. When at least one candidate matches the
+     * timezone offset, countries outside it are discarded.
+     */
+    rankCountryCandidates(hints, countriesTz, systemRegion) {
+        hints = hints || {}
+        countriesTz = Array.isArray(countriesTz) ? countriesTz : []
+        systemRegion = String(systemRegion || this.systemRegion || '').toLowerCase()
+        if (!/^[a-z]{2}$/.test(systemRegion)) systemRegion = ''
+        const scores = new Map()
+        const add = (code, weight) => {
+            if (!code || !this.countries.countryCodeExists(code)) return
+            scores.set(code, (scores.get(code) || 0) + weight)
         }
-        const countriesTzAllLangs = this.hints.langs.map(l => this.countries.getCountriesFromLanguage(l)).flat().filter(c => countriesTz.includes(c)); // country should be in tz
-        if (countriesTzAllLangs.length) { // language in navigator hints, right timezone
-            this.alternateCountries = countriesTzAllLangs.unique();
-            this.isTrusted = this.alternateCountries.length == 1;
-            return this.countryCode = this.alternateCountries.shift();
+        add(systemRegion, 12)
+        ;(hints.countries || []).forEach((code, i) => add(code, Math.max(1, 6 - i)))
+        const languages = (hints.langs || []).map(l => l.split('-')[0].toLowerCase()).unique()
+        languages.forEach((code, i) => {
+            const weight = Math.max(1, 3 - i)
+            ;(this.countries.getCountriesFromLanguage(code) || []).forEach(country => add(country, weight))
+        })
+        let ranked = [...scores.entries()].map(([code, score]) => ({ code, score }))
+        if (!ranked.length) { // no usable hint, fall back to the timezone offset
+            ranked = countriesTz.map(code => ({ code, score: 0 }))
+        } else {
+            // drop countries outside the user timezone, keeping the OS region so it still
+            // wins when the user is abroad
+            const inTimezone = ranked.filter(c => c.code === systemRegion || countriesTz.includes(c.code))
+            if (inTimezone.length) ranked = inTimezone
         }
-        if (this.hints.countries.length) { // country in navigator hints, wrong timezone
-            this.alternateCountries = this.hints.countries.slice(0);
-            this.isTrusted = false;
-            return this.countryCode = this.alternateCountries.shift();
-        }
-        this.alternateCountries = [];
-        return this.countryCode = 'us';
+        // ties are broken by population, the most likely country for a shared timezone offset
+        ranked.forEach(c => {
+            const country = this.countries.getCountry(c.code)
+            c.population = (country && country.population) || 0
+        })
+        return ranked.sort((a, b) => (b.score - a.score) || (b.population - a.population))
     }
     async getCountriesLanguages(codes) {
         let languages = [];
@@ -152,12 +191,16 @@ class Language extends EventEmitter {
         }
         return false;
     }
-    async load(languageHint, explicitLanguage, folder, timezone) {
+    async load(languageHint, explicitLanguage, folder, timezone, systemRegion) {
         this.folder = folder
+        this.systemRegion = typeof systemRegion == 'string' && /^[A-Za-z]{2}$/.test(systemRegion) ? systemRegion.toLowerCase() : null
+        const hints = this.normalizeLanguageHints(languageHint)
         if (explicitLanguage) {
-            languageHint = explicitLanguage + ', ' + languageHint
+            hints.unshift(explicitLanguage)
         }
-        this.languageHint = languageHint
+        this.languageHints = hints.unique()
+        // kept as a comma separated string for backwards compatibility (subtitles, options, multi-worker)
+        this.languageHint = this.languageHints.join(', ')
         this.timezone = timezone
         await this.findLanguages().catch(err => console.error(err));
         this.locale = 'en';
@@ -212,20 +255,29 @@ class Language extends EventEmitter {
         (this.textKeys || []).concat(['locale', 'countryCode']).forEach(k => ret[k] = this[k]);
         return ret;
     }
+    normalizeLanguageHints(hint) {
+        const raw = Array.isArray(hint) ? hint : String(hint || '').split(',')
+        return raw.map(s => typeof s === 'string' ? s.trim().replace(/_/g, '-') : '').filter(Boolean)
+    }
     parseLanguageHint(hint) {
-        const hints = hint.split(',').map(s => s.trim()).filter(Boolean);
-        const countries = hints.map(s => s.length === 5 ? s.substr(3).toLowerCase() : false).filter(s => s).unique();
+        const hints = this.normalizeLanguageHints(hint);
+        const countries = hints.map(s => {
+            const parts = s.split('-').filter(Boolean);
+            // a 2 letter subtag after the language is a region (pt-BR, zh-Hant-TW), even when it
+            // is spelled like the language itself (pt-PT, es-ES)
+            return parts.slice(1).find(p => /^[A-Za-z]{2}$/.test(p));
+        }).filter(s => s).map(s => s.toLowerCase()).unique();
         // Generates candidates in priority order: the full tag (e.g. zh-TW)
         // comes before the 2-letter code (zh), allowing a specific locale
         // (zh-TW.json) to win over the generic one (zh.json) when the system
         // is set to Traditional Chinese (zh-TW / zh-Hant / zh-HK / zh-MO).
         const tags = [];
         for (const h of hints) {
-            const parts = h.replace(/_/g, '-').split('-').filter(Boolean);
+            const parts = h.split('-').filter(Boolean);
             const base = (parts[0] || '').toLowerCase();
-            if (!/^[a-z]{2}$/.test(base)) continue;
-            const script = parts.find(p => /^[A-Za-z]{4}$/.test(p)); // Hant, Hans...
-            const region = parts.find(p => /^[A-Za-z]{2}$/.test(p) && p.toLowerCase() !== base); // TW, HK, CN...
+            if (!/^[a-z]{2,3}$/.test(base)) continue;
+            const script = parts.slice(1).find(p => /^[A-Za-z]{4}$/.test(p)); // Hant, Hans...
+            const region = parts.slice(1).find(p => /^[A-Za-z]{2}$/.test(p)); // TW, HK, CN...
             if (base === 'zh') {
                 if (script && /^Hant$/i.test(script)) tags.push('zh-TW');
                 else if (script && /^Hans$/i.test(script)) tags.push('zh');

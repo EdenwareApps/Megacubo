@@ -87,11 +87,6 @@
       "priority": 5
     },
     {
-      "name": "CNC英语",
-      "isFree": true,
-      "priority": 5
-    },
-    {
       "name": "Hebei Jinzhou",
       "isFree": true,
       "priority": 5
@@ -153,107 +148,7 @@
       "priority": 5
     },
     {
-      "name": "NewTV军事评论",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "NewTV军旅剧场",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "NewTV农业致富",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "NewTV动画王国",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "NewTV古装剧场",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "NewTV完美遊戲",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "NewTV家庭剧场",
-      "isFree": true,
-      "priority": 5
-    },
-    {
       "name": "SiTV七彩戏剧",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "SiTV东方财经",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "SiTV全纪实台",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "SiTV动漫秀场",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "SiTV劲爆体育",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "SiTV幸福彩",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "SiTV新视觉",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "SiTV新视觉台",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "SiTV欢笑剧场",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "SiTV法治天地",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "SiTV游戏风云",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "SiTV生活时尚",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "SiTV都市剧场",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "SiTV魅力足球",
       "isFree": true,
       "priority": 5
     },
@@ -285,11 +180,6 @@
     },
     {
       "name": "TVB 明珠台",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "TVB翡翠台",
       "isFree": true,
       "priority": 5
     },
@@ -2595,7 +2485,7 @@
     },
     {
       "name": "Animax",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2789,26 +2679,6 @@
       "priority": 5
     },
     {
-      "name": "CCTV 1",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "CCTV 2",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "CCTV 3",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "CCTV 4",
-      "isFree": true,
-      "priority": 5
-    },
-    {
       "name": "CCTV 5",
       "isFree": true,
       "priority": 5
@@ -2819,27 +2689,7 @@
       "priority": 5
     },
     {
-      "name": "CCTV 7",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "CCTV 8",
-      "isFree": true,
-      "priority": 5
-    },
-    {
       "name": "CCTV 10",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "CCTV 11",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "CCTV 12",
       "isFree": true,
       "priority": 5
     },
@@ -2865,6 +2715,81 @@
     },
     {
       "name": "TVS5广东少儿",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Arirang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KBS World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AXN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "tvN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "BBC Earth",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "History",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Channel",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Food Network",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "HGTV",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Lifetime",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Crime & Investigation",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "CNA",
       "isFree": true,
       "priority": 5
     }
@@ -2971,7 +2896,7 @@
     },
     {
       "name": "Star Sports",
-      "isFree": true,
+      "isFree": false,
       "website": "https://global.espn.com/",
       "priority": 10
     },
@@ -3021,6 +2946,16 @@
       "name": "ST World Football",
       "isFree": true,
       "website": "https://www.startimestv.com/channeldetail/649.html",
+      "priority": 5
+    },
+    {
+      "name": "beIN Sports",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "SPOTV",
+      "isFree": false,
       "priority": 5
     }
   ],
@@ -3754,6 +3689,56 @@
       "isFree": true,
       "website": "https://www.cbbn.net/folder253/folder337?channel_id=5",
       "priority": 5
+    },
+    {
+      "name": "France 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DW",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NHK World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABC Australia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNBC",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Euronews",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV5 Monde",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC News",
+      "isFree": true,
+      "priority": 5
     }
   ],
   "Religious": [
@@ -3931,11 +3916,27 @@
       "name": "Zhejiang Children's",
       "isFree": true,
       "priority": 5
+    },
+    {
+      "name": "CBeebies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Baby TV",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Disney Channel",
+      "isFree": false,
+      "priority": 5
     }
   ],
   "Movies & Series": [
     {
       "name": "Sichuan Movie",
+      "isFree": true,
       "priority": 5
     },
     {
@@ -4221,7 +4222,8 @@
     {
       "name": "CCTV-9纪录",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "http://tv.cctv.com/cctv9/"
     },
     {
       "name": "Anhui Science and Education",
@@ -4257,12 +4259,6 @@
       "name": "CCTV- 8",
       "isFree": true,
       "website": "http://tv.cctv.com/cctv8/",
-      "priority": 5
-    },
-    {
-      "name": "CCTV- 9",
-      "isFree": true,
-      "website": "http://tv.cctv.com/cctv9/",
       "priority": 5
     },
     {
@@ -4327,7 +4323,7 @@
     },
     {
       "name": "CND Film Discovery",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cndfilm.com/",
       "priority": 7
     },

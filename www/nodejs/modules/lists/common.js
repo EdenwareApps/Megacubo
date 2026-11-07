@@ -3,6 +3,7 @@ import List from "./list.js";
 import tools from "./tools.js";
 import MediaURLInfo from "../streamer/utils/media-url-info.js";
 import ParentalControl from "./parental-control.js";
+import contentProfile from "../profiles/content-profile.js";
 import options from "./options.json" with { type: 'json' }
 import ready from '../ready/ready.js'
 import { resolveListDatabaseFile } from './tools.js'
@@ -108,6 +109,7 @@ export class Common extends EventEmitter {
         this.tools = tools;
         this.mi = new MediaURLInfo()
         this.parentalControl = new ParentalControl()
+        this.contentProfile = contentProfile
     }
     validateType(e, type, strict) {
         if (typeof(type) == 'string' && type) {

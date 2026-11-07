@@ -17,7 +17,7 @@
     },
     {
       "name": "Astro Television",
-      "isFree": true,
+      "isFree": false,
       "website": "https://astrorixgroup.co.zm/astro-television/",
       "priority": 5
     },

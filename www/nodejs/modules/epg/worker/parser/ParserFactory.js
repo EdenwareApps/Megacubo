@@ -284,6 +284,7 @@ export class ParserFactory {
     EPGErrorHandler.info('Setting up gzip decompression')
     const gunzip = zlib.createGunzip()
     let gunzipEnded = false
+    let flushWatchdog = null
     let htmlSample = ''
     let htmlBodyChecked = false
 
@@ -334,6 +335,7 @@ export class ParserFactory {
     gunzip.on('end', () => {
       EPGErrorHandler.debug('Gunzip ended')
       gunzipEnded = true
+      if (flushWatchdog) clearTimeout(flushWatchdog)
       parser?.end()
     })
 
@@ -347,7 +349,14 @@ export class ParserFactory {
 
       if (!gunzipEnded) {
         try {
-          gunzip.write(chunk)
+          // Honor backpressure: gunzip is throttled by the parser, so keep the
+          // download paused until it has room again instead of buffering it all.
+          if (gunzip.write(chunk) === false && typeof request.pause === 'function') {
+            request.pause()
+            gunzip.once('drain', () => {
+              if (typeof request.resume === 'function') request.resume()
+            })
+          }
         } catch (e) {
           EPGErrorHandler.error('Error writing to gunzip:', e)
         }
@@ -359,13 +368,19 @@ export class ParserFactory {
       if (!gunzipEnded) {
         gunzip.end()
       }
-      // Force parser to end after a short delay to ensure all data is processed
-      setTimeout(() => {
+      // Wait for gunzip to finish flushing before ending the parser. Inflating a
+      // large guide is throttled by parser backpressure and can take much longer
+      // than a second - a fixed short timer truncated the guide mid-parse.
+      flushWatchdog = setTimeout(() => {
+        if (!gunzipEnded) {
+          EPGErrorHandler.warn('Gunzip did not flush in time, ending parser with partial data')
+        }
         if (parser && typeof parser.end === 'function') {
           EPGErrorHandler.debug('Forcing parser to end after download completion')
           parser.end()
         }
-      }, 1000) // 1 second delay to allow processing to complete
+      }, EPG_CONFIG.network.epgFlushTimeout || 120000)
+      if (flushWatchdog.unref) flushWatchdog.unref()
     })
 
     request.on('error', (err) => {
@@ -425,7 +440,13 @@ export class ParserFactory {
         onProgress(receivedRef.value)
       }
 
-      parser?.write(chunk)
+      if (parser && parser.write(chunk) === false && typeof request.pause === 'function') {
+        // Honor parser backpressure instead of buffering the whole guide in memory
+        request.pause()
+        parser.once('drain', () => {
+          if (typeof request.resume === 'function') request.resume()
+        })
+      }
     })
     
     request.once('end', () => {

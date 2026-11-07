@@ -2,6 +2,7 @@
   "Sports": [
     {
       "name": "Arryadia",
+      "isFree": true,
       "priority": 5
     },
     {
@@ -107,7 +108,8 @@
     {
       "name": "Télé Maroc",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://www.telemaroc.tv/"
     },
     {
       "name": "2M",
@@ -150,12 +152,6 @@
       "name": "Sloog",
       "isFree": true,
       "website": "https://www.loterie.ma/presentation-sloog/",
-      "priority": 5
-    },
-    {
-      "name": "Tele Maroc",
-      "isFree": true,
-      "website": "https://www.telemaroc.tv/",
       "priority": 5
     }
   ],

@@ -1,14 +1,17 @@
 <script>
     import { main } from "../../modules/bridge/renderer";
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
 
     let visible = $state(false);
     let content = $state({ entries: [], opts: [], defaultIndex: "", type: "", value: "", id: null });
     let maskedValue = $state('');
+    let pinValue = $state('');
     let mandatory = $state(false);
     let dialogQueue = $state([]);
     let currentCallback = $state(null);
     let currentDialogId = $state(null);
+    // true between picking the next queued dialog and it becoming visible
+    let starting = false;
 
     let { container = $bindable() } = $props();
 
@@ -26,10 +29,15 @@
     }
 
     async function start() {
-        await main.menu?.sounds?.play("warn", {
-            volume: 45,
-            time: 275
-        });
+        // do not await the sound: it delays showing the dialog and leaves a gap where a new
+        // dialog call could overwrite the one being started
+        try {
+            main.menu?.sounds?.play("warn", {
+                volume: 45,
+                time: 275
+            })?.catch?.(() => {});
+        } catch (e) {}
+        starting = false;
         visible = true;
         await new Promise(resolve => setTimeout(resolve, 10));
         if (visible) {
@@ -37,7 +45,8 @@
             main.emit("dialog-start");
             document.body.classList.add("dialog");
             if (!main.menu) return;
-            const defaultIndex = content.defaultIndex || content.opts[0].id;
+            const firstOption = content.opts && content.opts[0];
+            const defaultIndex = content.defaultIndex || (firstOption ? firstOption.id : null);
             if(defaultIndex && (element=document.getElementById(`dialog-template-option-${text2id(String(defaultIndex))}`))) {
                 const key = main.menu.getKey(element);
                 main.menu.lastSelectedKey = key;
@@ -50,6 +59,10 @@
                 input.focus();
                 await new Promise(resolve => setTimeout(resolve, 10));
                 input.select();
+            } else if (!input) {
+                // PIN dialogs have no text field: start the spatial navigation on the keypad
+                const key = container?.querySelector(".dialog-pin-key");
+                if (key) main.menu.emit("focus", key);
             }
         }
     }
@@ -75,6 +88,7 @@
         }
         
         visible = false;
+        starting = false;
         if (currentCallback) {
             try {
                 currentCallback(null, true); // Call callback with null on cancel
@@ -84,12 +98,19 @@
         }
         content = { entries: [], opts: [], defaultIndex: "", type: "", value: "", id: null };
         maskedValue = '';
+        pinValue = '';
         mandatory = false;
         currentCallback = null;
         currentDialogId = null;
         document.body.classList.remove("dialog");
         setTimeout(() => {
             main.emit("dialog-end");
+            // A dialog opened right after this one (e.g. a PIN retry) is already on
+            // screen: resetting the menu selection here would steal its focus.
+            if (!dialogQueue.length && !visible) {
+                // No queued dialog: hand focus back to the menu selection
+                main.menu?.reset?.();
+            }
             nextDialog();
         }, 100);
         return true; // Fechou com sucesso
@@ -102,13 +123,15 @@
     }
 
     function queueDialog(config, callback, mandatoryParam) {
-        mandatory = mandatoryParam || false;
-        dialogQueue = [...dialogQueue, { config, callback, id: config.id, mandatory }];
+        // a dialog with a known id replaces the queued one, otherwise a repeated request
+        // (e.g. a loading dialog) stacks identical dialogs that nobody will close later
+        if (config.id) removeQueuedDialogs(config.id);
+        dialogQueue = [...dialogQueue, { config, callback, id: config.id, mandatory: mandatoryParam || false }];
         if (!visible) nextDialog();
     }
 
     function nextDialog() {
-        if (dialogQueue.length > 0 && !visible) {
+        if (dialogQueue.length > 0 && !visible && !starting) {
             const { config, callback, id, mandatory: dialogMandatory } = dialogQueue[0];
             const opts = [];
             config.entries = config.entries.filter(e => {
@@ -124,10 +147,12 @@
                 return e;
             });
             content = { ...config, opts };
+            pinValue = '';
             currentCallback = callback;
             currentDialogId = id;
             mandatory = dialogMandatory || false;
             dialogQueue = dialogQueue.slice(1);
+            starting = true;
             start();
         }
     }
@@ -190,10 +215,25 @@
         );
     }
 
-    export function select(question, entries, fa, def, callback) {
+    export function select(question, entries, fa, def, callback, forceHero, programme, hasAffiliates) {
         let map = {}
         const selectedIcon = "fas fa-check-circle";
-        const opts = [{ template: "question", text: question, fa }];
+        // Menu entries that carry artwork (an URL) instead of an icon get the
+        // Netflix-style landing page layout, driven by that artwork.
+        const artwork = typeof fa === "string" && fa && !fa.startsWith("fa");
+        // Playable entries always get the landing page layout; when their logo is
+        // not available the title takes the artwork's place (see art-failed).
+        const hero = artwork || !!forceHero;
+        const programmeTitle = (hero && programme && programme.title) ? String(programme.title).trim() : "";
+        const opts = [{
+            template: "question",
+            text: question,
+            fa,
+            art: artwork ? fa : "",
+            // avoid repeating the title when the channel name is already the programme
+            subtitle: (programmeTitle && programmeTitle !== String(question).trim()) ? programmeTitle : "",
+            hero
+        }];
         opts.push(
             ...entries.map((e) => {
                 e.template = "option";
@@ -210,6 +250,23 @@
                 return e;
             })
         );
+        if (hero && hasAffiliates) {
+            // regional stations retransmitting this channel, opened as a menu page
+            opts.push({
+                template: "option",
+                text: (main.lang && main.lang.AFFILIATES) || "Affiliates",
+                id: "__affiliates",
+                fa: "fas fa-satellite-dish"
+            })
+        }
+        if (hero) {
+            // "Watch now" (or any play action) is always the primary button, like Netflix's Play.
+            const options = opts.filter(o => o.template === "option");
+            const primary = options.find(o => /fa-play/i.test(o.fa || "")) || options[0];
+            if (primary) {
+                primary.primary = true;
+            }
+        }
         dialog(
             opts,
             callback,
@@ -229,6 +286,9 @@
             id: "text",
             mask: atts.mask,
             isPassword: atts.isPassword,
+            isPin: atts.isPin,
+            maxLength: atts.maxLength,
+            inputMode: atts.inputMode,
             placeholder: atts.placeholder,
         });
         
@@ -252,6 +312,30 @@
             opts,
             atts.callback,
             "submit",
+            false
+        );
+    }
+
+    // Dedicated numeric PIN dialog: masked dots + on-screen keypad, no text field and
+    // no confirm button - the fourth digit submits by itself.
+    export function pin(atts) {
+        const opts = [{
+            template: "question",
+            text: atts.question,
+            fa: atts.fa || "fas fa-key"
+        }];
+        if (atts.message) {
+            opts.push({ template: "message", text: atts.message });
+        }
+        opts.push({
+            template: "pin",
+            id: "pin",
+            length: atts.length || 4
+        });
+        dialog(
+            opts,
+            atts.callback,
+            null,
             false
         );
     }
@@ -296,15 +380,79 @@
         }
         if (currentCallback) {
             if (id === 'submit') {
-                const input = container?.querySelector("input, textarea");
-                if (input) id = input.value;
+                if (pinEntry()) {
+                    id = pinValue;
+                } else {
+                    const input = container?.querySelector("input, textarea");
+                    if (input) id = input.value;
+                }
             }
             currentCallback(id);
             currentCallback = null;
         }
     }
 
+    function pinEntry() {
+        return (content.entries || []).find(e => e.template === "pin");
+    }
+
+    function pinLength() {
+        const entry = pinEntry();
+        return (entry && entry.length) || 4;
+    }
+
+    function pinPress(key) {
+        if (!pinEntry()) return;
+        if (key === "backspace") {
+            pinValue = pinValue.slice(0, -1);
+            return;
+        }
+        if (!/^\d$/.test(String(key)) || pinValue.length >= pinLength()) return;
+        pinValue += key;
+        if (pinValue.length === pinLength()) {
+            // let the last dot paint before the dialog closes
+            setTimeout(submitPin, 100);
+        }
+    }
+
+    function submitPin() {
+        if (!visible || !pinEntry() || pinValue.length !== pinLength()) return;
+        handleOptionClick("submit");
+    }
+
+    function handlePinKeydown(e) {
+        // Physical keyboards type straight into the PIN; digits are consumed here so
+        // they don't reach the menu hotkeys (channel zapping) behind the dialog.
+        if (!visible || !pinEntry()) return;
+        if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
+        const isDigit = /^[0-9]$/.test(e.key);
+        const isBackspace = e.key === "Backspace" || e.key === "Delete";
+        const isEnter = e.key === "Enter" || e.key === "NumpadEnter";
+        if (!isDigit && !isBackspace && !isEnter) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        if (isDigit) {
+            pinPress(e.key);
+        } else if (isBackspace) {
+            pinPress("backspace");
+        } else {
+            submitPin();
+        }
+    }
+
     function handleInputChange(event) {
+        if (event.target.dataset.pin === "true") {
+            const pin = event.target.value.replace(/\D/g, "").slice(0, 4);
+            if (event.target.value !== pin) {
+                event.target.value = pin;
+            }
+            content.value = pin;
+            if (pin.length === 4) {
+                handleOptionClick("submit");
+            }
+            return;
+        }
         content.value = event.target.value;
         const mask = event.target.getAttribute('data-mask');
         maskedValue = mask ? main.menu.maskValue(content.value, mask) : event.target.value;
@@ -349,21 +497,25 @@
             dialog(entries, callbackId, defaultIndex, mandatoryParam, dialogId)
         });
         main.on("dialog-close", (targetDialogId) => {
-            // CRITICAL: dialog-close event with specific ID should always be able to close,
-            // even if mandatory, because it's an intentional programmatic close
-            // This allows loading dialogs to close automatically when operations complete
-            if (targetDialogId && currentDialogId === targetDialogId) {
-                // Programmatic close with matching ID - always allow, even if mandatory
-                end(false, targetDialogId, true); // force=true for programmatic close
-            } else if (mandatory) {
-                // Block closing mandatory dialog without matching ID
+            // A programmatic close must always clear the queue, even when another (mandatory)
+            // dialog is on screen. Otherwise the queued dialog is shown later by nextDialog()
+            // and nobody is left to close it.
+            if (targetDialogId) {
+                removeQueuedDialogs(targetDialogId);
+                if (currentDialogId === targetDialogId) {
+                    end(false, targetDialogId, true);
+                }
                 return;
-            } else {
-                // Not mandatory or no ID - allow close
-                end(false, targetDialogId);
             }
+            end(false, targetDialogId);
         });
         main.on("prompt", prompt);
+        main.on("pin", pin);
+        document.addEventListener("keydown", handlePinKeydown, true);
+    });
+
+    onDestroy(() => {
+        document.removeEventListener("keydown", handlePinKeydown, true);
     });
 
     $effect(() => {
@@ -533,7 +685,7 @@
                     }
                 }}
             >
-                <div class="dialog-wrap">
+                <div class="dialog-wrap {content.entries && content.entries.some(e => e.hero) ? 'dialog-hero' : ''} {content.entries && content.entries.some(e => e.premium) ? 'dialog-premium' : ''}">
                     <div
                         tabindex="-1"
                         role="button"
@@ -543,23 +695,78 @@
                         <div class="dialog-template-entries">
                             {#each content.entries as entry}
                                 {#if entry.template === "question"}
-                                    <span class="dialog-template-question">
-                                        {#if entry.fa}
-                                            {#if entry.fa.startsWith("fa")}
-                                                <i class={entry.fa} aria-hidden="true"></i>
-                                            {:else}
-                                                <img src={entry.fa} alt={entry.text} aria-hidden="true" />
+                                    {#if entry.hero}
+                                        <span class="dialog-template-question dialog-hero-question">
+                                            {#if entry.art}
+                                                <span
+                                                    class="dialog-hero-art"
+                                                    style="background-image: url({JSON.stringify(entry.art)})"
+                                                    aria-hidden="true"
+                                                ></span>
                                             {/if}
-                                        {/if}
-                                        {@html entry.text}
-                                        <span style="position: absolute; right: var(--padding-2x);">{maskedValue}</span>
-                                    </span>
+                                            <span class="dialog-hero-scrim" aria-hidden="true"></span>
+                                            <span class="dialog-hero-body {entry.art ? '' : 'art-failed'}">
+                                                {#if entry.art}
+                                                    <img
+                                                        class="dialog-hero-logo"
+                                                        src={entry.art}
+                                                        alt={plainText(entry.text)}
+                                                        onerror={(e) => e.currentTarget.parentElement?.classList.add('art-failed')}
+                                                    />
+                                                {/if}
+                                                <span class="dialog-hero-titles">
+                                                    <span class="dialog-hero-title">{@html entry.text}</span>
+                                                    {#if entry.subtitle}
+                                                        <span class="dialog-hero-subtitle">
+                                                            <span class="dialog-hero-live">{main.lang?.LIVE || "Live"}</span>
+                                                            <span class="dialog-hero-programme">{entry.subtitle}</span>
+                                                        </span>
+                                                    {/if}
+                                                </span>
+                                            </span>
+                                        </span>
+                                    {:else if entry.premium}
+                                        <span class="dialog-template-question dialog-premium-question">
+                                            {#if entry.fa}
+                                                <span class="dialog-premium-crest" aria-hidden="true">
+                                                    {#if entry.fa.startsWith("fa")}
+                                                        <i class={entry.fa}></i>
+                                                    {:else}
+                                                        <img src={entry.fa} alt={entry.text} />
+                                                    {/if}
+                                                </span>
+                                            {/if}
+                                            <span class="dialog-premium-titles">
+                                                <span class="dialog-premium-title">{@html entry.text}</span>
+                                                {#if entry.badge}
+                                                    <span class="dialog-premium-badge">{@html entry.badge}</span>
+                                                {/if}
+                                            </span>
+                                            <span style="position: absolute; right: var(--padding-2x);">{maskedValue}</span>
+                                        </span>
+                                    {:else}
+                                        <span class="dialog-template-question">
+                                            {#if entry.fa}
+                                                {#if entry.fa.startsWith("fa")}
+                                                    <i class={entry.fa} aria-hidden="true"></i>
+                                                {:else}
+                                                    <img src={entry.fa} alt={entry.text} aria-hidden="true" />
+                                                {/if}
+                                            {/if}
+                                            {@html entry.text}
+                                            <span style="position: absolute; right: var(--padding-2x);">{maskedValue}</span>
+                                        </span>
+                                    {/if}
                                 {:else if entry.template === "message"}
                                     <span class="dialog-template-message">{@html entry.text}</span>
                                 {:else if entry.template === "text"}
                                     <span class="dialog-template-text">
                                         <input
                                             type={entry.isPassword ? "password" : "text"}
+                                            inputmode={entry.inputMode || (entry.isPin ? "numeric" : undefined)}
+                                            pattern={entry.isPin ? "[0-9]*" : undefined}
+                                            maxlength={entry.maxLength}
+                                            data-pin={entry.isPin ? "true" : undefined}
                                             onfocus={(e) => maybePasteClipboard(e.target)}
                                             placeholder={entry.placeholder} 
                                             data-mask={entry.mask||''} 
@@ -573,13 +780,55 @@
                                                 if (e.key === 'Enter') {
                                                     e.preventDefault();
                                                     e.stopPropagation();
-                                                    const defId = text2id(String(content.defaultIndex || 'submit'));
-                                                    container?.querySelector(`#dialog-template-option-${defId}`)?.click();
+                                                    if (!entry.isPin) {
+                                                        const defId = text2id(String(content.defaultIndex || 'submit'));
+                                                        container?.querySelector(`#dialog-template-option-${defId}`)?.click();
+                                                    }
                                                 }
                                             }}
                                             aria-label={entry.plainText || plainText(entry.text)}
                                         />
                                     </span>
+                                {:else if entry.template === "pin"}
+                                    <div class="dialog-template-pin" role="group" aria-label={entry.plainText || plainText(entry.text || "PIN")}>
+                                        <div class="dialog-pin-dots" aria-hidden="true">
+                                            {#each Array(pinLength()).fill(0) as _, i}
+                                                <span class="dialog-pin-dot {i < pinValue.length ? 'filled' : ''}"></span>
+                                            {/each}
+                                        </div>
+                                        <div class="dialog-pin-keys">
+                                            {#each ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as digit}
+                                                <button
+                                                    type="button"
+                                                    class="dialog-pin-key"
+                                                    aria-label={digit}
+                                                    onclick={() => pinPress(digit)}
+                                                    onmouseenter={(event) => focusElement(event.target)}
+                                                >
+                                                    {digit}
+                                                </button>
+                                            {/each}
+                                            <span class="dialog-pin-key-spacer" aria-hidden="true"></span>
+                                            <button
+                                                type="button"
+                                                class="dialog-pin-key"
+                                                aria-label="0"
+                                                onclick={() => pinPress("0")}
+                                                onmouseenter={(event) => focusElement(event.target)}
+                                            >
+                                                0
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="dialog-pin-key dialog-pin-key-backspace"
+                                                aria-label="Backspace"
+                                                onclick={() => pinPress("backspace")}
+                                                onmouseenter={(event) => focusElement(event.target)}
+                                            >
+                                                <i class="fas fa-backspace"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 {:else if entry.template === "textarea"}
                                     <span class="dialog-template-textarea">
                                         <textarea
@@ -617,35 +866,37 @@
                                 {/if}
                             {/each}
                         </div>
-                        <div class="dialog-template-options {content.opts.length == 2 || content.opts.length > 3 ? 'two-columns' : ''} {content.entries && content.entries.findLastIndex(e => e.template.startsWith('text')) == (content.entries.length - 1) ? 'sharp-top' : ''}">
-                            {#each content.opts as option}
-                                {#if option.template === "option" || option.template === "option-detailed"}
-                                    <button
-                                        id="dialog-template-option-{text2id(option.id)}"
-                                        title={option.text}
-                                        aria-label={option.text}
-                                        onclick={(e) => handleOptionClick(option.id, e)}
-                                        class={option.template === "option-detailed"
-                                            ? "dialog-template-option-detailed"
-                                            : "dialog-template-option"} 
-                                        onmouseenter={(event) => focusElement(event.target)}
-                                        style={(content.opts.length > 3 && (content.opts.length % 2) == 1 && option == content.opts[content.opts.length - 1]) ? 'width: 100%;' : ''}
-                                    >
-                                        {#if option.fa}
-                                            <i class={option.fa}></i>
-                                        {/if}
-                                        <div>
-                                            <div>{@html option.text}</div>
-                                            {#if option.details}
-                                                <div class="dialog-template-option-detailed-details">
-                                                    {@html option.details}
-                                                </div>
+                        {#if content.opts.length}
+                            <div class="dialog-template-options {content.opts.length == 2 || content.opts.length > 3 ? 'two-columns' : ''} {content.entries && content.entries.findLastIndex(e => e.template.startsWith('text')) == (content.entries.length - 1) ? 'sharp-top' : ''}">
+                                {#each content.opts as option}
+                                    {#if option.template === "option" || option.template === "option-detailed"}
+                                        <button
+                                            id="dialog-template-option-{text2id(option.id)}"
+                                            title={option.text}
+                                            aria-label={option.text}
+                                            onclick={(e) => handleOptionClick(option.id, e)}
+                                            class={(option.template === "option-detailed"
+                                                ? "dialog-template-option-detailed"
+                                                : "dialog-template-option") + (option.primary ? " primary" : "")}
+                                            onmouseenter={(event) => focusElement(event.target)}
+                                            style={(content.opts.length > 3 && (content.opts.length % 2) == 1 && option == content.opts[content.opts.length - 1]) ? 'width: 100%;' : ''}
+                                        >
+                                            {#if option.fa}
+                                                <i class={option.fa}></i>
                                             {/if}
-                                        </div>
-                                    </button>
-                                {/if}
-                            {/each}
-                        </div>
+                                            <div>
+                                                <div>{@html option.text}</div>
+                                                {#if option.details}
+                                                    <div class="dialog-template-option-detailed-details">
+                                                        {@html option.details}
+                                                    </div>
+                                                {/if}
+                                            </div>
+                                        </button>
+                                    {/if}
+                                {/each}
+                            </div>
+                        {/if}
                     </div>
                 </div>
             </div>
@@ -984,5 +1235,503 @@
     .sharp-top {
         border-top-left-radius: 0;
         border-top-right-radius: 0;
+    }
+    /* ------------------------------------------------------------------
+       Netflix-like restyle of dialogs (visual layer only).
+       The theme module injects !important rules, so matching specificity
+       is needed here.
+    ------------------------------------------------------------------ */
+    div#dialog .dialog-overlay {
+        background: rgba(6, 6, 9, 0.72) !important;
+        -webkit-backdrop-filter: blur(6px) saturate(0.9);
+        backdrop-filter: blur(6px) saturate(0.9);
+    }
+    div#dialog .dialog-wrap {
+        background: linear-gradient(180deg, #1a1a1f 0%, #0d0d11 100%) !important;
+        border: 1px solid var(--nf-line);
+        border-radius: calc(var(--nf-radius) * 1.5);
+        box-shadow: 0 2vmax 6vmax rgba(0, 0, 0, 0.65);
+    }
+    div#dialog .dialog-template-message,
+    div#dialog .dialog-template-question {
+        color: var(--nf-text);
+        text-shadow: none;
+    }
+    div#dialog .dialog-template-option,
+    div#dialog .dialog-template-option-detailed {
+        background: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid transparent;
+        border-radius: var(--nf-radius);
+        color: var(--nf-text) !important;
+        margin: 2px 0;
+        text-shadow: none;
+        transition: background 0.15s ease-out 0s, border-color 0.15s ease-out 0s;
+    }
+    div#dialog .dialog-template-option.selected,
+    div#dialog .dialog-template-option-detailed.selected {
+        background: linear-gradient(90deg, rgba(139, 92, 246, 0.55) 0%, rgba(139, 92, 246, 0.1) 100%) !important;
+        border: 1px solid rgba(167, 139, 250, 0.75);
+        box-shadow: inset 0 0 0 2px #ffffff, 0 0 2.4vmin rgba(139, 92, 246, 0.35);
+        color: #ffffff !important;
+    }
+    div#dialog .dialog-template-option-detailed.selected .dialog-template-option-detailed-name {
+        text-shadow: none;
+    }
+    div#dialog .dialog-template-option-detailed-details {
+        color: var(--nf-text-dim);
+        opacity: 1;
+    }
+    div#dialog .dialog-template-text,
+    div#dialog .dialog-template-textarea {
+        background: rgba(255, 255, 255, 0.06) !important;
+        border: 1px solid var(--nf-line);
+        border-radius: var(--nf-radius);
+        color: var(--nf-text);
+    }
+    div#dialog .dialog-template-text.selected-parent,
+    div#dialog .dialog-template-textarea.selected-parent {
+        border-color: var(--nf-accent);
+        box-shadow: 0 0 0 2px var(--nf-accent-soft);
+    }
+    div#dialog .dialog-template-text i,
+    div#dialog .dialog-template-textarea i,
+    div#dialog .dialog-template-text input,
+    div#dialog .dialog-template-textarea textarea {
+        color: var(--nf-text) !important;
+        opacity: 1;
+    }
+    /* ------------------------------------------------------------------
+       Dedicated PIN entry: masked dots plus a touch-friendly keypad, so a
+       four digit PIN needs neither a text field nor a confirm button.
+    ------------------------------------------------------------------ */
+    div#dialog .dialog-template-pin {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.5vmax 0;
+    }
+    div#dialog .dialog-pin-dots {
+        display: flex;
+        justify-content: center;
+        gap: clamp(10px, 2.6vmin, 24px);
+        padding: 1.5vmin 0 2.5vmin;
+    }
+    div#dialog .dialog-pin-dot {
+        width: clamp(16px, 3vmin, 26px);
+        height: clamp(16px, 3vmin, 26px);
+        border-radius: 50%;
+        border: 2px solid var(--nf-line, rgba(255, 255, 255, 0.35));
+        background: transparent;
+        transition: background 0.15s ease-out 0s, border-color 0.15s ease-out 0s, transform 0.15s ease-out 0s;
+    }
+    div#dialog .dialog-pin-dot.filled {
+        background: var(--nf-text, #fff);
+        border-color: var(--nf-text, #fff);
+        transform: scale(1.06);
+    }
+    div#dialog .dialog-pin-keys {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(8px, 1.4vmin, 16px);
+        /* fills the dialog on phones and stays a compact keypad on TV/desktop */
+        width: min(100%, 420px);
+    }
+    div#dialog .dialog-pin-key {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* touch targets never shrink below 46px, even on small phones */
+        min-height: clamp(46px, 8.5vmin, 76px);
+        padding: 0;
+        border-radius: calc(var(--nf-radius) * 1.4);
+        border: 1px solid var(--nf-line, rgba(255, 255, 255, 0.14));
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--nf-text, #fff);
+        font-family: inherit;
+        font-size: calc(var(--menu-entry-name-font-size) * 1.15);
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease-out 0s, border-color 0.15s ease-out 0s, transform 0.12s ease-out 0s;
+    }
+    div#dialog .dialog-pin-key:hover {
+        background: rgba(255, 255, 255, 0.12);
+    }
+    div#dialog .dialog-pin-key.selected,
+    div#dialog .dialog-pin-key:focus {
+        outline: none;
+        background: linear-gradient(135deg, #c4b5fd 0%, #7c3aed 100%);
+        border-color: rgba(196, 181, 253, 0.95);
+        box-shadow: inset 0 0 0 2px #ffffff;
+        transform: scale(1.04);
+    }
+    div#dialog .dialog-pin-key-spacer {
+        visibility: hidden;
+    }
+    div#dialog .dialog-pin-key-backspace {
+        font-size: calc(var(--menu-entry-name-font-size) * 1.05);
+    }
+    /* ------------------------------------------------------------------
+       Netflix-style landing page ("watch now" and other artwork entries).
+       The card becomes a full-bleed artwork header + a row of round
+       action buttons, keeping SpatialNavigation focus semantics intact.
+    ------------------------------------------------------------------ */
+    div#dialog .dialog-wrap.dialog-hero {
+        padding: 0 !important;
+        overflow: hidden;
+        max-width: 96%;
+        /* keep the hero card at a predictable size (the global dialog inflate would scale it) */
+        transform: none !important;
+        border-radius: calc(var(--nf-radius) * 2);
+        box-shadow: 0 3vmax 9vmax rgba(0, 0, 0, 0.75) !important;
+    }
+    /* Compact, centered modal for everything that is not an artwork landing page. */
+    div#dialog .dialog-wrap:not(.dialog-hero) > div {
+        width: min(820px, 86vw) !important;
+    }
+    div#dialog .dialog-wrap:not(.dialog-hero) .dialog-template-question {
+        font-size: calc(var(--menu-entry-name-font-size) * 1.3);
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        line-height: 125%;
+        padding-bottom: 1.2vmax;
+    }
+    div#dialog .dialog-wrap:not(.dialog-hero) .dialog-template-message {
+        justify-content: flex-start;
+        text-align: left;
+        line-height: 165%;
+        color: var(--nf-text-dim);
+    }
+    div#dialog .dialog-wrap.dialog-hero > div {
+        width: min(1180px, 84vw) !important;
+        max-height: 84vh;
+        overflow: hidden;
+    }
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-entries {
+        overflow: hidden;
+        min-height: 0;
+    }
+    div#dialog .dialog-wrap.dialog-hero .dialog-hero-question {
+        position: relative;
+        display: block;
+        width: 100%;
+        max-width: none;
+        min-height: 0;
+        height: 33vh;
+        padding: 0;
+        overflow: hidden;
+        /* Same 28px fade as the home billboard, so the artwork melts into the
+           buttons row below instead of being clipped on a hard edge. */
+        -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent 100%);
+        mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent 100%);
+    }
+    div#dialog .dialog-hero-art {
+        position: absolute;
+        top: -12%;
+        left: -12%;
+        width: 124%;
+        height: 124%;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        filter: blur(1.75vmax) saturate(1.2) brightness(0.42);
+        opacity: 0.8;
+    }
+    div#dialog .dialog-hero-scrim {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background:
+            radial-gradient(95% 120% at 4% 120%, rgba(139, 92, 246, 0.34) 0%, rgba(139, 92, 246, 0) 58%),
+            radial-gradient(70% 95% at 94% 6%, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0) 68%),
+            linear-gradient(180deg, rgba(13, 13, 17, 0.5) 0%, rgba(13, 13, 17, 0.12) 34%, rgba(13, 13, 17, 0.86) 78%, #0d0d11 100%),
+            linear-gradient(90deg, rgba(13, 13, 17, 0.9) 0%, rgba(13, 13, 17, 0.05) 68%);
+    }
+    div#dialog .dialog-hero-body {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 2.2vmax;
+        padding: 2.6vmax 3vmax 2.2vmax;
+        box-sizing: border-box;
+    }
+    div#dialog .dialog-hero-logo {
+        display: block;
+        flex: 0 0 auto;
+        height: 7vmax;
+        max-height: 10vmax;
+        width: auto;
+        max-width: 38%;
+        object-fit: contain;
+        object-position: left center;
+        filter: drop-shadow(0 1vmin 2.4vmin rgba(0, 0, 0, 0.8));
+    }
+    div#dialog .dialog-hero-titles {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        flex: 1 1 auto;
+        width: 100%;
+        min-width: 0;
+    }
+    div#dialog .dialog-hero-title {
+        display: block;
+        max-width: 100%;
+        font-size: 2.4vmax;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+        color: #ffffff;
+        text-align: left;
+        text-shadow: 0 1vmin 3vmin rgba(0, 0, 0, 0.85);
+        word-break: break-word;
+    }
+    div#dialog .dialog-hero-subtitle {
+        display: flex;
+        align-items: center;
+        gap: 0.9vmin;
+        margin-top: 0.8vmax;
+        max-width: 100%;
+        min-width: 0;
+        color: var(--nf-text-dim);
+        font-size: 1.9vmax;
+        font-weight: 500;
+        line-height: 1.25;
+        text-align: left;
+        text-shadow: 0 0.6vmin 2vmin rgba(0, 0, 0, 0.85);
+    }
+    div#dialog .dialog-hero-programme {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    div#dialog .dialog-hero-live {
+        flex: 0 0 auto;
+        background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+        color: #ffffff;
+        font-size: 0.78em;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.35em 0.8em;
+        border-radius: 999px;
+        text-shadow: none;
+    }
+    div#dialog .dialog-hero-body.art-failed .dialog-hero-logo {
+        display: none;
+    }
+    div#dialog .dialog-hero-body.art-failed .dialog-hero-title {
+        font-size: 4.6vmax;
+        font-weight: 800;
+    }
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-options {
+        flex-direction: row !important;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 1.4vmin;
+        padding: 0 3vmax 2.2vmax;
+        background: #0d0d11;
+        border-radius: 0;
+        max-height: none;
+        overflow: visible;
+    }
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-option,
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-option-detailed {
+        width: auto !important;
+        max-width: none;
+        min-height: 0;
+        flex: 0 0 auto;
+        justify-content: center;
+        margin: 0 !important;
+        padding: 0 2vmax !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        box-shadow: none;
+        background: transparent;
+        border-width: 0;
+    }
+    div#dialog .dialog-wrap.dialog-hero #dialog-template-option-moreoptions {
+        background: transparent !important;
+    }
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-option:not(#dialog-template-option-moreoptions),
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-option-detailed {
+        background: rgba(109, 109, 110, 0.7) !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        border-radius: 999px !important;
+    }
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-option > div,
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-option-detailed > div {
+        padding: 1.15vmin 0 !important;
+    }
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-option i,
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-option-detailed i {
+        padding-right: 1vmin;
+    }
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-option.primary {
+        background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%) !important;
+        border-color: rgba(196, 181, 253, 0.9) !important;
+        color: #ffffff !important;
+        box-shadow: 0 1vmin 2.6vmin rgba(124, 58, 237, 0.35);
+    }
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-option.primary i {
+        color: #ffffff !important;
+    }
+    /* The pill rules above are more specific than the generic .selected rule,
+       so the focused option needs its own hero-scoped highlight. */
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-option.selected:not(#dialog-template-option-moreoptions),
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-option-detailed.selected,
+    div#dialog .dialog-wrap.dialog-hero #dialog-template-option-moreoptions.selected {
+        background: linear-gradient(135deg, #c4b5fd 0%, #7c3aed 100%) !important;
+        border: 1px solid rgba(196, 181, 253, 0.95) !important;
+        border-radius: 999px !important;
+        box-shadow: inset 0 0 0 2px #ffffff, 0 1vmin 2.6vmin rgba(124, 58, 237, 0.5) !important;
+        color: #ffffff !important;
+        transform: scale(1.05);
+    }
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-option.selected i,
+    div#dialog .dialog-wrap.dialog-hero .dialog-template-option-detailed.selected i {
+        color: #ffffff !important;
+    }
+    body.portrait div#dialog .dialog-wrap.dialog-hero > div {
+        width: 92vw !important;
+    }
+    body.portrait div#dialog .dialog-wrap.dialog-hero .dialog-hero-question {
+        height: 24vh;
+    }
+    body.portrait div#dialog .dialog-hero-logo {
+        height: 6vmax;
+        max-height: 9vmax;
+        max-width: 34%;
+    }
+    body.portrait div#dialog .dialog-wrap.dialog-hero .dialog-hero-body {
+        gap: 2vmax;
+        padding: var(--padding) calc(var(--padding) * 1.5);
+    }
+    body.portrait div#dialog .dialog-hero-title {
+        font-size: 4.4vmax;
+    }
+    body.portrait div#dialog .dialog-wrap.dialog-hero .dialog-template-options {
+        padding: 0 calc(var(--padding) * 1.5) calc(var(--padding) * 1.5);
+    }
+    /* ------------------------------------------------------------------
+       Premium offer card: purple crest, price chip and a highlighted
+       primary action, reusing the same accent palette as the hero card.
+    ------------------------------------------------------------------ */
+    div#dialog .dialog-wrap.dialog-premium {
+        position: relative;
+        overflow: hidden;
+        border-color: rgba(167, 139, 250, 0.45) !important;
+        box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.16), 0 2vmax 6vmax rgba(0, 0, 0, 0.7) !important;
+    }
+    div#dialog .dialog-wrap.dialog-premium::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 46%;
+        pointer-events: none;
+        background:
+            radial-gradient(70% 130% at 10% 0%, rgba(139, 92, 246, 0.36) 0%, rgba(139, 92, 246, 0) 72%),
+            radial-gradient(60% 120% at 92% 0%, rgba(245, 196, 81, 0.14) 0%, rgba(245, 196, 81, 0) 74%);
+    }
+    div#dialog .dialog-premium-question {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 1.8vmax;
+        padding: 0 0 1.5vmax 0;
+        text-align: left;
+        font-weight: normal;
+    }
+    div#dialog .dialog-premium-crest {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 7vmax;
+        height: 7vmax;
+        border-radius: 50%;
+        color: #ffffff;
+        font-size: 2.9vmax;
+        background: linear-gradient(140deg, #a78bfa 0%, #7c3aed 62%, #4c1d95 100%);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3), 0 1vmin 2.6vmin rgba(124, 58, 237, 0.45);
+    }
+    div#dialog .dialog-premium-crest i {
+        margin: 0;
+        color: #ffffff !important;
+    }
+    div#dialog .dialog-premium-crest img {
+        height: 58%;
+        width: auto;
+        max-width: 58%;
+        margin: 0;
+        object-fit: contain;
+    }
+    div#dialog .dialog-premium-titles {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.7vmax;
+        min-width: 0;
+    }
+    div#dialog .dialog-wrap:not(.dialog-hero) .dialog-premium-title {
+        font-size: calc(var(--menu-entry-name-font-size) * 1.22);
+        font-weight: 800;
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+        color: #ffffff;
+        padding: 0;
+    }
+    div#dialog .dialog-premium-badge {
+        align-self: flex-start;
+        padding: 0.26em 0.92em;
+        border-radius: 999px;
+        color: #1a1206;
+        font-size: var(--menu-entry-details-font-size);
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        background: linear-gradient(135deg, #fde68a 0%, #f5c451 100%);
+        box-shadow: 0 0.6vmin 1.6vmin rgba(245, 196, 81, 0.28);
+    }
+    div#dialog .dialog-wrap.dialog-premium .dialog-template-message {
+        position: relative;
+        padding-top: 0;
+        line-height: 170%;
+        color: var(--nf-text-dim);
+    }
+    /* Premium's buy action stays visually primary outside the artwork hero. */
+    div#dialog .dialog-wrap.dialog-premium:not(.dialog-hero) .dialog-template-option.primary {
+        background: linear-gradient(135deg, rgba(167, 139, 250, 0.95) 0%, rgba(124, 58, 237, 0.95) 100%) !important;
+        border-color: rgba(196, 181, 253, 0.85) !important;
+        color: #ffffff !important;
+        box-shadow: 0 1vmin 2.6vmin rgba(124, 58, 237, 0.3);
+    }
+    div#dialog .dialog-wrap.dialog-premium:not(.dialog-hero) .dialog-template-option.primary i {
+        color: #ffffff !important;
+    }
+    div#dialog .dialog-wrap.dialog-premium:not(.dialog-hero) .dialog-template-option.primary .dialog-template-option-detailed-details {
+        color: #ffffff !important;
+        opacity: 0.85;
+    }
+    div#dialog .dialog-wrap.dialog-premium:not(.dialog-hero) .dialog-template-option.primary.selected {
+        border-color: #ffffff !important;
+        box-shadow: inset 0 0 0 2px #ffffff, 0 0 2.4vmin rgba(139, 92, 246, 0.45);
+    }
+    body.portrait div#dialog .dialog-premium-crest {
+        width: 11vmax;
+        height: 11vmax;
+        font-size: 4.6vmax;
+    }
+    body.portrait div#dialog .dialog-wrap:not(.dialog-hero) .dialog-premium-title {
+        font-size: calc(var(--menu-entry-name-font-size) * 1.1);
     }
 </style>

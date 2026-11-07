@@ -17,7 +17,7 @@ export default class Trending extends EntriesGroup {
         this.currentRawEntries = null;
         this.updateIntervalSecs = cloud.expires.trending || 300;
         config.on('change', (keys, data) => {
-            if (keys.includes('only-known-channels-in-trending') || keys.includes('popular-searches-in-trending') || keys.includes('parental-control') || keys.includes('parental-control-terms')) {
+            if (keys.includes('only-known-channels-in-trending') || keys.includes('popular-searches-in-trending') || keys.includes('parental-control') || keys.includes('parental-control-terms') || keys.includes('parental-control-age') || keys.includes('content-profile')) {
                 this.updating || this.update().catch(err => console.error(err))
             }
         })
@@ -195,6 +195,7 @@ export default class Trending extends EntriesGroup {
             return e;
         });
         data = lists.parentalControl.filter(data);
+        data = lists.contentProfile.filterChannels(data);
         this.currentRawEntries = data.slice(0);
         let searchTerms = [], groups = {}, gcount = {}, gsearches = [], gentries = [];
         const onlyKnownChannels = config.get('only-known-channels-in-trending');
@@ -249,12 +250,14 @@ export default class Trending extends EntriesGroup {
         });
         Object.keys(groups).forEach(n => {
             const name = ucWords(n);
+            const isSearchTerm = gsearches.includes(n);
             gentries.push(this.channels.toMetaEntry({
                 name,
                 type: 'group',
-                fa: 'fas fa-play-circle',
+                // search terms open a search, so a magnifier is more intuitive than the playback icon
+                fa: isSearchTerm ? 'fas fa-search' : 'fas fa-play-circle',
                 users: gcount[n],
-                url: mega.build(name, { terms: n.split(' '), mediaType: gsearches.includes(n) ? 'all' : 'live' })
+                url: mega.build(name, { terms: n.split(' '), mediaType: isSearchTerm ? 'all' : 'live' })
             }));
         });
         data = data.filter(e => {

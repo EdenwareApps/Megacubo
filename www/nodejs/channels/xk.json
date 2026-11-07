@@ -2,7 +2,7 @@
   "Entertainment": [
     {
       "name": "RTK",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -22,37 +22,37 @@
     },
     {
       "name": "21 Mix",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtv21.tv/",
       "priority": 5
     },
     {
       "name": "21 Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtv21.tv/",
       "priority": 5
     },
     {
       "name": "AMOL",
-      "isFree": true,
+      "isFree": null,
       "website": "https://amoltv.net/",
       "priority": 5
     },
     {
       "name": "DTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://dtvmedia.net/",
       "priority": 5
     },
     {
       "name": "First",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.first-channel.tv/",
       "priority": 5
     },
     {
       "name": "Istogu",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -63,13 +63,13 @@
     },
     {
       "name": "Prime",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artmotion.net/tv/",
       "priority": 6
     },
     {
       "name": "PRO",
-      "isFree": true,
+      "isFree": null,
       "website": "https://pro1.tv/",
       "priority": 5
     },
@@ -123,118 +123,118 @@
     },
     {
       "name": "Syri Vision",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.syri-vision.tv/live-tv/",
       "priority": 5
     },
     {
       "name": "T 7",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.televizioni7.com/",
       "priority": 5
     },
     {
       "name": "Tema",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvtema.net/",
       "priority": 5
     },
     {
       "name": "Teve",
-      "isFree": true,
+      "isFree": null,
       "website": "https://teve1.info/",
       "priority": 5
     },
     {
       "name": "Travelingo",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Arberia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rtvarberia.com/rtv-arberia-live/",
       "priority": 5
     },
     {
       "name": "TV Arberia 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rtvarberia.com/live-tv2/",
       "priority": 5
     },
     {
       "name": "TV Arberia 5",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rtvarberia.com/tv-arberia-5/",
       "priority": 5
     },
     {
       "name": "TV Dielli",
-      "isFree": true,
+      "isFree": null,
       "website": "http://stream.tvdielli.com/",
       "priority": 5
     },
     {
       "name": "TV Festina",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Llapi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://visionpress.tv/",
       "priority": 5
     },
     {
       "name": "TV Malisheva",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.malisheva.tv/",
       "priority": 5
     },
     {
       "name": "TV Mitrovica",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtvmitrovica.com/tv-mitrovica/",
       "priority": 5
     },
     {
       "name": "TV Opinion",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Opoja",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Prizreni",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvprizreni.net/",
       "priority": 5
     },
     {
       "name": "TV Syri",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.syri-vision.tv/",
       "priority": 5
     },
     {
       "name": "Zeri",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
   "Kids": [
     {
       "name": "21 Junior",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtv21.tv/",
       "priority": 5
     },
     {
       "name": "TV Arberia 3 Femije",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rtvarberia.com/live-femije/",
       "priority": 5
     }
@@ -242,7 +242,7 @@
   "Music Videos": [
     {
       "name": "21 Popullore",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtv21.tv/",
       "priority": 5
     },
@@ -260,13 +260,13 @@
     },
     {
       "name": "TV Arberia 4 Muzike",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rtvarberia.com/tv-arberia-4-muzike/",
       "priority": 5
     },
     {
       "name": "TV Arberia Retro Hits",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.rtvarberia.com/tv-arberia-retro-hits/",
       "priority": 5
     }
@@ -274,13 +274,13 @@
   "News": [
     {
       "name": "ATV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://atvlive.tv/",
       "priority": 5
     },
     {
       "name": "Kanal 10",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kanal10.live/",
       "priority": 5
     },
@@ -292,7 +292,7 @@
     },
     {
       "name": "TV Arta",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.koha.net/arta-tv/14427/tv-arta-live/",
       "priority": 5
     }
@@ -314,19 +314,19 @@
   "Movies & Series": [
     {
       "name": "Episode",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artmotion.net/tv/",
       "priority": 5
     },
     {
       "name": "Kino",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artmotion.net/tv/",
       "priority": 5
     },
     {
       "name": "Kino 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artmotion.net/tv/",
       "priority": 5
     }
@@ -334,83 +334,83 @@
   "Sports": [
     {
       "name": "K Sport",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kujtesa.com/",
       "priority": 10
     },
     {
       "name": "K Sport 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kujtesa.com/",
       "priority": 10
     },
     {
       "name": "K Sport 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kujtesa.com/",
       "priority": 10
     },
     {
       "name": "K Sport 4",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kujtesa.com/",
       "priority": 10
     },
     {
       "name": "K Sport 5",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kujtesa.com/",
       "priority": 10
     },
     {
       "name": "Sport",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artmotion.net/tv/",
       "priority": 10
     },
     {
       "name": "Sport 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artmotion.net/tv/",
       "priority": 10
     },
     {
       "name": "Sport 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artmotion.net/tv/",
       "priority": 10
     },
     {
       "name": "Sport 4",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artmotion.net/tv/",
       "priority": 10
     },
     {
       "name": "Sport 5",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artmotion.net/tv/",
       "priority": 10
     },
     {
       "name": "Sport 6",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artmotion.net/tv/",
       "priority": 10
     },
     {
       "name": "SuperSport Kosova",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "SuperSport Kosova 2",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "SuperSport Kosova 3",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     }
   ],

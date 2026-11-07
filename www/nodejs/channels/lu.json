@@ -64,7 +64,7 @@
     },
     {
       "name": "Jasmin",
-      "isFree": null,
+      "isFree": true,
       "website": "http://www.jasmin.tv/",
       "priority": 5
     },
@@ -124,7 +124,7 @@
     },
     {
       "name": "Satisfaction",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {

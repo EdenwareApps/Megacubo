@@ -167,7 +167,7 @@
     },
     {
       "name": "DSTV",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -396,17 +396,17 @@
     },
     {
       "name": "MTV Germany",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Music 24",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Norway",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -610,7 +610,7 @@
     },
     {
       "name": "SKY FOLK",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {

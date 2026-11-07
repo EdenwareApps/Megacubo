@@ -61,7 +61,7 @@
     },
     {
       "name": "Canal+ Haiti",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus-haiti.com/contacts",
       "priority": 5
     },
@@ -151,7 +151,7 @@
     },
     {
       "name": "Radio Television Sky",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {

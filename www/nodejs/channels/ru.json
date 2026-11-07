@@ -2,213 +2,214 @@
   "Entertainment": [
     {
       "name": ".black Russia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": ".red Russia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "HD life",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MOSOBR",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "National Geographic Wild Russia",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Portal FoxMix",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Prosveshenie",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RT Doc",
-      "isFree": true,
+      "isFree": null,
       "retransmits": "RT",
       "website": "https://www.rt.com",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "TRK 555",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV BRICS",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvbrics.com",
       "priority": 5
     },
     {
       "name": "TV PRO",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TVMChannel",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "VIP Premiere Russia",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Viasat Explore Russia",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Viasat Nature Russia",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Пятница! International",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "СТС Love",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "1 KBR",
-      "isFree": true,
+      "isFree": null,
       "website": "http://1kbr.smikbr.ru/",
       "priority": 5
     },
     {
       "name": "6 TV Gorlovka",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ok.ru/gorlovka6tv",
       "priority": 5
     },
     {
       "name": "7tv",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.7-tv.tv/",
       "priority": 5
     },
     {
       "name": "9 Volna",
-      "isFree": true,
+      "isFree": null,
       "website": "https://9volna.com/",
       "priority": 5
     },
     {
       "name": "Abaza",
-      "isFree": true,
+      "isFree": null,
       "website": "https://abaza.tv/",
       "priority": 5
     },
     {
       "name": "Afontovo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://afontovo.ru/",
       "priority": 5
     },
     {
       "name": "AIST",
-      "isFree": true,
+      "isFree": null,
       "website": "https://aisttv.ru/",
       "priority": 5
     },
     {
       "name": "Almaznyy kray",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.almaz-media.tv/",
       "priority": 5
     },
     {
       "name": "alpha Cinema",
-      "isFree": true,
+      "isFree": null,
       "website": "https://15plusmg.ru",
       "priority": 5
     },
     {
       "name": "alpha Funny",
-      "isFree": true,
+      "isFree": null,
       "website": "https://15plusmg.ru",
       "priority": 5
     },
     {
       "name": "alpha Moretime",
-      "isFree": true,
+      "isFree": null,
       "website": "https://15plusmg.ru",
       "priority": 5
     },
     {
       "name": "Amurskoye Oblastnoye",
-      "isFree": true,
+      "isFree": null,
       "website": "https://amurobl.tv/",
       "priority": 5
     },
     {
       "name": "Anekdot",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.anekdottv.tv/",
       "priority": 5
     },
     {
       "name": "Arig Us",
-      "isFree": true,
+      "isFree": null,
       "website": "https://arigus.tv/",
       "priority": 5
     },
     {
       "name": "Aris 24",
-      "isFree": true,
+      "isFree": null,
       "website": "http://aris-tv.ru/aris-24",
       "priority": 5
     },
     {
       "name": "Arkhyz 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://arkhyz24.ru/",
       "priority": 5
     },
     {
       "name": "Arktika 24",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Astrahan",
-      "isFree": true,
+      "isFree": null,
       "website": "https://live.astrakhan.ru/",
       "priority": 5
     },
     {
       "name": "Auto Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.autoplustv.ru/",
       "priority": 5
     },
     {
       "name": "Avto 24",
-      "isFree": true,
+      "isFree": null,
       "website": "http://avto24tv.ru/",
       "priority": 5
     },
     {
       "name": "Bashkortostan 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://gtrk.tv/b24",
       "priority": 5
     },
@@ -220,50 +221,50 @@
     },
     {
       "name": "Beauty",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.planeta-online.tv/",
       "priority": 5
     },
     {
       "name": "Belgorod 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.belnovosti.ru/telekanal-belgorod-24/",
       "priority": 5
     },
     {
       "name": "BelRos",
-      "isFree": true,
+      "isFree": null,
       "website": "https://belros.tv/",
       "priority": 5
     },
     {
       "name": "Big Asia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bigasia.ru/",
       "priority": 5
     },
     {
       "name": "Big Planet",
-      "isFree": true,
+      "isFree": null,
       "website": "https://timemediagroup.ru/telekanal/big-planet.html",
       "priority": 5
     },
     {
       "name": ".black",
-      "isFree": true,
+      "isFree": null,
       "keywords": "black -russia",
       "website": "https://ntvplus.ru/channel/-black-318",
       "priority": 5
     },
     {
       "name": "Bober",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bober.ru/",
       "priority": 5
     },
     {
       "name": "BST",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bash.news/bst/",
       "priority": 5
     },
@@ -287,25 +288,25 @@
     },
     {
       "name": "Central",
-      "isFree": true,
+      "isFree": null,
       "website": "https://contact-agency.ru/channels/tsentralnoe-televidenie/",
       "priority": 5
     },
     {
       "name": "Channel 10",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.10kanal.ru/",
       "priority": 5
     },
     {
       "name": "Channel 12",
-      "isFree": true,
+      "isFree": null,
       "website": "https://12-kanal.ru/",
       "priority": 5
     },
     {
       "name": "Channel 16",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sarov24.ru/programma-peredach-kanal-16/",
       "priority": 5
     },
@@ -324,51 +325,51 @@
     },
     {
       "name": "Channel 8",
-      "isFree": true,
+      "isFree": null,
       "keywords": "channel 8 -international -krasnoyarsk -novosibirsk",
       "website": "http://8tv.ru/",
       "priority": 5
     },
     {
       "name": "Channel 8 International",
-      "isFree": true,
+      "isFree": null,
       "website": "http://8tv.ru/europe/",
       "priority": 5
     },
     {
       "name": "Channel 8 Krasnoyarsk",
-      "isFree": true,
+      "isFree": null,
       "website": "https://krsk.tv/",
       "priority": 5
     },
     {
       "name": "Channel 8 Novosibirsk",
-      "isFree": true,
+      "isFree": null,
       "website": "http://nsk.8tv.ru/",
       "priority": 5
     },
     {
       "name": "Channel One",
-      "isFree": true,
+      "isFree": null,
       "keywords": "channel one -cis",
       "website": "https://www.1tv.ru/",
       "priority": 5
     },
     {
       "name": "Channel One CIS",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.1tv.ru/",
       "priority": 5
     },
     {
       "name": "Che!",
-      "isFree": true,
+      "isFree": null,
       "website": "https://chetv.ru/",
       "priority": 5
     },
     {
       "name": "Chuvash En",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.ntrk21.ru/",
       "priority": 5
     },
@@ -387,153 +388,153 @@
     },
     {
       "name": "City Eden AutoGid",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden MedZdrav",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden Recepty Gurmana",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "Dagestan",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rgvktv.ru/",
       "priority": 5
     },
     {
       "name": "Den Pobedy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/den-pobedy/",
       "priority": 5
     },
     {
       "name": "Dialogi o rybalke",
-      "isFree": true,
+      "isFree": null,
       "website": "https://dialogi.tv/",
       "priority": 5
     },
     {
       "name": "Dikaya okhota",
-      "isFree": true,
+      "isFree": null,
       "website": "https://dikoe.tv/channels/dikaya-okhota-hd.html",
       "priority": 5
     },
     {
       "name": "Dikaya rybalka",
-      "isFree": true,
+      "isFree": null,
       "website": "https://dikoe.tv/channels/dikaya-rybalka-hd.html",
       "priority": 5
     },
     {
       "name": "Dikij",
-      "isFree": true,
+      "isFree": null,
       "keywords": "dikij -international",
       "website": "https://dikoe.tv/channels/telekanal-dikij.html",
       "priority": 5
     },
     {
       "name": "Dikij International",
-      "isFree": true,
+      "isFree": null,
       "website": "http://dikoe.tv/channels/dikij-international.html",
       "priority": 5
     },
     {
       "name": "Discovery",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.discoverychannel.ru/",
       "priority": 7
     },
     {
       "name": "Discovery Ultra",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Diving",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.planeta-online.tv/channels/130/live.html",
       "priority": 5
     },
     {
       "name": "Domashnie Zhivotnye",
-      "isFree": true,
+      "isFree": null,
       "website": "http://domashniejivotnie.tv/",
       "priority": 5
     },
     {
       "name": "Domashniy",
-      "isFree": true,
+      "isFree": null,
       "keywords": "domashniy -international",
       "website": "https://domashniy.ru/",
       "priority": 5
     },
     {
       "name": "Domashniy International",
-      "isFree": true,
+      "isFree": null,
       "website": "https://domashniy.ru/",
       "priority": 5
     },
     {
       "name": "Drive",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tv-stream.ru/channels",
       "priority": 5
     },
     {
       "name": "DTX",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.discoverychannel.ru/dtx/",
       "priority": 5
     },
     {
       "name": "Duma",
-      "isFree": true,
+      "isFree": null,
       "website": "https://dumatv.ru/",
       "priority": 5
     },
     {
       "name": "Dushevnoe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/dushevnoe/",
       "priority": 5
     },
     {
       "name": "Echo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://exotv.ru/",
       "priority": 5
     },
     {
       "name": "Eda",
-      "isFree": true,
+      "isFree": null,
       "keywords": "eda -premium -international",
       "website": "https://www.tveda.ru/",
       "priority": 5
     },
     {
       "name": "Eda Premium International",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tveda.ru/tv/",
       "priority": 5
     },
     {
       "name": "Enisey",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.enisey.tv/",
       "priority": 5
     },
@@ -545,7 +546,7 @@
     },
     {
       "name": "Eurasia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://eurasia.orsk.ru/",
       "priority": 5
     },
@@ -627,47 +628,47 @@
     },
     {
       "name": "Fashion&LifeStyle",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Fashion&Style 4K",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "FashionTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
     {
       "name": "Fine Living",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.finelivingnetwork.com/",
       "priority": 5
     },
     {
       "name": "First Russian national",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nactv.ru/",
       "priority": 5
     },
     {
       "name": "Food Network",
-      "isFree": true,
+      "isFree": false,
       "website": "http://foodnetwork.com/",
       "priority": 5
     },
     {
       "name": "FoodTime",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tveda.ru/tv/",
       "priority": 5
     },
     {
       "name": "FOX",
-      "isFree": true,
+      "isFree": null,
       "keywords": "fox -life -russia",
       "website": "http://www.foxtv.ru/",
       "priority": 5
@@ -680,92 +681,92 @@
     },
     {
       "name": "Friday!",
-      "isFree": true,
+      "isFree": null,
       "keywords": "friday -international",
       "website": "https://friday.ru/",
       "priority": 5
     },
     {
       "name": "Friday! International",
-      "isFree": true,
+      "isFree": null,
       "website": "https://friday.ru/",
       "priority": 5
     },
     {
       "name": "GAL",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Glazami Turista",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.glazamiturista.ru/",
       "priority": 5
     },
     {
       "name": "Global Star",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.globalstar.tv/",
       "priority": 5
     },
     {
       "name": "Gorodskoy telekanal",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.gtk.tv/",
       "priority": 5
     },
     {
       "name": "Groznyj",
-      "isFree": true,
+      "isFree": null,
       "website": "https://grozny.tv/",
       "priority": 5
     },
     {
       "name": "Gubernia Khabarovsk",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.gubernia.com/",
       "priority": 5
     },
     {
       "name": "Gubernia Samara",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sovainfo.ru/tv/",
       "priority": 5
     },
     {
       "name": "Guberniya 33",
-      "isFree": true,
+      "isFree": null,
       "website": "https://trc33.ru/",
       "priority": 5
     },
     {
       "name": "HD Media",
-      "isFree": true,
+      "isFree": null,
       "keywords": "hd media -3d",
       "website": "https://hdmedia.ru/",
       "priority": 5
     },
     {
       "name": "HD Media 3D",
-      "isFree": true,
+      "isFree": null,
       "website": "https://hdmedia.ru/",
       "priority": 5
     },
     {
       "name": "HGTV",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.hg-tv.ru/",
       "priority": 5
     },
     {
       "name": "HHQ",
-      "isFree": true,
+      "isFree": null,
       "website": "https://hhq.tv/",
       "priority": 5
     },
     {
       "name": "Home 4K",
-      "isFree": true,
+      "isFree": null,
       "website": "https://home4k.ru/",
       "priority": 5
     },
@@ -781,25 +782,25 @@
     },
     {
       "name": "India",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.red-media.ru/company/channels/81834/",
       "priority": 5
     },
     {
       "name": "Ingushetia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ingushetiya.tv/",
       "priority": 5
     },
     {
       "name": "Insayt",
-      "isFree": true,
+      "isFree": null,
       "website": "https://operators.1tvch.ru/channels/insait-tv",
       "priority": 5
     },
     {
       "name": "InterAz",
-      "isFree": true,
+      "isFree": null,
       "website": "https://interaz.com.tr/",
       "priority": 5
     },
@@ -811,55 +812,55 @@
     },
     {
       "name": "Kaleidoscope",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.kaleidoskoptv.tv/",
       "priority": 5
     },
     {
       "name": "Kamedi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/kamedi/",
       "priority": 5
     },
     {
       "name": "Kavkaz 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kavkaz24.tv/",
       "priority": 5
     },
     {
       "name": "Kinokomedija",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nastroykino.ru/kinokomedija/",
       "priority": 5
     },
     {
       "name": "Kluch",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kluch.tv/",
       "priority": 5
     },
     {
       "name": "Kolyma Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kolymaplus.ru/",
       "priority": 5
     },
     {
       "name": "Komedia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://komedia-tv.ru/",
       "priority": 5
     },
     {
       "name": "Komediynoe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/komediynoe/",
       "priority": 5
     },
     {
       "name": "Konniy mir",
-      "isFree": true,
+      "isFree": null,
       "website": "http://news.sportbox.ru/Vidy_sporta/horse_world",
       "priority": 5
     },
@@ -871,49 +872,49 @@
     },
     {
       "name": "KTOKUDA",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ktokuda-tv.ru/",
       "priority": 5
     },
     {
       "name": "Kuban 24",
-      "isFree": true,
+      "isFree": null,
       "keywords": "kuban 24 -orbita",
       "website": "https://kuban24.tv/",
       "priority": 5
     },
     {
       "name": "Kuban 24 Orbita",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kuban24.tv/",
       "priority": 5
     },
     {
       "name": "Kukhnya",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kuhnyatv.ru/",
       "priority": 5
     },
     {
       "name": "Kulinar",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kuraj",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bash.news/kuraj",
       "priority": 5
     },
     {
       "name": "Kuzbass",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kuzbass1.ru/",
       "priority": 5
     },
     {
       "name": "Kvarc",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvpodolsk.ru/index.php",
       "priority": 5
     },
@@ -925,142 +926,142 @@
     },
     {
       "name": "Law",
-      "isFree": true,
+      "isFree": null,
       "website": "https://zakon.ru/zakon-tv",
       "priority": 5
     },
     {
       "name": "LDPR",
-      "isFree": true,
+      "isFree": null,
       "website": "http://ldpr.tv/",
       "priority": 5
     },
     {
       "name": "LenTV 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://lentv24.ru/",
       "priority": 5
     },
     {
       "name": "Lipeckoe vremya",
-      "isFree": true,
+      "isFree": null,
       "website": "https://lipetsktime.ru/",
       "priority": 5
     },
     {
       "name": "Luch",
-      "isFree": true,
+      "isFree": null,
       "website": "https://purmedia.ru/",
       "priority": 5
     },
     {
       "name": "Magas",
-      "isFree": true,
+      "isFree": null,
       "website": "https://magas.tv/%d0%bf%d1%80%d1%8f%d0%bc%d0%be%d0%b9-%d1%8d%d1%84%d0%b8%d1%80/",
       "priority": 5
     },
     {
       "name": "Mir",
-      "isFree": true,
+      "isFree": null,
       "keywords": "mir -24 -basketbola -belogorya -novosibirsk -seriala -uvlecheniy -vokrug",
       "website": "https://mirtv.ru/",
       "priority": 5
     },
     {
       "name": "Mir Belogorya",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mirbelogorya.ru/",
       "priority": 5
     },
     {
       "name": "Mir Novosibirsk",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tcm10.ru/",
       "priority": 5
     },
     {
       "name": "Mir uvlecheniy",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.miruvlecheniy-tv.ru/",
       "priority": 5
     },
     {
       "name": "Mir vokrug",
-      "isFree": true,
+      "isFree": null,
       "website": "https://yandex.ru/portal/video?from=videohub&stream_channel=1906&stream_id=41c7bbf22abcca7eb04052377e4c8a45",
       "priority": 5
     },
     {
       "name": "Mordoviya 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://info-rm.com/",
       "priority": 5
     },
     {
       "name": "Moskva",
-      "isFree": true,
+      "isFree": null,
       "keywords": "moskva -24 -otkrytyy -mir",
       "website": "https://www.doverie-tv.ru/",
       "priority": 5
     },
     {
       "name": "Moskva 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.m24.ru/",
       "priority": 5
     },
     {
       "name": "Moskva — Otkrytyy mir",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ctvp.ru/",
       "priority": 5
     },
     {
       "name": "Moya Planeta",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.moya-planeta.ru/",
       "priority": 5
     },
     {
       "name": "Moya stikhiya",
-      "isFree": true,
+      "isFree": null,
       "website": "https://xn----ptbankthz9fg.xn--p1ai/",
       "priority": 5
     },
     {
       "name": "MTV",
-      "isFree": true,
+      "isFree": false,
       "keywords": "mtv -volgograd",
       "website": "http://www.mtv.ru/",
       "priority": 5
     },
     {
       "name": "MTV Volgograd",
-      "isFree": true,
+      "isFree": false,
       "website": "https://xn--b1ats.xn--80asehdb/",
       "priority": 5
     },
     {
       "name": "Nasha Sibir",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sibir.tv/",
       "priority": 5
     },
     {
       "name": "Nasha Tema",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nashatema.tv/",
       "priority": 5
     },
     {
       "name": "Nash Dom",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tv-11.ru/",
       "priority": 5
     },
     {
       "name": "Neizvestnaya planeta",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.neplaneta.ru/",
       "priority": 5
     },
@@ -1072,86 +1073,86 @@
     },
     {
       "name": "Nika",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nikatv.ru/",
       "priority": 5
     },
     {
       "name": "Nizhniy Novgorod 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vestinn.ru/online/nn24/",
       "priority": 5
     },
     {
       "name": "NNT",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nnttv.ru/",
       "priority": 5
     },
     {
       "name": "Noise",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tvslow.com/",
       "priority": 5
     },
     {
       "name": "NovgorOblTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://novgorod-tv.ru/",
       "priority": 5
     },
     {
       "name": "Novy Vek",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvtambov.ru/novyj-vek-online/",
       "priority": 5
     },
     {
       "name": "Novyy Mir",
-      "isFree": true,
+      "isFree": null,
       "website": "https://n-w.tv/",
       "priority": 5
     },
     {
       "name": "NSK 49",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nsk49.ru/",
       "priority": 5
     },
     {
       "name": "NST",
-      "isFree": true,
+      "isFree": null,
       "website": "https://strashnoe.tv/",
       "priority": 5
     },
     {
       "name": "NTK 21",
-      "isFree": true,
+      "isFree": null,
       "website": "https://riabir.ru",
       "priority": 5
     },
     {
       "name": "NTM",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ntm13.ru/",
       "priority": 5
     },
     {
       "name": "NTS",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nts-tv.com/",
       "priority": 5
     },
     {
       "name": "NTV",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ntv -law -mir -baltic -series -style",
       "website": "https://www.ntv.ru",
       "priority": 5
     },
     {
       "name": "NTV Law",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ntv.ru/air/ntvlaw/",
       "priority": 5
     },
@@ -1163,7 +1164,7 @@
     },
     {
       "name": "NTV Style",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ntv.ru/air/ntvstyle/",
       "priority": 5
     },
@@ -1175,38 +1176,38 @@
     },
     {
       "name": "NVK Sakha",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nvk-online.ru/",
       "priority": 5
     },
     {
       "name": "Obektiv 59",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.obectiv.wallst.ru/",
       "priority": 5
     },
     {
       "name": "Ocean",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ocean-tv.media/",
       "priority": 5
     },
     {
       "name": "Ohotnik i rybolov",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ohotnik i rybolov -int",
       "website": "https://oirtv.ru/",
       "priority": 5
     },
     {
       "name": "Ohotnik i rybolov Int",
-      "isFree": true,
+      "isFree": null,
       "website": "https://oirtv.ru/",
       "priority": 5
     },
     {
       "name": "Okhota i rybalka",
-      "isFree": true,
+      "isFree": null,
       "website": "http://ohotarybalka.tv/",
       "priority": 5
     },
@@ -1218,37 +1219,37 @@
     },
     {
       "name": "Oruzhie",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.oruzhie.tv/",
       "priority": 5
     },
     {
       "name": "Osetiya Iryston",
-      "isFree": true,
+      "isFree": null,
       "website": "https://iryston.tv/",
       "priority": 5
     },
     {
       "name": "OSN",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osnmedia.ru/tv/",
       "priority": 5
     },
     {
       "name": "Otkritiy mir",
-      "isFree": true,
+      "isFree": null,
       "website": "https://omir.tv/",
       "priority": 5
     },
     {
       "name": "OTR",
-      "isFree": true,
+      "isFree": null,
       "website": "https://otr-online.ru/",
       "priority": 5
     },
     {
       "name": "OTS",
-      "isFree": true,
+      "isFree": null,
       "website": "http://otstv.ru/",
       "priority": 5
     },
@@ -1291,85 +1292,85 @@
     },
     {
       "name": "Paramount Comedy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://paramountcomedy.ru/",
       "priority": 5
     },
     {
       "name": "Peretz International",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.ctcmedia.ru/business/peretz_int/",
       "priority": 5
     },
     {
       "name": "Perviy Krymskiy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://1tvcrimea.ru/",
       "priority": 5
     },
     {
       "name": "Pervyy Kosmicheskiy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://operators.1tvch.ru/channels/pervyi-kosmicheskii",
       "priority": 5
     },
     {
       "name": "Pervyy Pskovskiy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://1pskov.tv/",
       "priority": 5
     },
     {
       "name": "Pervyy Tulskiy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://1tulatv.ru/",
       "priority": 5
     },
     {
       "name": "Pervyy vegetarianskiy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://1veg-tv.ru/",
       "priority": 5
     },
     {
       "name": "Pes i Ko",
-      "isFree": true,
+      "isFree": null,
       "website": "https://pesiko.tv/",
       "priority": 5
     },
     {
       "name": "Pilot FM",
-      "isFree": true,
+      "isFree": null,
       "website": "https://pilotfm.ru/",
       "priority": 5
     },
     {
       "name": "Plan B",
-      "isFree": true,
+      "isFree": null,
       "website": "https://planbkino.tv/channels/5716",
       "priority": 5
     },
     {
       "name": "Pobeda",
-      "isFree": true,
+      "isFree": null,
       "website": "https://pobeda.tv/",
       "priority": 5
     },
     {
       "name": "Pod yolkoy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://elki.tricolor.tv/",
       "priority": 5
     },
     {
       "name": "Poehali!",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.poehali.tv/",
       "priority": 5
     },
     {
       "name": "Priklyucheniya",
-      "isFree": true,
+      "isFree": null,
       "website": "http://xn--e1afbgfnji0e9cp.tv/",
       "priority": 5
     },
@@ -1381,74 +1382,74 @@
     },
     {
       "name": "Prodvizhenie",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.pro-tv.info/",
       "priority": 5
     },
     {
       "name": "Pro Lyubov",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/pro-lyubov/",
       "priority": 5
     },
     {
       "name": "Promo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/promo-tv/",
       "priority": 5
     },
     {
       "name": "Promo Ultra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/promo-uhd/",
       "priority": 5
     },
     {
       "name": "Prosveshchenie",
-      "isFree": true,
+      "isFree": null,
       "website": "http://prosveshenie.tv/",
       "priority": 5
     },
     {
       "name": "Psikhologiya",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tv-stream.ru/channels",
       "priority": 5
     },
     {
       "name": "Radio 101",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tv-11.ru/online101-8/",
       "priority": 5
     },
     {
       "name": "Ramenskoe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ramtv.ru/",
       "priority": 5
     },
     {
       "name": "Ratnik",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ratnik.tv/",
       "priority": 5
     },
     {
       "name": "Raz",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.raz.tv/",
       "priority": 5
     },
     {
       "name": ".red",
-      "isFree": true,
+      "isFree": null,
       "keywords": "red -russia",
       "website": "https://mt.media/channels/red/",
       "priority": 5
     },
     {
       "name": "Red Line",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rline.tv/",
       "priority": 5
     },
@@ -1460,43 +1461,43 @@
     },
     {
       "name": "Region 29",
-      "isFree": true,
+      "isFree": null,
       "website": "https://region29.ru/",
       "priority": 5
     },
     {
       "name": "REN",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ren tv -international",
       "website": "https://ren.tv/",
       "priority": 5
     },
     {
       "name": "REN TV International",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rodnoy kanal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.slavmir.tv/",
       "priority": 5
     },
     {
       "name": "Romantichnoe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/Romantichnoe/",
       "priority": 5
     },
     {
       "name": "Rossiya 1 Vainah",
-      "isFree": true,
+      "isFree": null,
       "website": "https://gtrkvainah.tv/live/",
       "priority": 5
     },
     {
       "name": "Rostov Papa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rostov-papatv.com/",
       "priority": 5
     },
@@ -1508,51 +1509,51 @@
     },
     {
       "name": "RTR Planeta",
-      "isFree": true,
+      "isFree": null,
       "keywords": "rtr-planeta-asia-cis-europe",
       "website": "http://rtr-planeta.com/",
       "priority": 5
     },
     {
       "name": "RTR Planeta Asia",
-      "isFree": true,
+      "isFree": null,
       "website": "http://rtr-planeta.com/",
       "priority": 5
     },
     {
       "name": "RTR Planeta CIS",
-      "isFree": true,
+      "isFree": null,
       "website": "http://rtr-planeta.com/",
       "priority": 5
     },
     {
       "name": "RTR Planeta Europe",
-      "isFree": true,
+      "isFree": null,
       "website": "http://rtr-planeta.com/",
       "priority": 5
     },
     {
       "name": "RTVi",
-      "isFree": true,
+      "isFree": null,
       "keywords": "rtvi -archive",
       "website": "https://www.rtvi.com/",
       "priority": 5
     },
     {
       "name": "RTVi Archive",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtvi.tv/archive/",
       "priority": 5
     },
     {
       "name": "Rus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rus-kostroma.ru/",
       "priority": 5
     },
     {
       "name": "Russia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://russia.tv/",
       "priority": 5
     },
@@ -1564,91 +1565,91 @@
     },
     {
       "name": "Russkiy Mir",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.russkiymir.ru/",
       "priority": 5
     },
     {
       "name": "Russkiy Sever",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rusevertv.ru/",
       "priority": 5
     },
     {
       "name": "Rybolov",
-      "isFree": true,
+      "isFree": null,
       "website": "https://oirtv.ru/",
       "priority": 5
     },
     {
       "name": "RZD",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rzdtv.ru/",
       "priority": 5
     },
     {
       "name": "S",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sitv.ru/efir/c1/",
       "priority": 5
     },
     {
       "name": "Salyam",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bash.news/salyam",
       "priority": 5
     },
     {
       "name": "Samara 24",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Samara GIS",
-      "isFree": true,
+      "isFree": null,
       "website": "https://samaragis.ru/efir/",
       "priority": 5
     },
     {
       "name": "Sankt Peterburg",
-      "isFree": true,
+      "isFree": null,
       "website": "https://topspb.tv/",
       "priority": 5
     },
     {
       "name": "San Porto",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sanporto.tv/ru/",
       "priority": 5
     },
     {
       "name": "Sarafan",
-      "isFree": true,
+      "isFree": null,
       "website": "http://sarafan-tv.ru/",
       "priority": 5
     },
     {
       "name": "Saratov 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://saratov24.tv/",
       "priority": 5
     },
     {
       "name": ".sci fi",
-      "isFree": true,
+      "isFree": null,
       "keywords": "sci-fi-russia",
       "website": "https://mt.media/channels/sci-fi/",
       "priority": 5
     },
     {
       "name": "Seven",
-      "isFree": true,
+      "isFree": null,
       "website": "http://7tv.ru/",
       "priority": 5
     },
     {
       "name": "Sever",
-      "isFree": true,
+      "isFree": null,
       "website": "http://trksever.ru/",
       "priority": 5
     },
@@ -1660,19 +1661,19 @@
     },
     {
       "name": "Shayan",
-      "isFree": true,
+      "isFree": null,
       "website": "https://shayantv.ru/",
       "priority": 5
     },
     {
       "name": "Shchyolkovskoe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv41.ru/",
       "priority": 5
     },
     {
       "name": "Sibir 24",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -1683,151 +1684,151 @@
     },
     {
       "name": "Skyleaf Eco",
-      "isFree": true,
+      "isFree": null,
       "website": "https://1eco.tv/",
       "priority": 5
     },
     {
       "name": "Sochi 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sochi24.tv",
       "priority": 5
     },
     {
       "name": "Sochi Live",
-      "isFree": true,
+      "isFree": null,
       "keywords": "sochi live",
       "website": "https://sochilive.tv/",
       "priority": 5
     },
     {
       "name": "Solnechnogorskoe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://solntv.ru/",
       "priority": 5
     },
     {
       "name": "Solovyov Live",
-      "isFree": true,
+      "isFree": null,
       "website": "https://smotrim.ru/live/63338",
       "priority": 5
     },
     {
       "name": "Sony",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "SSSR",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Strashnoe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.company.rt.ru/press/news/d428231",
       "priority": 5
     },
     {
       "name": "STS",
-      "isFree": true,
+      "isFree": null,
       "keywords": "sts -baltics -international -kids -kuzbass -love",
       "website": "https://ctc.ru/",
       "priority": 5
     },
     {
       "name": "STS Baltics",
-      "isFree": true,
+      "isFree": null,
       "website": "http://ctci.tv/",
       "priority": 5
     },
     {
       "name": "STS International",
-      "isFree": true,
+      "isFree": null,
       "website": "http://ctci.tv/",
       "priority": 5
     },
     {
       "name": "STS Kuzbass",
-      "isFree": true,
+      "isFree": null,
       "website": "http://ctc-kuzbass.ru/",
       "priority": 5
     },
     {
       "name": "STS Love",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ctclove.ru/",
       "priority": 5
     },
     {
       "name": "Studiya Fakt",
-      "isFree": true,
+      "isFree": null,
       "website": "https://xn--80adgql2bfcefn5k.xn--p1ai/",
       "priority": 5
     },
     {
       "name": "STV",
-      "isFree": true,
+      "isFree": null,
       "keywords": "stv -24",
       "website": "https://www.stv92.ru/iks-tv/",
       "priority": 5
     },
     {
       "name": "Subbota!",
-      "isFree": true,
+      "isFree": null,
       "website": "https://subbota.tv/",
       "priority": 5
     },
     {
       "name": "Surgut 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://in-news.ru/",
       "priority": 5
     },
     {
       "name": "Svoyo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://stv24.tv/",
       "priority": 5
     },
     {
       "name": "Takt 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://takt-tv.ru/",
       "priority": 5
     },
     {
       "name": "Tansuj!",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ntvplus.ru/channel/tantsuj-527",
       "priority": 5
     },
     {
       "name": "Tatarstan 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tatarstan24.tv/",
       "priority": 5
     },
     {
       "name": "Tavriya",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Tayna",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tayna.tv/",
       "priority": 5
     },
     {
       "name": "TBN",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tbn-tv.com/",
       "priority": 5
     },
     {
       "name": "TDK",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tdktv.com/",
       "priority": 5
     },
@@ -1839,81 +1840,81 @@
     },
     {
       "name": "TeleDom",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.teledom.tv/",
       "priority": 5
     },
     {
       "name": "Telekanal Krasnodar",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvkrasnodar.ru/",
       "priority": 5
     },
     {
       "name": "Teleputeshestviya",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.teletravel.tv/",
       "priority": 5
     },
     {
       "name": "Telplus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://telplus.ru/kvartira/televidenie/kanal/",
       "priority": 5
     },
     {
       "name": "Timeless Dizi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://timelessdramachannel.com/dizi-russia/",
       "priority": 5
     },
     {
       "name": "Tivikom",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvcom-tv.ru/",
       "priority": 5
     },
     {
       "name": "TKR",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tkr.su/",
       "priority": 5
     },
     {
       "name": "TLC",
-      "isFree": true,
+      "isFree": false,
       "website": "https://tlc-tv.ru/",
       "priority": 5
     },
     {
       "name": "Tnomer",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tnomer.tv/",
       "priority": 5
     },
     {
       "name": "TNT",
-      "isFree": true,
+      "isFree": false,
       "keywords": "tnt -international -music",
       "website": "http://tnt-online.ru/",
       "priority": 5
     },
     {
       "name": "TNT 4",
-      "isFree": true,
+      "isFree": false,
       "keywords": "tnt4 -international",
       "website": "https://tnt4.ru/",
       "priority": 5
     },
     {
       "name": "TNT4 International",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tnt4.ru/",
       "priority": 5
     },
     {
       "name": "TNT International",
-      "isFree": true,
+      "isFree": false,
       "website": "http://tnt-online.ru/",
       "priority": 5
     },
@@ -1931,67 +1932,67 @@
     },
     {
       "name": "Tochka otryva",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tv-stream.ru/channels",
       "priority": 5
     },
     {
       "name": "Tochka",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tochkatv.tv/",
       "priority": 5
     },
     {
       "name": "Tolyatti 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvtogliatti24.ru/",
       "priority": 5
     },
     {
       "name": "Tonus",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tonustv.ru/",
       "priority": 5
     },
     {
       "name": "Trash",
-      "isFree": true,
+      "isFree": null,
       "website": "https://trashtv.ru/",
       "priority": 5
     },
     {
       "name": "Travel+Adventure",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tplusa.ru/",
       "priority": 5
     },
     {
       "name": "Trikolor Infokanal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/infokanal/",
       "priority": 5
     },
     {
       "name": "TRV Muji",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.trv-muji.ru/",
       "priority": 5
     },
     {
       "name": "Tsentr Krasnoyarsk",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tck.tv/",
       "priority": 5
     },
     {
       "name": "Tugan Tel",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tugantel.tv/",
       "priority": 5
     },
     {
       "name": "TV 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv3.ru/",
       "priority": 5
     },
@@ -2003,390 +2004,390 @@
     },
     {
       "name": "TV 4",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tv4 -russkoe -kino",
       "website": "https://vokka.online",
       "priority": 5
     },
     {
       "name": "TV Centr",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tv centr -international",
       "website": "http://www.tvc.ru/",
       "priority": 5
     },
     {
       "name": "TV Centr International",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tvc.ru/",
       "priority": 5
     },
     {
       "name": "TV Extra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvextra.ru/",
       "priority": 5
     },
     {
       "name": "TV Guberniya",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tv-gubernia.ru/",
       "priority": 5
     },
     {
       "name": "TVK",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tvknews.ru/",
       "priority": 5
     },
     {
       "name": "Tvoe",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Tvoye TV Yumor",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vk.com/tvoetvhd",
       "priority": 5
     },
     {
       "name": "TVR 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvr24.tv/",
       "priority": 5
     },
     {
       "name": "TVS",
-      "isFree": true,
+      "isFree": null,
       "website": "https://web.archive.org/web/20030617221450/http://www.tvs.tv/",
       "priority": 5
     },
     {
       "name": "TV Sale",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TVTUR",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.planeta-online.tv/channels/2/live.html",
       "priority": 5
     },
     {
       "name": "Tyumenskoe Vremya",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tyumen-time.ru/",
       "priority": 5
     },
     {
       "name": "Uchaly",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vk.link/uchalytv",
       "priority": 5
     },
     {
       "name": "Udmurtiya",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.myudm.ru/",
       "priority": 5
     },
     {
       "name": "Ugra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ugra-tv.ru/",
       "priority": 5
     },
     {
       "name": "Unikum",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vk.com/unicum_tv",
       "priority": 5
     },
     {
       "name": "Unknown Russia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ntv.ru/air/unknown_russia/",
       "priority": 5
     },
     {
       "name": "Ural 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://xn---24-5cd9c2au.xn--p1ai/",
       "priority": 5
     },
     {
       "name": "Usadba",
-      "isFree": true,
+      "isFree": null,
       "website": "http://usadba.tv/",
       "priority": 5
     },
     {
       "name": "Uspeh",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.uspeh-tv.ru/",
       "priority": 5
     },
     {
       "name": "Vechernyaya Moskva",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vm.ru/",
       "priority": 5
     },
     {
       "name": "Vestnik Nadyma",
-      "isFree": true,
+      "isFree": null,
       "website": "http://trknadym.ru/",
       "priority": 5
     },
     {
       "name": "Vetta 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.vetta.tv/",
       "priority": 5
     },
     {
       "name": "viju+ Comedy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://viju.ru/telekanaly/vijuplus-comedy/",
       "priority": 5
     },
     {
       "name": "Vkusnoe",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Vmeste RF",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vmeste-rf.tv/",
       "priority": 5
     },
     {
       "name": "V mire zhivotnykh",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.animalfamily.tv/",
       "priority": 5
     },
     {
       "name": "Volga",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.volga-tv.ru/",
       "priority": 5
     },
     {
       "name": "Volgograd",
-      "isFree": true,
+      "isFree": null,
       "website": "https://volgograd1.tv/",
       "priority": 5
     },
     {
       "name": "Volgograd 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://volgograd24.tv/",
       "priority": 5
     },
     {
       "name": "Voprosy i Otvety",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tv-stream.ru/channels",
       "priority": 5
     },
     {
       "name": "Vostok 24",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Vostok",
-      "isFree": true,
+      "isFree": null,
       "website": "http://vostok.tv/",
       "priority": 5
     },
     {
       "name": "Vremya",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.vremya.tv/",
       "priority": 5
     },
     {
       "name": "World Fashion",
-      "isFree": true,
+      "isFree": null,
       "keywords": "world fashion channel -international",
       "website": "https://wfc.tv/ru",
       "priority": 5
     },
     {
       "name": "World Fashion Channel International",
-      "isFree": true,
+      "isFree": null,
       "website": "https://wfc.tv/en",
       "priority": 5
     },
     {
       "name": "Yakutiya 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://yk24.ru/",
       "priority": 5
     },
     {
       "name": "Yamal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://yamal-media.ru/air",
       "priority": 5
     },
     {
       "name": "YaPervyy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://1yar.tv/",
       "priority": 5
     },
     {
       "name": "YaTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://yamaltime.ru/",
       "priority": 5
     },
     {
       "name": "Yurgan",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.xn--80af5aj3e.xn--p1ai/",
       "priority": 5
     },
     {
       "name": "YuTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.utv21.ru/",
       "priority": 5
     },
     {
       "name": "Zagorodnaya Zhizn",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.zagorod-tv.ru/",
       "priority": 5
     },
     {
       "name": "Zagorodnyy",
-      "isFree": true,
+      "isFree": null,
       "keywords": "zagorodnyy -int",
       "website": "https://zagorodny.tv/",
       "priority": 5
     },
     {
       "name": "Zagorodnyy Int",
-      "isFree": true,
+      "isFree": null,
       "website": "https://zagorodny.tv/",
       "priority": 5
     },
     {
       "name": "Zal suda",
-      "isFree": true,
+      "isFree": null,
       "website": "https://zalsuda.ru/",
       "priority": 5
     },
     {
       "name": "Zapad 24",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Za!",
-      "isFree": true,
+      "isFree": null,
       "website": "https://zatvmedia.netlify.app/zatv.html",
       "priority": 5
     },
     {
       "name": "Zdorove",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tonustv.ru/",
       "priority": 5
     },
     {
       "name": "Zdorovoe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://zdorovoetv.ru/",
       "priority": 5
     },
     {
       "name": "Zhivaya Planeta",
-      "isFree": true,
+      "isFree": null,
       "website": "https://moya-planeta.ru/tv?channel=live-planet",
       "priority": 5
     },
     {
       "name": "Zhivaya priroda",
-      "isFree": true,
+      "isFree": null,
       "website": "https://xn--80aaejhmc2chkb0p.xn--p1acf/",
       "priority": 5
     },
     {
       "name": "Zhivi!",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.jv.ru/",
       "priority": 5
     },
     {
       "name": "Zoopark",
-      "isFree": true,
+      "isFree": null,
       "website": "http://telekanalzoopark.ru/",
       "priority": 5
     },
     {
       "name": "Zoo",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.telezoo.tv/",
       "priority": 5
     },
     {
       "name": "Zvezda",
-      "isFree": true,
+      "isFree": null,
       "keywords": "zvezda -plus",
       "website": "https://tvzvezda.ru/",
       "priority": 5
     },
     {
       "name": "Zvezda Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvzvezda.ru/sp/zvezda-plus/",
       "priority": 5
     },
     {
       "name": "Match",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Russia 24",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Carousel",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Tsentr",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TVCI",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Gazprom Media",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RT",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RTD",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -2396,7 +2397,7 @@
     },
     {
       "name": "CTC",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -2406,172 +2407,172 @@
     },
     {
       "name": "RBC",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Gulli Girl",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Tiji Russia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BRIDGE",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Viju TV1000",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Viju TV1000 Action",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Viju History",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Viju Explore",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ru",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "O2TV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "A One",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Кино UHD",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Cinema",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "KinoJam 1",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "KinoJam 2",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "1HD Music TV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Okko Sport",
-      "isFree": true,
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "СТС Kids",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sony Sci Fi",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "VH1 Europe",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Viasat Sport",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Fashion TV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DocuBox",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Epic Drama",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Luxury",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Luxury World",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TraceUrban",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Fast & FunBox",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "M1 Global",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RU TV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "World Fashion Channel",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Fashion One",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "FightBox",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "А1",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -2586,27 +2587,27 @@
     },
     {
       "name": "RT Español",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RT Arab",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Bridge TV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Amedia Hit",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "C Music TV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -2616,84 +2617,119 @@
     },
     {
       "name": "Discovery Channel",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
     },
     {
-      "name": "Bridge TV Русский Хит",
-      "isFree": true,
-      "priority": 5
-    },
-    {
       "name": "Viasat Nature",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "А2",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ТНТ Music",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ю",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Viasat Kino World",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Viasat Kino Action",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Viasat Kino",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Viasat Kino Megahit",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "TV1000",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV1000 Action",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "Travel + Adventure",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "A2",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Shot TV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Arirang",
       "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KBS World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AXN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "tvN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "BBC Earth",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Lifetime",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Crime & Investigation",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central",
+      "isFree": false,
       "priority": 5
     }
   ],
   "News": [
     {
       "name": "Atameken Business",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -2703,407 +2739,457 @@
     },
     {
       "name": "360° News",
-      "isFree": true,
+      "isFree": null,
       "website": "https://360tv.ru/",
       "priority": 5
     },
     {
       "name": "Astrahan 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://cdn.astrakhan-24.ru/",
       "priority": 5
     },
     {
       "name": "Crimea 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://crimea24tv.ru/",
       "priority": 5
     },
     {
       "name": "Dimgrad 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://dimgrad24.ru/tv",
       "priority": 5
     },
     {
       "name": "Don 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://don24.ru/tv/",
       "priority": 5
     },
     {
       "name": "Evronovosti",
-      "isFree": true,
+      "isFree": null,
       "website": "https://evronovosti-tv.ru/",
       "priority": 5
     },
     {
       "name": "Govorit Moskva",
-      "isFree": true,
+      "isFree": null,
       "website": "https://govoritmoskva.ru/",
       "priority": 5
     },
     {
       "name": "Izvestia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://iz.ru/",
       "priority": 5
     },
     {
       "name": "Katun 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://katun24.ru/",
       "priority": 5
     },
     {
       "name": "Krik",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.ricekb.ru/",
       "priority": 5
     },
     {
       "name": "Kuzbass 24",
-      "isFree": true,
+      "isFree": null,
       "website": "http://ctc-kuzbass.ru/k24-online",
       "priority": 5
     },
     {
       "name": "Legendarnyy 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://crimea24tv.ru/broadcasting/",
       "priority": 5
     },
     {
       "name": "Life",
-      "isFree": true,
+      "isFree": null,
       "website": "https://life.ru/",
       "priority": 5
     },
     {
       "name": "Mezhdu",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mezhdu.net/",
       "priority": 5
     },
     {
       "name": "Millet",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.trkmillet.ru/",
       "priority": 5
     },
     {
       "name": "Mir 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mir24.tv/",
       "priority": 5
     },
     {
       "name": "NNTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nntv.tv/",
       "priority": 5
     },
     {
       "name": "Novorossiya",
-      "isFree": true,
+      "isFree": null,
       "website": "https://novorossia-tv.ru/",
       "priority": 5
     },
     {
       "name": "Noyabrsk 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://noyabrsk24.ru/",
       "priority": 5
     },
     {
       "name": "Oplot",
-      "isFree": true,
+      "isFree": null,
       "website": "https://oplottv.ru/",
       "priority": 5
     },
     {
       "name": "Pervyy Respublikanskiy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://republic-tv.ru/",
       "priority": 5
     },
     {
       "name": "Pro Business",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.probusinesstv.ru/",
       "priority": 5
     },
     {
       "name": "RBK",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.rbc.ru/",
       "priority": 5
     },
     {
       "name": "RT Arabic",
-      "isFree": true,
+      "isFree": null,
       "website": "https://arabic.rt.com/",
       "priority": 5
     },
     {
       "name": "RT en Espanol",
-      "isFree": true,
+      "isFree": null,
       "website": "https://actualidad.rt.com/",
       "priority": 5
     },
     {
       "name": "STV 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sevtrk.ru/projects/stv24/",
       "priority": 5
     },
     {
       "name": "Tolk",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tolknews.ru/",
       "priority": 5
     },
     {
       "name": "Vesti FM",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vgtrk.ru/radiovesti",
       "priority": 5
     },
     {
       "name": "World Business",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.wbc.com.ru/",
+      "priority": 5
+    },
+    {
+      "name": "France 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DW",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NHK World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CGTN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CCTV-4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABC Australia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNBC",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "TV5 Monde",
+      "isFree": true,
       "priority": 5
     }
   ],
   "Kids": [
     {
       "name": "Baby",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "FAN",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Gravity Fouls",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "JimJam Россия",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Kinder",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Radost Moya",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ani",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ani.tlum.ru/",
       "priority": 5
     },
     {
       "name": "Baby Time",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bridgetv.ru/brands/baby_time/",
       "priority": 5
     },
     {
       "name": "Boomerang",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.boomerangtv.ru/",
       "priority": 5
     },
     {
       "name": "Carousel International",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.karusel-tv.ru/",
       "priority": 5
     },
     {
       "name": "Chizhik",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/chizhik/",
       "priority": 5
     },
     {
       "name": "Detski mir",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.detskiymir.tv/",
       "priority": 5
     },
     {
       "name": "Disney",
-      "isFree": true,
+      "isFree": false,
       "website": "https://kanal.disney.ru/",
       "priority": 5
     },
     {
       "name": "IPTVPLAY MultSkazki",
-      "isFree": true,
+      "isFree": null,
       "website": "https://catcast.tv/%D0%BC%D1%83%D0%BB%D1%8C%D1%82%D1%81%D0%BA%D0%B0%D0%B7%D0%BA%D0%B8",
       "priority": 5
     },
     {
       "name": "Joy Cook",
-      "isFree": true,
+      "isFree": null,
       "website": "https://hdmedia.ru/",
       "priority": 5
     },
     {
       "name": "Kapitan Fantastika",
-      "isFree": true,
+      "isFree": null,
       "website": "http://kapitanfan.ru/",
       "priority": 5
     },
     {
       "name": "Karapuz",
-      "isFree": true,
+      "isFree": null,
       "website": "https://karapuztv.ru/",
       "priority": 5
     },
     {
       "name": "Leva",
-      "isFree": true,
+      "isFree": null,
       "website": "http://leva.tv/",
       "priority": 5
     },
     {
       "name": "Lyubimoe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.planeta-online.tv/channels/6/live.html",
       "priority": 5
     },
     {
       "name": "Mama",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mama.tlum.ru/",
       "priority": 5
     },
     {
       "name": "Mult",
-      "isFree": true,
+      "isFree": null,
       "keywords": "mult -i -muzyka",
       "website": "http://mult-channel.ru/",
       "priority": 5
     },
     {
       "name": "Multik",
-      "isFree": true,
+      "isFree": null,
       "website": "http://multikhd.tv/",
       "priority": 5
     },
     {
       "name": "Multilandia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://multilandia.tv/",
       "priority": 5
     },
     {
       "name": "Multimania",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.multimania.lv",
       "priority": 5
     },
     {
       "name": "Mult i muzyka",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mult-music.tlum.ru/",
       "priority": 5
     },
     {
       "name": "Nickelodeon",
-      "isFree": true,
+      "isFree": false,
       "website": "https://nickelodeon.ru/",
       "priority": 5
     },
     {
       "name": "Nick Jr",
-      "isFree": true,
+      "isFree": false,
       "website": "https://jr.nickelodeon.ru/",
       "priority": 5
     },
     {
       "name": "Nicktoons",
-      "isFree": true,
+      "isFree": false,
       "keywords": "nicktoons -cis",
       "website": "http://www.nickelodeon.ru/",
       "priority": 5
     },
     {
       "name": "Nicktoons CIS",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nickelodeon.ru/",
       "priority": 5
     },
     {
       "name": "O!",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kanal-o.ru/",
       "priority": 5
     },
     {
       "name": "Pingvin",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.lolotv.lv/",
       "priority": 5
     },
     {
       "name": "Ryzhiy",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.ryzhiy.tv/",
       "priority": 5
     },
     {
       "name": "Skazki zayki",
-      "isFree": true,
+      "isFree": null,
       "website": "https://skazki-zayki.com/",
       "priority": 5
     },
     {
       "name": "Smile",
-      "isFree": true,
+      "isFree": null,
       "website": "https://smile-tv.org/",
       "priority": 5
     },
     {
       "name": "Solnce",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sun-tv.ru/",
       "priority": 5
     },
     {
       "name": "Sovetskie multfilmi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://hdmedia.ru/",
       "priority": 5
     },
     {
       "name": "STS kids",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ctckids.ru/",
       "priority": 5
     },
     {
       "name": "SuperGeroi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://supergeroi-tv.ru/",
       "priority": 5
     },
     {
       "name": "Tamyr",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bash.news/tamir",
       "priority": 5
     },
@@ -3115,38 +3201,53 @@
     },
     {
       "name": "TiJi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tiji.ru/",
       "priority": 5
     },
     {
       "name": "TipTop",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/tiptop/",
       "priority": 5
     },
     {
       "name": "TLUM",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tlum.ru/",
       "priority": 5
     },
     {
       "name": "Ulibka Rebyonka",
-      "isFree": true,
+      "isFree": null,
       "website": "http://smiletv.org/",
       "priority": 5
     },
     {
       "name": "VF Cartoon 18+",
-      "isFree": true,
+      "isFree": false,
       "website": "https://ilook.tv/",
       "priority": 5
     },
     {
       "name": "V gostyakh u skazki",
-      "isFree": true,
+      "isFree": null,
       "website": "https://skazka-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "CBeebies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Baby TV",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Disney Channel",
+      "isFree": false,
       "priority": 5
     }
   ],
@@ -3159,7 +3260,8 @@
     {
       "name": "Leomax Plus",
       "isFree": true,
-      "priority": 4
+      "priority": 4,
+      "website": "https://www.leomax.ru/"
     },
     {
       "name": "Shopping Live",
@@ -3176,12 +3278,6 @@
       "name": "JWL",
       "isFree": true,
       "website": "https://jwl.shop/online/",
-      "priority": 4
-    },
-    {
-      "name": "Leomax+",
-      "isFree": true,
-      "website": "https://www.leomax.ru/",
       "priority": 4
     },
     {
@@ -3273,54 +3369,55 @@
   "Comedy": [
     {
       "name": "ViP Comedy Russia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
   "Sports": [
     {
       "name": "Охотник и рыболов International",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Boks",
-      "isFree": true,
+      "isFree": null,
       "website": "http://boxingtv.ru/",
       "priority": 5
     },
     {
       "name": "E",
-      "isFree": true,
+      "isFree": null,
       "website": "http://etv-media.ru/",
       "priority": 5
     },
     {
       "name": "Eurosport Gold",
-      "isFree": true,
+      "isFree": false,
       "website": "http://gold.eurosport.ru/",
       "priority": 10
     },
     {
       "name": "Extreme Sports",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.extreme.com/ru/",
       "priority": 10
     },
     {
       "name": "Fast&FunBox",
-      "isFree": true,
+      "isFree": null,
       "website": "https://spiintl.com/channels/fastandfunbox",
       "priority": 5
     },
     {
       "name": "Football",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.football-tv.ru/",
       "priority": 5
     },
     {
       "name": "Futbolnyy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/futbolnyy-hd/",
       "priority": 5
     },
@@ -3339,190 +3436,200 @@
     },
     {
       "name": "Khokkeynyy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/khokkeynyy-hd/",
       "priority": 5
     },
     {
       "name": "Match!",
-      "isFree": true,
+      "isFree": null,
       "keywords": "match -arena -boets -futbol -1 -2 -3 -igra -planeta -premier -strana",
       "website": "https://matchtv.ru/channel/matchtv",
       "priority": 5
     },
     {
       "name": "Match! Arena",
-      "isFree": true,
+      "isFree": null,
       "website": "https://matchtv.ru/channel/arena",
       "priority": 5
     },
     {
       "name": "Match! Boets",
-      "isFree": true,
+      "isFree": null,
       "website": "https://matchtv.ru/channel/boec",
       "priority": 5
     },
     {
       "name": "Match! Futbol",
-      "isFree": true,
+      "isFree": null,
       "website": "https://matchtv.ru/channel/futbol-1",
       "priority": 5
     },
     {
       "name": "Match! Futbol 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://matchtv.ru/channel/futbol-2",
       "priority": 5
     },
     {
       "name": "Match! Futbol 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://matchtv.ru/channel/futbol-3",
       "priority": 5
     },
     {
       "name": "Match! Igra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://matchtv.ru/channel/igra",
       "priority": 5
     },
     {
       "name": "Match! Planeta",
-      "isFree": true,
+      "isFree": null,
       "website": "https://matchtv.ru/",
       "priority": 5
     },
     {
       "name": "Match! Premier",
-      "isFree": true,
+      "isFree": null,
       "website": "https://matchpremier.ru/",
       "priority": 5
     },
     {
       "name": "Match! Strana",
-      "isFree": true,
+      "isFree": null,
       "website": "https://matchtv.ru/channel/strana",
       "priority": 5
     },
     {
       "name": "Mir Basketbola",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ntvplus.ru/channel/mir-basketbola-486",
       "priority": 5
     },
     {
       "name": "MMA",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mma-tv.com/",
       "priority": 5
     },
     {
       "name": "Motorsport",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ru.motorsport.tv/",
       "priority": 10
     },
     {
       "name": "Russian Extreme",
-      "isFree": true,
+      "isFree": null,
       "keywords": "russian extreme -retro -ultra",
       "website": "https://www.extremtv.ru/",
       "priority": 5
     },
     {
       "name": "Russian Extreme Retro",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.extremtv.ru/",
       "priority": 5
     },
     {
       "name": "Russian Extreme Ultra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.extremtv.ru/russian-extreme-ultra/",
       "priority": 5
     },
     {
       "name": "Setanta Sports",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.setantaeurasia.com/ru/",
       "priority": 10
     },
     {
       "name": "Setanta Sports 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.setantaeurasia.com/ru/",
       "priority": 10
     },
     {
       "name": "Sila",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.ru/channels/sila-hd-1322/",
       "priority": 5
     },
     {
       "name": "Sportivnyy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/sportivnyy-hd/",
       "priority": 10
     },
     {
       "name": "Start",
-      "isFree": true,
+      "isFree": null,
       "keywords": "start -triumf",
       "website": "https://tvstart.ru/",
       "priority": 5
     },
     {
       "name": "Start Triumf",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "viju+ Sport",
-      "isFree": true,
+      "isFree": null,
       "website": "https://viju.ru/telekanaly/vijuplus-sport/",
       "priority": 10
     },
     {
       "name": "Vital Basketball",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vslive.pw/",
       "priority": 5
     },
     {
       "name": "Vital Drive",
-      "isFree": true,
+      "isFree": null,
       "website": "https://a21network.ru/",
       "priority": 5
     },
     {
       "name": "Vital Football",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vslive.pw/",
       "priority": 5
     },
     {
       "name": "Vital Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vslive.pw/",
       "priority": 5
     },
     {
       "name": "Vital Snooker",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vslive.pw/",
       "priority": 5
     },
     {
       "name": "Vital Sport",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vslive.pw/",
       "priority": 10
     },
     {
       "name": "Vital Tennis",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vslive.pw/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Sports",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "SPOTV",
+      "isFree": false,
       "priority": 5
     }
   ],
@@ -3601,7 +3708,7 @@
     },
     {
       "name": "National Geographic",
-      "isFree": true,
+      "isFree": false,
       "keywords": "national geographic -wild -russia",
       "priority": 7
     },
@@ -3618,7 +3725,7 @@
     },
     {
       "name": "Viasat History Russia",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
     },
     {
@@ -3629,7 +3736,7 @@
     },
     {
       "name": "Animal Planet",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.animalplanet.com/",
       "priority": 5
     },
@@ -3652,7 +3759,7 @@
     },
     {
       "name": "CuriosityStream",
-      "isFree": true,
+      "isFree": false,
       "website": "https://kion.ru/tv/channel/691736141",
       "priority": 5
     },
@@ -3682,20 +3789,20 @@
     },
     {
       "name": "History",
-      "isFree": true,
+      "isFree": false,
       "keywords": "history -2",
       "website": "https://www.mediabg.ru/history-channel",
       "priority": 7
     },
     {
       "name": "History 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://mediabg.tilda.ws/history-2-channel",
       "priority": 7
     },
     {
       "name": "Investigation Discovery",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.investigationdiscovery.com/",
       "priority": 7
     },
@@ -3749,7 +3856,7 @@
     },
     {
       "name": "National Geographic Wild",
-      "isFree": true,
+      "isFree": false,
       "keywords": "national geographic wild -russia",
       "website": "http://natgeotv.com/ru/wild",
       "priority": 7
@@ -3824,314 +3931,314 @@
   "Music Videos": [
     {
       "name": "1HD Music Television",
-      "isFree": true,
+      "isFree": null,
       "shortName": "1MT",
       "priority": 5
     },
     {
       "name": "Eurodance 90",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "FreshTV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Metal",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "VIVA Russia",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "15+ Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://15plusmg.ru",
       "priority": 5
     },
     {
       "name": "AIVA",
-      "isFree": true,
+      "isFree": null,
       "website": "https://aiva.live/",
       "priority": 5
     },
     {
       "name": "BackusTV Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://backustv.ru/music",
       "priority": 5
     },
     {
       "name": "BRIDGE Deluxe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bridgetv.ru/brands/bridgehd/",
       "priority": 5
     },
     {
       "name": "BRIDGE Fresh",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bridgetv.ru/brands/bridge_fresh/",
       "priority": 5
     },
     {
       "name": "BRIDGE Hits",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bridgetv.ru/brands/bridgetv_dance/",
       "priority": 5
     },
     {
       "name": "BRIDGE Rock",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BRIDGE Russian Hit",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bridgetv.ru/brands/rusongtv/",
       "priority": 5
     },
     {
       "name": "BRIDGE Schlager",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bridgetv.ru/brands/bridgetv_sh/",
       "priority": 5
     },
     {
       "name": "Bridge TV Qazaqstan",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bridgetv.ru/brands/bridgekz",
       "priority": 5
     },
     {
       "name": "City Eden Birma Play",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden Classic Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden Meditation Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden Play",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden Sirtaki",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "Classic Music",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DanceHits 80",
-      "isFree": true,
+      "isFree": null,
       "website": "http://denvs.ru",
       "priority": 5
     },
     {
       "name": "Europa Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://europaplustv.com/",
       "priority": 5
     },
     {
       "name": "Groovezzo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://taurer.org/en/projects/",
       "priority": 5
     },
     {
       "name": "HITV",
-      "isFree": true,
+      "isFree": null,
       "website": "http://hittv.ru",
       "priority": 5
     },
     {
       "name": "La Minor",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mymusictv.ru/",
       "priority": 5
     },
     {
       "name": "Live Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://livemus.omnimedia.su/",
       "priority": 5
     },
     {
       "name": "Maidan",
-      "isFree": true,
+      "isFree": null,
       "website": "https://maidan.tv/",
       "priority": 5
     },
     {
       "name": "Matur",
-      "isFree": true,
+      "isFree": null,
       "website": "https://matur-tv.ru/",
       "priority": 5
     },
     {
       "name": "MCM Top",
-      "isFree": true,
+      "isFree": null,
       "website": "https://universaltv.ru/channel/MCM-TOP",
       "priority": 5
     },
     {
       "name": "MTVmix",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mtvmix.ru/",
       "priority": 5
     },
     {
       "name": "MusicBox Gold",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mboxtv.ru/",
       "priority": 5
     },
     {
       "name": "Muz Soyuz",
-      "isFree": true,
+      "isFree": null,
       "website": "https://muz.tv-soyuz.ru/",
       "priority": 5
     },
     {
       "name": "Muz",
-      "isFree": true,
+      "isFree": null,
       "website": "https://muz-tv.ru/",
       "priority": 5
     },
     {
       "name": "Muzyka",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Muzyka 2",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Muzyka Kino",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Muzyka Pervogo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.muz1.tv/",
       "priority": 5
     },
     {
       "name": "Novoe Radio",
-      "isFree": true,
+      "isFree": null,
       "website": "https://newradio.ru/",
       "priority": 5
     },
     {
       "name": "Radio Hit",
-      "isFree": true,
+      "isFree": null,
       "website": "http://smotri.radio/",
       "priority": 5
     },
     {
       "name": "Radio Shanson",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ritsa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ritsatv.ru/movie/id900777-ritsa-tv",
       "priority": 5
     },
     {
       "name": "Russian MusicBox",
-      "isFree": true,
+      "isFree": null,
       "website": "https://musicboxtv.ru/",
       "priority": 5
     },
     {
       "name": "Shanson",
-      "isFree": true,
+      "isFree": null,
       "website": "https://shanson.tv/",
       "priority": 5
     },
     {
       "name": "Shant Music",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "SONGTV Russia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://songtv.ru/",
       "priority": 5
     },
     {
       "name": "Strana FM",
-      "isFree": true,
+      "isFree": null,
       "website": "https://strana.fm/",
       "priority": 5
     },
     {
       "name": "TMTV",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tmtv.tatar/",
       "priority": 5
     },
     {
       "name": "TNT Music",
-      "isFree": true,
+      "isFree": false,
       "website": "https://tntmusic.ru/",
       "priority": 5
     },
     {
       "name": "VH",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Zhara",
-      "isFree": true,
+      "isFree": null,
       "keywords": "zhara -kids -tv",
       "website": "https://zhara.tv/",
       "priority": 5
     },
     {
       "name": "Zhara Kids",
-      "isFree": true,
+      "isFree": null,
       "website": "https://zhara.tv/kids",
       "priority": 5
     },
     {
       "name": "Zhar Ptitsa",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.zhar-ptica.tv/",
       "priority": 5
     },
     {
       "name": "Nashe",
-      "isFree": true,
+      "isFree": null,
       "keywords": "nashe -krutoe -lubimoe -kino -muzhskoe -novoe",
       "website": "https://www.tricolor.tv/channels/nashe/",
       "priority": 5
@@ -4140,467 +4247,479 @@
   "Movies & Series": [
     {
       "name": "A",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "A 2",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Backus",
+      "isFree": null,
       "keywords": "backus tv -страшное",
       "priority": 5
     },
     {
       "name": "Backus TV Страшное",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "FOX Life Russia",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "FOX Russia",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Millenium",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Shot",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV1000 Action Russia",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV1000 Russia",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "VIP Megahit Russia",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "VIP Serial Russia",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Akudji",
-      "isFree": true,
+      "isFree": null,
       "website": "http://akudji.ru/",
       "priority": 5
     },
     {
       "name": "Amedia Premium",
-      "isFree": true,
+      "isFree": null,
       "website": "http://amediatv.ru/amedia-premium/",
       "priority": 5
     },
     {
       "name": "AXN Sci Fi",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "BackusTV Dark",
-      "isFree": true,
+      "isFree": null,
       "website": "https://backustv.ru/dark",
       "priority": 5
     },
     {
       "name": "BackusTV Original",
-      "isFree": true,
+      "isFree": null,
       "website": "https://backustv.ru/",
       "priority": 5
     },
     {
       "name": "Blokbaster",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/blokbaster/",
       "priority": 5
     },
     {
       "name": "Bollywood",
-      "isFree": true,
+      "isFree": null,
       "keywords": "bollywood",
       "priority": 5
     },
     {
       "name": "Bolt",
-      "isFree": true,
+      "isFree": null,
       "website": "http://bolt.starmediatv.ru/",
       "priority": 5
     },
     {
       "name": "BRIDGE Classic",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bridgetv.ru/brands/bridgetv_classic/",
       "priority": 5
     },
     {
       "name": "Channel 43",
-      "isFree": true,
+      "isFree": null,
       "website": "http://sochinskayatrk.ru/ru/menu-part-43kanal",
       "priority": 5
     },
     {
       "name": "City Eden KinoAction",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden KinoArt",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden KinoAsia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden KinoDetektiv",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden KinoDrama",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden KinoFantastika",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden KinoKlassika",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden KinoKomediya",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden KinoMistika",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden KinoSemya",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "City Eden TeleNovella",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cityeden.info/",
       "priority": 5
     },
     {
       "name": "Detskoe kino",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Dom kino",
-      "isFree": true,
+      "isFree": null,
       "keywords": "dom kino -premium",
       "website": "http://www.domkino.tv/",
       "priority": 5
     },
     {
       "name": "Dom kino Premium",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.domkino-premium.tv/",
       "priority": 5
     },
     {
       "name": "Dorama",
-      "isFree": true,
+      "isFree": null,
       "website": "https://dorama-tv.com/",
       "priority": 5
     },
     {
       "name": "Evrokino",
-      "isFree": true,
+      "isFree": null,
       "website": "http://eurokino.tv/",
       "priority": 5
     },
     {
       "name": "Feniks plus Kino",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.fenixplus.tv/",
       "priority": 5
     },
     {
       "name": "FlixSnip",
-      "isFree": true,
+      "isFree": null,
       "website": "https://flixsnip.com/",
       "priority": 5
     },
     {
       "name": "FOX Life",
-      "isFree": true,
+      "isFree": false,
       "keywords": "fox life -russia",
       "website": "http://www.foxlifetv.ru/",
       "priority": 5
     },
     {
       "name": "Hit",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/khit/",
       "priority": 5
     },
     {
       "name": "Hollywood",
-      "isFree": true,
+      "isFree": null,
       "website": "https://universaltv.ru/channel/Hollywood",
       "priority": 5
     },
     {
       "name": "Horoshee Kino",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.xokino.tv/",
       "priority": 5
     },
     {
       "name": "Illusion+",
-      "isFree": true,
+      "isFree": null,
       "website": "http://illusionplus.tv/",
       "priority": 5
     },
     {
       "name": "Indiyskoye Kino",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nastroykino.ru/indijskoe-kino/",
       "priority": 5
     },
     {
       "name": "IPTVPLAY Fiction",
-      "isFree": true,
+      "isFree": null,
       "website": "https://catcast.tv/%D1%84%D0%B0%D0%BD%D1%82%D0%B0%D1%81%D1%82%D0%B8%D0%BA%D0%B0%20sci-fi",
       "priority": 5
     },
     {
       "name": "IPTVPLAY Horror",
-      "isFree": true,
+      "isFree": null,
       "website": "https://catcast.tv/%D1%83%D0%B6%D0%B0%D1%81%D1%82%D0%B8%D0%BA",
       "priority": 5
     },
     {
       "name": "IPTVPLAY Memory",
-      "isFree": true,
+      "isFree": null,
       "website": "https://catcast.tv/%D0%BF%D0%B0%D0%BC%D1%8F%D1%82%D1%8C",
       "priority": 5
     },
     {
       "name": "Kineko",
-      "isFree": true,
+      "isFree": null,
       "website": "http://kineko.tv/",
       "priority": 5
     },
     {
       "name": "Kino",
-      "isFree": true,
+      "isFree": null,
       "keywords": "kino 1 -international",
       "priority": 5
     },
     {
       "name": "Kino 18+",
-      "isFree": null,
+      "isFree": false,
       "keywords": "kino 18plus -international",
       "website": "https://catcast.tv/tvikseltv_kino18",
       "priority": 5
     },
     {
       "name": "Kino 18+ International",
-      "isFree": null,
+      "isFree": false,
       "website": "https://catcast.tv/%D0%BA%D0%B8%D0%BD%D0%BE-18international",
       "priority": 5
     },
     {
       "name": "Kino 1 International",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kino 2",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kino 24",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.teledistribution.ru",
       "priority": 5
     },
     {
       "name": "KinoHit",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nastroykino.ru/kinohit/",
       "priority": 5
     },
     {
       "name": "KinoJam",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kinoliving",
-      "isFree": true,
+      "isFree": null,
       "website": "https://timemediagroup.ru/telekanal/kinoliving.html",
       "priority": 5
     },
     {
       "name": "Kinoman",
-      "isFree": true,
+      "isFree": null,
       "website": "https://contact-agency.ru/channels/kinoman/",
       "priority": 5
     },
     {
       "name": "Kinomix",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nastroykino.ru/kinomiks/",
       "priority": 5
     },
     {
       "name": "Kinopokaz",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.kinopokaz.tv/",
       "priority": 5
     },
     {
       "name": "Kinopremyera",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nastroykino.ru/kinopremyera/",
       "priority": 5
     },
     {
       "name": "KinoSat",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kinosemja",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nastroykino.ru/kinosemja/",
       "priority": 5
     },
     {
       "name": "Kinoseriya",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nastroykino.ru/kinoserija/",
       "priority": 5
     },
     {
       "name": "KinoSezon",
-      "isFree": true,
+      "isFree": null,
       "website": "https://hdmedia.ru/",
       "priority": 5
     },
     {
       "name": "Kinosvidanie",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nastroykino.ru/kinosvidanie/",
       "priority": 5
     },
     {
       "name": "Kino UHD",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/kino-uhd/",
       "priority": 5
     },
     {
       "name": "Kinouzhas",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nastroykino.ru/kinouzhas/",
       "priority": 5
     },
     {
       "name": "Kinozal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channelpackages/servisy/kinozaly/",
       "priority": 5
     },
     {
       "name": "Kinozal 10",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channelpackages/servisy/kinozaly/",
       "priority": 5
     },
     {
       "name": "Kinozal 11",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channelpackages/servisy/kinozaly/",
       "priority": 5
     },
     {
       "name": "Kinozal 12",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channelpackages/servisy/kinozaly/",
       "priority": 5
     },
     {
       "name": "Kinozal 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channelpackages/servisy/kinozaly/",
       "priority": 5
     },
     {
       "name": "Kinozal 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channelpackages/servisy/kinozaly/",
       "priority": 5
     },
     {
       "name": "Kinozal 4",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channelpackages/servisy/kinozaly/",
       "priority": 5
     },
     {
       "name": "Kinozal 5",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channelpackages/servisy/kinozaly/",
       "priority": 5
     },
     {
       "name": "Kinozal 6",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channelpackages/servisy/kinozaly/",
       "priority": 5
     },
     {
       "name": "Kinozal 7",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channelpackages/servisy/kinozaly/",
       "priority": 5
     },
     {
       "name": "Kinozal 8",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channelpackages/servisy/kinozaly/",
       "priority": 5
     },
     {
       "name": "Kinozal 9",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channelpackages/servisy/kinozaly/",
       "priority": 5
     },
@@ -4612,324 +4731,324 @@
     },
     {
       "name": "Lyubimoe Indijskoe Kino",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Malder Megahit",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Mir Seriala",
-      "isFree": true,
+      "isFree": null,
       "website": "http://mediamart.ru/channels/serials.html",
       "priority": 5
     },
     {
       "name": "Mosfilm Gold Collection",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mosfilmgold.ru/",
       "priority": 5
     },
     {
       "name": "Movie Classic",
-      "isFree": true,
+      "isFree": null,
       "website": "https://hdmedia.ru/about-channels/klassika-kino/",
       "priority": 5
     },
     {
       "name": "Muzhskoe kino",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nastroykino.ru/muzhskoe-kino/",
       "priority": 5
     },
     {
       "name": "Muzhskoy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mans-tv.ru/",
       "priority": 5
     },
     {
       "name": "Nashe krutoe",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Nashe Lubimoe Kino",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rtvi.com/",
       "priority": 5
     },
     {
       "name": "Nashe muzhskoe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/nashe-muzhskoe/",
       "priority": 5
     },
     {
       "name": "Nashe Novoe Kino",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nastroykino.ru/nashe-novoe-kino/",
       "priority": 5
     },
     {
       "name": "Nash Kinopokaz",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/nash-kinopokaz/",
       "priority": 5
     },
     {
       "name": "Nash Kinoroman",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Nostalgia",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.nostalgiatv.ru/",
       "priority": 5
     },
     {
       "name": "Novyi Russkii",
-      "isFree": true,
+      "isFree": null,
       "website": "https://15plusmg.ru",
       "priority": 5
     },
     {
       "name": "NTV Hit",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ntv.ru/air/ntvhit/",
       "priority": 5
     },
     {
       "name": "NTV Series",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ntv.ru/air/ntvseries/",
       "priority": 5
     },
     {
       "name": "O!Kino",
-      "isFree": true,
+      "isFree": null,
       "website": "https://o.kg/ru/chastnym-klientam/uslugi/uslugi/o-tv-i-o-kino/o-kino-2/",
       "priority": 5
     },
     {
       "name": "Ostrosyuzhetnoye",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/ostrosyuzhetnoe-sd/",
       "priority": 5
     },
     {
       "name": "Paramount Channel CIS",
-      "isFree": true,
+      "isFree": null,
       "website": "http://paramountchannel.ru/",
       "priority": 5
     },
     {
       "name": "Patriot",
-      "isFree": true,
+      "isFree": null,
       "website": "https://patriotkanal.ru/",
       "priority": 5
     },
     {
       "name": "Premialnoe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/premialnoe-sd/",
       "priority": 5
     },
     {
       "name": "Pro100TV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.pro100tv.lv/",
       "priority": 5
     },
     {
       "name": "Promo Kino",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.ru/",
       "priority": 5
     },
     {
       "name": "Quadro",
-      "isFree": true,
+      "isFree": null,
       "website": "https://quadro.tv/",
       "priority": 5
     },
     {
       "name": "Retro",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv-stream.ru/tv/retro",
       "priority": 5
     },
     {
       "name": "Rodnoe Kino",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nastroykino.ru/rodnoe-kino/",
       "priority": 5
     },
     {
       "name": "Russkiy Bestseller",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bestrussia.tv/",
       "priority": 5
     },
     {
       "name": "Russkiy Detektiv",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rudetective.tv/",
       "priority": 5
     },
     {
       "name": "Russkiy Illusion",
-      "isFree": true,
+      "isFree": null,
       "website": "http://russkiyillusion.ru/",
       "priority": 5
     },
     {
       "name": "Russkiy roman",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rusroman.ru/",
       "priority": 5
     },
     {
       "name": "Saphire",
-      "isFree": true,
+      "isFree": null,
       "website": "https://saphire.tv/",
       "priority": 5
     },
     {
       "name": "Serial UHD",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/serial-uhd/",
       "priority": 5
     },
     {
       "name": "Shant Serial",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.shanttv.com/ru/serials.html",
       "priority": 5
     },
     {
       "name": "Shokiruyushchee",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/shokiruyushchee/",
       "priority": 5
     },
     {
       "name": "Siesta",
-      "isFree": true,
+      "isFree": null,
       "website": "http://siestatv.ru/",
       "priority": 5
     },
     {
       "name": "Smotrim Chestnyy Detektiv",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sovetskoe Kino",
-      "isFree": true,
+      "isFree": null,
       "website": "https://hdmedia.ru/about-channels/sovetskoe-kino/",
       "priority": 5
     },
     {
       "name": "Spike",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.spike.ru/",
       "priority": 5
     },
     {
       "name": "Star Cinema",
-      "isFree": true,
+      "isFree": false,
       "website": "http://starcinema.starmediatv.ru/",
       "priority": 5
     },
     {
       "name": "Star Family",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "START Air",
-      "isFree": true,
+      "isFree": null,
       "website": "https://starttv.ru/",
       "priority": 5
     },
     {
       "name": "START World",
-      "isFree": true,
+      "isFree": null,
       "website": "https://starttv.ru/",
       "priority": 5
     },
     {
       "name": "STRK",
-      "isFree": true,
+      "isFree": null,
       "website": "http://sochinskayatrk.ru/ru/menu-part-strk",
       "priority": 5
     },
     {
       "name": "Teleclub",
-      "isFree": true,
+      "isFree": null,
       "website": "http://mediamart.ru/channels/teleclub.html",
       "priority": 5
     },
     {
       "name": "Telenovella",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tv-stream.ru/channels",
       "priority": 5
     },
     {
       "name": "True Love",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kion.ru/tv/channel/705121002",
       "priority": 5
     },
     {
       "name": "TV4 Russkoe Kino",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv4.one",
       "priority": 5
     },
     {
       "name": "Ultra HD Cinema",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tricolor.tv/channels/ultra-hd-cinema/",
       "priority": 5
     },
     {
       "name": "VHS ka",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "VHS",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vk.com/vhs_tv_live",
       "priority": 5
     },
     {
       "name": "viju+ Megahit",
-      "isFree": true,
+      "isFree": null,
       "website": "https://viju.ru/telekanaly/vijuplus-megahit/",
       "priority": 5
     },
     {
       "name": "viju+ Premiere",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viju.ru/telekanaly/vijuplus-premiere/",
       "priority": 5
     },
     {
       "name": "viju+ Serial",
-      "isFree": true,
+      "isFree": null,
       "website": "https://viju.ru/telekanaly/vijuplus-serial/",
       "priority": 5
     },
     {
       "name": "viju TV1000 russkoe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://viju.ru/telekanaly/viju-tv1000-russkoe",
       "priority": 5
     }

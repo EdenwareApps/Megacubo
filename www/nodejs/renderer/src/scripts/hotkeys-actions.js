@@ -148,6 +148,11 @@ export const hotkeysActions = {
             })
         }, 'up', true
     ],
+    'PARENTAL_AGE': [
+        () => {
+            main.emit('parental-age')
+        }, 'up', true
+    ],
     'BOOKMARK': [
         () => {
             main.emit('toggle-fav')

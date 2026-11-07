@@ -169,7 +169,12 @@ class MediaPlayerAdapterHTML5 extends MediaPlayerAdapter {
 					
 					if(this.errorsCount >= maxRetries){
 						console.error('Video error: max retries reached', this.errorsCount, '/', maxRetries)
-						this.emit('error', String(e.message || e), true)
+						const mediaError = this.object.error
+						const detail = String((mediaError && mediaError.message) || e.message || e)
+						// MEDIA_ERR_DECODE (3) means the demuxer accepted the data but the decoder
+						// rejected the bitstream — reloading or remuxing won't change that
+						const decodeRejected = (mediaError && mediaError.code === 3) || /pipeline_error|decode/i.test(detail)
+						this.emit('error', decodeRejected ? 'DECODE_UNSUPPORTED: ' + detail : detail, true)
 						this.setState('')
 					} else {
 						const c = this.errorsCount // load() will reset the counter

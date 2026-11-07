@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Android 12+ draws its own splash screen from the launch theme. Declaring the
+         background here keeps that first frame on the app's dark tone: without it the
+         system falls back to the launcher icon accent, which flashed blue/purple
+         before the web splash (also dark) took over. -->
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/splashBgColor</item>
+        <item name="android:windowSplashScreenBackground" tools:targetApi="31">@color/splashBgColor</item>
+        <item name="android:windowSplashScreenIconBackgroundColor" tools:targetApi="31">@color/splashBgColor</item>
+        <item name="android:windowSplashScreenAnimationDuration" tools:targetApi="31">0</item>
+        <item name="android:statusBarColor">@color/splashBgColor</item>
+        <item name="android:navigationBarColor">@color/splashBgColor</item>
+    </style>
+</resources>

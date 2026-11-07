@@ -463,7 +463,7 @@
     },
     {
       "name": "Space 4K",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.space4ktv.com/Home",
       "priority": 5
     },

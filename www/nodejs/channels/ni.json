@@ -388,7 +388,7 @@
     },
     {
       "name": "MTV Chontales",
-      "isFree": true,
+      "isFree": false,
       "website": "https://mtvchontales.com/",
       "priority": 5
     },
@@ -546,7 +546,7 @@
     },
     {
       "name": "Viva",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     }
   ],

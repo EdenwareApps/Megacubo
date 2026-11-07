@@ -11,13 +11,16 @@ import { translateCategoryName } from '../utils/utils.js'
 export class ChannelsList extends EventEmitter {
     constructor(countries, options = {}) {
         super();
-        const { onlyFree = false, includeAdult = false } = options
+        const { onlyFree = false, includeAdult = false, profile = '' } = options
         this.countries = countries
         this.onlyFree = onlyFree
         this.includeAdult = includeAdult
+        this.profile = profile
         this.isChannelCache = {}
         this.generatedCache = new Map();
         this.channelsIndex = {}        
+        this.affiliatesIndex = null
+        this.affiliatesParents = {}
         this.categories = {}
         this.userMods = { additions: {}, removals: {}, renames: {}, termChanges: {} }
         this.baseCache = null
@@ -28,7 +31,7 @@ export class ChannelsList extends EventEmitter {
         this.ready = ready()
     }
     get key() {
-        return 'categories-' + this.countries.join('-') + (this.onlyFree ? '-free' : '') + (this.includeAdult ? '-adult' : '')
+        return 'categories-' + this.countries.join('-') + (this.onlyFree ? '-free' : '') + (this.includeAdult ? '-adult' : '') + (this.profile ? '-p' + this.profile : '')
     }
     get userModsKey() {
         return this.key + '-mods'
@@ -170,6 +173,13 @@ export class ChannelsList extends EventEmitter {
             }
         }
 
+        // Country-based channels are public (not community lists), so they are
+        // only narrowed when a theme profile is in force.
+        const contentProfile = global.lists?.contentProfile
+        if (contentProfile) {
+            generated = contentProfile.filterChannels(generated)
+        }
+
         // Cache the result
         this.generatedCache.set(cacheKey, generated);
 
@@ -215,6 +225,101 @@ export class ChannelsList extends EventEmitter {
             this.channelsIndex = {};
             keys.forEach(k => this.channelsIndex[k] = index[k]);
         }
+    }
+    normalizeChannelName(name) {
+        return String(name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim()
+    }
+    compareChannelNames(a, b) {
+        a = String(a || '')
+        b = String(b || '')
+        try {
+            return a.localeCompare(b, lang.locale || undefined, { sensitivity: 'base' })
+        } catch (e) {
+            return a.localeCompare(b)
+        }
+    }
+    // Affiliates (regional stations that retransmit a network) only exist in the
+    // package data, as the channels index is generated without them ('parents')
+    async getAffiliatesIndex() {
+        if (this.affiliatesIndex) return this.affiliatesIndex
+        if (this.affiliatesPromise) return this.affiliatesPromise
+        this.affiliatesPromise = (async () => {
+            const index = {}   // normalized network name -> [affiliate names]
+            const parents = {} // normalized affiliate name -> normalized network name
+            for (const code of this.countries) {
+                const data = await getChannels(code).catch(err => {
+                    console.error('getChannels(' + code + ') error: ' + err)
+                    return null
+                })
+                if (!data || typeof (data) != 'object') continue
+                for (const list of Object.values(data)) {
+                    if (!Array.isArray(list)) continue
+                    for (const ch of list) {
+                        if (!ch || !ch.name || !ch.retransmits) continue
+                        const name = String(ch.name).trim()
+                        const parent = this.normalizeChannelName(ch.retransmits)
+                        if (!name || !parent) continue
+                        if (!index[parent]) index[parent] = []
+                        if (!index[parent].includes(name)) index[parent].push(name)
+                        parents[this.normalizeChannelName(name)] = parent
+                    }
+                }
+            }
+            // networks may point to sub-networks which point to their own stations
+            // ("Globo" <- "Rede Amazonica" <- "TV Acre"), so resolve the whole chain
+            const resolved = {}
+            for (const root of Object.keys(index)) {
+                const out = []
+                const seen = new Set([root])
+                const queue = [root]
+                while (queue.length) {
+                    for (const affiliate of (index[queue.shift()] || [])) {
+                        const key = this.normalizeChannelName(affiliate)
+                        if (!key || seen.has(key)) continue
+                        seen.add(key)
+                        out.push(affiliate)
+                        queue.push(key)
+                    }
+                }
+                resolved[root] = out
+            }
+            this.affiliatesParents = parents
+            this.affiliatesIndex = resolved
+            return resolved
+        })().finally(() => {
+            this.affiliatesPromise = null
+        })
+        return this.affiliatesPromise
+    }
+    async getAffiliates(name, limit = 250) {
+        if (!name || typeof (name) != 'string') return []
+        const index = await this.getAffiliatesIndex().catch(err => {
+            console.error('getAffiliatesIndex error: ' + err)
+            return null
+        })
+        if (!index) return []
+        let key = this.normalizeChannelName(name)
+        if (!key) return []
+        const lookup = k => index[k] ? k : (this.affiliatesParents || {})[k]
+        // a network lists its own affiliates, while an affiliate lists its siblings
+        let parent = lookup(key)
+        if (!parent && String(name).includes(',')) {
+            // entries may carry a compact name ("SBT, SBT Rio"): retry with its head
+            key = this.normalizeChannelName(String(name).split(',')[0])
+            parent = key ? lookup(key) : null
+        }
+        const names = (parent ? (index[parent] || []) : []).filter(affiliate => {
+            return this.normalizeChannelName(affiliate) != key
+        })
+        names.sort((a, b) => this.compareChannelNames(a, b))
+        const ret = []
+        for (const affiliate of names) {
+            if (ret.length >= limit) break
+            const expanded = this.expandName(affiliate)
+            if (!expanded.name || !expanded.terms || !expanded.terms.length) continue
+            ret.push({ name: expanded.name, terms: expanded.terms, type: 'option' })
+        }
+        return ret
     }
     mapSize(n) {
         return Object.values(n).map(k => Array.isArray(k) ? k.length : 0).reduce((s, v) => s + v, 0);

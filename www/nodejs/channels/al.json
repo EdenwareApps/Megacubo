@@ -2,82 +2,82 @@
   "Music Videos": [
     {
       "name": "Supersonic",
-      "isFree": true,
+      "isFree": null,
       "keywords": "super sonic tv | supersonic tv",
       "priority": 5,
       "website": "https://www.super-sonic.tv/"
     },
     {
       "name": "AlbKanale Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://albportal.net/",
       "priority": 5
     },
     {
       "name": "City",
-      "isFree": true,
+      "isFree": null,
       "website": "https://cityradio.al/",
       "priority": 5
     },
     {
       "name": "Click",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Club",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Folklorit",
-      "isFree": true,
+      "isFree": null,
       "website": "https://cityradio.al/",
       "priority": 5
     },
     {
       "name": "Folk Plus",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Klan Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvklan.al/kategoria/programe/musical-musiklan/",
       "priority": 5
     },
     {
       "name": "Melody",
-      "isFree": true,
+      "isFree": null,
       "website": "https://melodytv.al/",
       "priority": 5
     },
     {
       "name": "My Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://digitalb.al/",
       "priority": 5
     },
     {
       "name": "Siti Shqip",
-      "isFree": true,
+      "isFree": null,
       "website": "https://cityradio.al/",
       "priority": 5
     },
     {
       "name": "STV Folk",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.super-sonic.tv/",
       "priority": 5
     },
     {
       "name": "TV Blue Sky Music",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "RTSH",
-      "isFree": null,
+      "isFree": true,
       "keywords": "rtsh -1 -2 -24 -3 -agro -femije -film -gjirokastra -korca -kukesi -kuvend -muzike -plus -satelit -shkolle -shqip -sport",
       "priority": 5
     },
@@ -88,7 +88,7 @@
     },
     {
       "name": "TVA",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -98,7 +98,7 @@
     },
     {
       "name": "Klan Kosova",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -128,7 +128,7 @@
     },
     {
       "name": "Euronews",
-      "isFree": null,
+      "isFree": true,
       "keywords": "euronews -albania -group",
       "priority": 5
     },
@@ -154,7 +154,7 @@
     },
     {
       "name": "TV Blue Sky",
-      "isFree": null,
+      "isFree": false,
       "keywords": "tv blue sky -music",
       "priority": 5
     },
@@ -195,7 +195,7 @@
     },
     {
       "name": "TV 6,1 Vlora",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -250,17 +250,17 @@
     },
     {
       "name": "Tring",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "HBO",
-      "isFree": null,
+      "isFree": false,
       "priority": 6
     },
     {
       "name": "HBO 3",
-      "isFree": null,
+      "isFree": false,
       "priority": 6
     },
     {
@@ -270,7 +270,7 @@
     },
     {
       "name": "Star Life",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -280,17 +280,17 @@
     },
     {
       "name": "AMC",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "National Geographic",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Nat Geo Wild",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -300,22 +300,22 @@
     },
     {
       "name": "Discovery",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Investigation Discovery",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "TLC",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Animal Planet",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -325,7 +325,7 @@
     },
     {
       "name": "History (U.S",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
@@ -335,32 +335,32 @@
     },
     {
       "name": "Disney",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Disney XD",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Nickelodeon",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Nick Jr",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Cartoon Network",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Cartoonito",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -375,23 +375,23 @@
     },
     {
       "name": "SuperSport",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Tring Sport",
-      "isFree": null,
+      "isFree": false,
       "keywords": "tring sport -1 -2 -3 -4 -5 -news",
       "priority": 10
     },
     {
       "name": "Eurosport",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Eurosport 2",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
@@ -401,37 +401,37 @@
     },
     {
       "name": "MTV Europe",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Hits",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Dance",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV 90s",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Live",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV 00s",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV 80s",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -446,7 +446,7 @@
     },
     {
       "name": "ABC News",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -466,7 +466,7 @@
     },
     {
       "name": "Euronews Group",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -486,12 +486,12 @@
     },
     {
       "name": "E!",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Food Network",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -551,27 +551,27 @@
     },
     {
       "name": "Kino Premiere",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Kino Premiere 2",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Kino Premiere 3",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Kino Premiere 4",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Kino Premiere 5",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -626,42 +626,42 @@
     },
     {
       "name": "Sky Hits",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Max",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Aksion",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Drama",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Komedi",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Family",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Shqip",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Novela",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -681,17 +681,17 @@
     },
     {
       "name": "Sky Shkencë",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Planet",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Histori",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -771,48 +771,48 @@
     },
     {
       "name": "CNA",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cna.al/",
       "priority": 5
     },
     {
       "name": "Star Plus",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.starplus-tv.com/",
       "priority": 5
     },
     {
       "name": "Max",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Film Aksion",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.digitalb.al/",
       "priority": 5
     },
     {
       "name": "Film Autor",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.digitalb.al/",
       "priority": 5
     },
     {
       "name": "Film Hits",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.digitalb.al/",
       "priority": 5
     },
     {
       "name": "Film Komedi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.digitalb.al/",
       "priority": 5
     },
     {
       "name": "Gold",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.digitalb.al/",
       "priority": 5
     }
@@ -825,77 +825,77 @@
     },
     {
       "name": "Fax News",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "News24",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ora News",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ora news | oranews",
       "shortName": "Oranews",
       "priority": 5
     },
     {
       "name": "Q Sport News",
-      "isFree": true,
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "A2 CNN",
-      "isFree": true,
+      "isFree": null,
       "website": "https://a2news.com/",
       "priority": 5
     },
     {
       "name": "AdriaNet",
-      "isFree": true,
+      "isFree": null,
       "website": "https://adrianet.al/",
       "priority": 5
     },
     {
       "name": "Info 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://info24.al/",
       "priority": 5
     },
     {
       "name": "Klan News",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvklan.al/kategoria/klan-news/",
       "priority": 5
     },
     {
       "name": "ntv",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ntv.al/",
       "priority": 5
     },
     {
       "name": "Panorama",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.panorama.com.al/panoramatv/",
       "priority": 5
     },
     {
       "name": "Scan",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.scan-tv.com/",
       "priority": 5
     },
     {
       "name": "Top News",
-      "isFree": true,
+      "isFree": null,
       "website": "https://top-channel.tv/",
       "priority": 5
     },
     {
       "name": "TV Bulqiza",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.btvnews.al/",
       "priority": 5
     }
@@ -903,24 +903,19 @@
   "Kids": [
     {
       "name": "Çufo",
-      "isFree": true,
-      "priority": 5
+      "isFree": null,
+      "priority": 5,
+      "website": "https://www.digitalb.al/"
     },
     {
       "name": "Bubble",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tring.al/familjare/televizion/permbajtja/femije/",
       "priority": 5
     },
     {
-      "name": "Cufo",
-      "isFree": true,
-      "website": "https://www.digitalb.al/",
-      "priority": 5
-    },
-    {
       "name": "Junior",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.digitalb.al/",
       "priority": 5
     },
@@ -941,72 +936,72 @@
   "Entertainment": [
     {
       "name": "21 Mix",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "21 Plus",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "21 Popullore",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "21 RTV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "21 TV Macedonia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "A",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ALPO",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ARTA",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ATD",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Adria",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "AlbMusik",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "AlbUK",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Albania Folk",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Albanian TV America",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -1016,120 +1011,120 @@
     },
     {
       "name": "BBF Music",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BabyTV",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Digitalb",
-      "isFree": true,
+      "isFree": null,
       "keywords": "digitalb -aktion -autor -big -brother -vip -1 -2 -drame -dy -eurofilm -family -histori -hits -komedi -natyra -nje -shkense -stinet -thriller",
       "priority": 5
     },
     {
       "name": "Digitalb Aktion",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Digitalb Autor",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Digitalb Big Brother VIP",
-      "isFree": true,
+      "isFree": null,
       "shortName": "DBBV",
       "priority": 5
     },
     {
       "name": "Digitalb Big Brother VIP 2",
-      "isFree": true,
+      "isFree": null,
       "shortName": "DBBV 2",
       "priority": 5
     },
     {
       "name": "Digitalb DY",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Digitalb Dramë",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Digitalb Eurofilm",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Digitalb Family",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Digitalb Histori",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Digitalb Hits",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Digitalb Komedi",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Digitalb Natyra",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Digitalb Një",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Digitalb Shkensë",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Digitalb Stinët",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Digitalb Thriller",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Drame",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Elrodi",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "First",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Frame",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -1139,64 +1134,64 @@
     },
     {
       "name": "Kanali 7",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Klan",
-      "isFree": true,
+      "isFree": null,
       "keywords": "klan -makedonia -plus",
       "priority": 5
     },
     {
       "name": "Klan Makedonia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Klan Plus",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Komedi",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kosova",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MPT 2",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Muse",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Novela",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Opoja",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Peace",
-      "isFree": true,
+      "isFree": null,
       "keywords": "peace tv -albanian",
       "priority": 5
     },
     {
       "name": "Pendimi",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -1252,12 +1247,14 @@
     {
       "name": "RTSH Korça",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://tv.rtsh.al/"
     },
     {
       "name": "RTSH Kukësi",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://tv.rtsh.al/"
     },
     {
       "name": "RTSH Kuvend",
@@ -1296,184 +1293,184 @@
     },
     {
       "name": "RTV Dukagjini",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RTV Fontana",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RTV Ilirida",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RTVislam",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Report",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rita",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Shenja",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sofia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Syri",
-      "isFree": true,
+      "isFree": null,
       "keywords": "syri",
       "priority": 5
     },
     {
       "name": "TV 7 Albania",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Dielli",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Llapi",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Opoja",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Plisi",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Tip",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Top",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Tring 3",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Tring Action",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Tring Comedy",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Tring Fantasy",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Tring History",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Tring Jolly",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Tring Kids",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Tring Life",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Tring Planet",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Tring Shqip",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Tring Super",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Tring Tring",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Tring World",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Turbo",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "U Smile",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "V Plus",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Zjarr Televizion",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "dTV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ADN",
-      "isFree": true,
+      "isFree": null,
       "website": "https://adntv.org/",
       "priority": 5
     },
     {
       "name": "Aventurat",
-      "isFree": true,
+      "isFree": null,
       "website": "https://aventurat.tv/",
       "priority": 5
     },
@@ -1485,7 +1482,7 @@
     },
     {
       "name": "Blu",
-      "isFree": true,
+      "isFree": null,
       "website": "https://blutv.al/",
       "priority": 5
     },
@@ -1503,13 +1500,13 @@
     },
     {
       "name": "Explorer Shkence",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.digitalb.al/",
       "priority": 5
     },
     {
       "name": "Flutura",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -1519,78 +1516,66 @@
     },
     {
       "name": "Korca Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://korcaplus1.weebly.com/",
       "priority": 5
     },
     {
       "name": "MCN",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.mcntv.al/",
       "priority": 5
     },
     {
       "name": "Ora",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.oranews.tv/",
       "priority": 5
     },
     {
-      "name": "RTSH Korca",
-      "isFree": true,
-      "website": "https://tv.rtsh.al/",
-      "priority": 5
-    },
-    {
-      "name": "RTSH Kukesi",
-      "isFree": true,
-      "website": "https://tv.rtsh.al/",
-      "priority": 5
-    },
-    {
       "name": "Tring International",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tring.al/",
       "priority": 5
     },
     {
       "name": "Tropoja Televizion",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tropoja.tv/",
       "priority": 5
     },
     {
       "name": "TV",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tv1-channel.tv/",
       "priority": 5
     },
     {
       "name": "TV Johaniter",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvjohaniter.com/",
       "priority": 5
     },
     {
       "name": "TV Klan",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvklan.al/",
       "priority": 5
     },
     {
       "name": "TV Rozafa",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Skampa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://elbasaninews.tv/",
       "priority": 5
     },
     {
       "name": "Vizion Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.vizionplus.tv/",
       "priority": 5
     },
@@ -1604,55 +1589,55 @@
   "Movies & Series": [
     {
       "name": "3 Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tring.al/",
       "priority": 5
     },
     {
       "name": "Film Drame",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.digitalb.al/",
       "priority": 5
     },
     {
       "name": "Film Thriller",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.digitalb.al/",
       "priority": 5
     },
     {
       "name": "Smile",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tring.al/",
       "priority": 5
     },
     {
       "name": "Stinet",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.digitalb.al/",
       "priority": 5
     },
     {
       "name": "Tring Classic",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tring.al/",
       "priority": 5
     },
     {
       "name": "Tring Collection",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tring.al/",
       "priority": 5
     },
     {
       "name": "Tring Family",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tring.al/",
       "priority": 5
     },
     {
       "name": "Tring Novelas",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tring.al/",
       "priority": 5
     }
@@ -1686,67 +1671,67 @@
   "Sports": [
     {
       "name": "SuperSport 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.supersport.al/",
       "priority": 10
     },
     {
       "name": "SuperSport 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.supersport.al/",
       "priority": 10
     },
     {
       "name": "SuperSport 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.supersport.al/",
       "priority": 10
     },
     {
       "name": "SuperSport 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.supersport.al/",
       "priority": 10
     },
     {
       "name": "SuperSport 6",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.supersport.al/",
       "priority": 10
     },
     {
       "name": "SuperSport 7",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.supersport.al/",
       "priority": 10
     },
     {
       "name": "Tring Sport 2",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tring.al/",
       "priority": 10
     },
     {
       "name": "Tring Sport 3",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tring.al/",
       "priority": 10
     },
     {
       "name": "Tring Sport 4",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tring.al/",
       "priority": 10
     },
     {
       "name": "Tring Sport 5",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tring.al/",
       "priority": 10
     },
     {
       "name": "Tring Sport News",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tring.al/",
       "priority": 10
     }

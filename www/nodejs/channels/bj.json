@@ -75,7 +75,8 @@
     {
       "name": "Etélé",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://etelebenin.com/"
     },
     {
       "name": "Bluediamond",
@@ -116,12 +117,6 @@
       "name": "Eden",
       "isFree": true,
       "website": "http://benin-eden.tv/",
-      "priority": 5
-    },
-    {
-      "name": "Etele",
-      "isFree": true,
-      "website": "https://etelebenin.com/",
       "priority": 5
     },
     {

@@ -407,6 +407,7 @@
   "Sports": [
     {
       "name": "Iraqia Sport",
+      "isFree": true,
       "priority": 10
     },
     {
@@ -543,7 +544,7 @@
     },
     {
       "name": "7 Sky",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {

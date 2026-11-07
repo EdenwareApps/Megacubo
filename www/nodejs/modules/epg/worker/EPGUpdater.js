@@ -50,6 +50,15 @@ export class EPGUpdater extends EventEmitter {
     this._BATCH_FLUSH_INTERVAL = 5000   // Or when this many new entries added since last flush
     this._lastBatchFlush = { channels: 0, terms: 0 }
 
+    // Backpressure for programme ingestion. Parsers emit programmes without
+    // awaiting them, so we must track every in-flight operation to drain them
+    // before finalizing the update (otherwise they are silently discarded).
+    this._pendingProgrammes = new Set()
+    this._programmeSlots = EPG_CONFIG.update.programmeConcurrency
+    this._programmeWaiters = []
+
+
+
     // Configuration properties
     const envDebugValue = (typeof process !== 'undefined' ? process?.env?.MEGACUBO_EPG_DEBUG : undefined)
     if (dependencies.debug !== undefined) {
@@ -586,11 +595,67 @@ export class EPGUpdater extends EventEmitter {
 
   // ===== Parser Management Methods =====
 
+  /**
+   * Enqueue a programme for processing, bounded by a concurrency limit.
+   * Parsers call this without awaiting, so the returned promise is tracked
+   * in `_pendingProgrammes` and drained before the update is finalized.
+   */
+  queueProgramme(programme) {
+    if (this._state.destroyed) return Promise.resolve()
+    const task = this._processProgramme(programme)
+    this._pendingProgrammes.add(task)
+    return task.finally(() => this._pendingProgrammes.delete(task))
+  }
+
+  async _processProgramme(programme) {
+    if (this._programmeSlots <= 0) {
+      await new Promise((resolve) => this._programmeWaiters.push(resolve))
+    } else {
+      this._programmeSlots--
+    }
+    try {
+      await this.programme(programme)
+    } catch (err) {
+      console.error('Programme processing error:', err && err.message ? err.message : err)
+    } finally {
+      const next = this._programmeWaiters.shift()
+      if (next) {
+        next() // transfer the slot directly to the next waiter
+      } else {
+        this._programmeSlots++
+      }
+    }
+  }
+
+  /**
+   * Wait until every queued programme has been processed.
+   * Must be awaited before committing the insert session.
+   */
+  async drainProgrammes(timeoutMs = EPG_CONFIG.update.programmeDrainTimeoutMs) {
+    if (!this._pendingProgrammes.size) return
+    const startedAt = Date.now()
+    while (this._pendingProgrammes.size) {
+      const elapsed = Date.now() - startedAt
+      if (elapsed >= timeoutMs) {
+        console.warn(`⚠️ Timed out after ${elapsed}ms waiting for ${this._pendingProgrammes.size} pending programme(s)`)
+        return
+      }
+      await Promise.race([
+        Promise.allSettled([...this._pendingProgrammes]),
+        new Promise((resolve) => {
+          const timer = setTimeout(resolve, Math.min(1000, timeoutMs - elapsed))
+          if (timer.unref) timer.unref()
+        })
+      ])
+    }
+    this.debugLog(`✅ All pending programmes processed in ${Date.now() - startedAt}ms`)
+  }
+
   async setupMAGParser() {
     this.debugLog('Using MAG parser for:', this.url)
 
     const callbacks = {
-      onProgramme: (programme) => this.programme(programme),
+      onProgramme: (programme) => this.queueProgramme(programme),
       onChannel: (ch) => this.channel(ch),
       onError: (err) => {
         console.error('MAG Parser error:', err)
@@ -629,7 +694,7 @@ export class EPGUpdater extends EventEmitter {
     const { lastModifiedAt } = await this.getControlKeys()
 
     const callbacks = {
-      onProgramme: (programme) => this.programme(programme),
+      onProgramme: (programme) => this.queueProgramme(programme),
       onChannel: (ch) => this.channel(ch),
       onError: onErr,
       onProgress: (received) => {
@@ -657,6 +722,15 @@ export class EPGUpdater extends EventEmitter {
           if (this._currentUpdateId !== updateId) {
             console.warn(`Update session changed (was ${updateId}, now ${this._currentUpdateId}), skipping finalization`)
             return
+          }
+
+          // CRITICAL: Drain in-flight programme operations before touching
+          // commitInProgress/insertSession, otherwise pending programmes are
+          // silently discarded (they bail out at the commit guard).
+          if (this._pendingProgrammes.size) {
+            this.debugLog(`⏳ Draining ${this._pendingProgrammes.size} pending programme operation(s) before commit...`)
+            await this.drainProgrammes()
+            this.debugLog('✅ Programme queue drained')
           }
 
           // Wait for parser to completely stop processing

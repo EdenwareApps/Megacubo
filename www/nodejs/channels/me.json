@@ -2,46 +2,46 @@
   "Entertainment": [
     {
       "name": "TVCG",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TVCG 2",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TVCG Sat",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Adria",
-      "isFree": true,
+      "isFree": null,
       "website": "https://adria.tv/",
       "priority": 5
     },
     {
       "name": "A Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://aplusme.me/",
       "priority": 5
     },
     {
       "name": "Gradska Televizija",
-      "isFree": true,
+      "isFree": null,
       "website": "https://gradski.me/",
       "priority": 5
     },
     {
       "name": "LH",
-      "isFree": true,
+      "isFree": null,
       "website": "https://lifeandholiday.com/",
       "priority": 5
     },
     {
       "name": "Nova",
-      "isFree": true,
+      "isFree": null,
       "website": "https://novam.tv/",
       "priority": 5
     },
@@ -58,72 +58,72 @@
     },
     {
       "name": "Radio televizija Rozaje",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.radiorozaje.me/",
       "priority": 5
     },
     {
       "name": "RTV Budva",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rtvbudva.me/",
       "priority": 5
     },
     {
       "name": "Srpska",
-      "isFree": true,
+      "isFree": null,
       "website": "https://srpskartv.com/",
       "priority": 5
     },
     {
       "name": "Televizija E",
-      "isFree": true,
+      "isFree": null,
       "website": "https://etv.me/",
       "priority": 5
     },
     {
       "name": "Televizija TV 7",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TVCG 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtcg.me/tv/gledaj-tvcg3.html",
       "priority": 5
     },
     {
       "name": "TVCG MNE",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.rtcg.me/",
       "priority": 5
     },
     {
       "name": "TV Herceg Novi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rthn.co.me/",
       "priority": 5
     },
     {
       "name": "TV Niksic",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rtnk.me/",
       "priority": 5
     },
     {
       "name": "TV Pljevlja",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvpljevlja.me/",
       "priority": 5
     },
     {
       "name": "TV Teuta",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tvteuta.com/",
       "priority": 5
     },
     {
       "name": "TV Vijesti",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.vijesti.me/tv",
       "priority": 5
     },
@@ -137,55 +137,55 @@
   "Sports": [
     {
       "name": "Arena Sport",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tvarenasport.com/me",
       "priority": 10
     },
     {
       "name": "Arena Sport 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tvarenasport.com/me",
       "priority": 10
     },
     {
       "name": "Arena Sport 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tvarenasport.com/me",
       "priority": 10
     },
     {
       "name": "Arena Sport 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tvarenasport.com/me",
       "priority": 10
     },
     {
       "name": "Arena Sport 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tvarenasport.com/me",
       "priority": 10
     },
     {
       "name": "MNE sport",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mnesport.tv/",
       "priority": 10
     },
     {
       "name": "MNE sport 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mnesport.tv/",
       "priority": 10
     },
     {
       "name": "MNE sport 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mnesport.tv/",
       "priority": 10
     },
     {
       "name": "TV Boin",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvboin.com/",
       "priority": 5
     }

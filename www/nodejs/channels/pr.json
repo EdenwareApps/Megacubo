@@ -3,7 +3,8 @@
     {
       "name": "América TeVé",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://www.americatevepr.com/"
     },
     {
       "name": "CDM International",
@@ -39,12 +40,6 @@
       "name": "ACS Network",
       "isFree": true,
       "website": "https://conectatetvpr.com/en-vivo/",
-      "priority": 5
-    },
-    {
-      "name": "America TeVe",
-      "isFree": true,
-      "website": "https://www.americatevepr.com/",
       "priority": 5
     },
     {
@@ -285,27 +280,27 @@
     },
     {
       "name": "WITA",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "WMEI",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "WSJU",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Media of Puerto Rico",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Mayagüez",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     }
   ],

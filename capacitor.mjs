@@ -7,6 +7,9 @@ import { Share } from '@capacitor/share';
 import { Clipboard } from '@capacitor/clipboard';
 import { BackgroundMode } from '@anuradev/capacitor-background-mode';
 import { PIP } from 'tv.megacubo.pip';
+import { registerPlugin } from '@capacitor/core';
+
+const AppUpdater = registerPlugin('AppUpdater')
 
 const clipboard = async text => {
 	if(typeof text === 'string') {
@@ -22,5 +25,6 @@ window.capacitor = {
 	KeepAwake, Keyboard,
 	NativeFileDownloader,
 	clipboard, PIP,
-	BackgroundMode
+	BackgroundMode,
+	AppUpdater
 }

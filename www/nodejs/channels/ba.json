@@ -7,86 +7,86 @@
     },
     {
       "name": "N1 BIH",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Alternativna",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.atvbl.com/",
       "priority": 5
     },
     {
       "name": "ATV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.atvbl.rs/vijesti/bih",
       "priority": 5
     },
     {
       "name": "N",
-      "isFree": true,
+      "isFree": null,
       "keywords": "n1 -bih",
       "website": "https://ba.n1info.com/",
       "priority": 5
     },
     {
       "name": "TV Slon Info",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BN Televizija",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Face",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Cinema",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Vikom Music",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Balkan Music",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BMC Etno",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kontakt",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "City",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TNT KIDS",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Obiteljska televizija Valentino",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "VALENTINO ETNO",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -96,12 +96,12 @@
     },
     {
       "name": "NTV Patria",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "IN televizija",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -111,37 +111,37 @@
     },
     {
       "name": "Kablovska televizija KG-",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BDC Televizija",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RA-TV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV GLAS DRINE",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "tb",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Inicijativa",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Info Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.infoplus.ba/",
       "priority": 5
     },
@@ -152,72 +152,72 @@
     },
     {
       "name": "TATABRADA",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV ONE",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "B1 TELEVIZIJA",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TROPIK",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sport Klub",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Nova",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Nova M",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Grand",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Grand TV 2",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Lov i Ribolov",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "IDJ",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Pikaboo",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Vavom",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Croatian Music",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -229,71 +229,71 @@
   "Entertainment": [
     {
       "name": "B",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BHRT",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BN",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Malta",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "NTV IC",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RTV BPK",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RTV HB",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Slon Extra",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Alfa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://alfatv.ba/",
       "priority": 5
     },
     {
       "name": "Behar",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.behar.tv/",
       "priority": 5
     },
     {
       "name": "BHT",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bhrt.ba/",
       "priority": 5
     },
     {
       "name": "BN 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtvbn.tv/",
       "priority": 5
     },
     {
       "name": "Dobra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dobratv.com/",
       "priority": 5
     },
@@ -305,86 +305,86 @@
     },
     {
       "name": "Hema",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.hematv.ba/cgi-sys/softsuspendedpage.pl",
       "priority": 5
     },
     {
       "name": "Herceg",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.herceg.tv/",
       "priority": 5
     },
     {
       "name": "HIT Televizija",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rtvhit.com/",
       "priority": 5
     },
     {
       "name": "ITV Master",
-      "isFree": true,
+      "isFree": null,
       "website": "https://itv-master.com/",
       "priority": 5
     },
     {
       "name": "ITV Story",
-      "isFree": true,
+      "isFree": null,
       "website": "https://itv-story.com/",
       "priority": 5
     },
     {
       "name": "K 3",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tvk3.info/",
       "priority": 5
     },
     {
       "name": "Kanal 6",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kanal6.ba/",
       "priority": 5
     },
     {
       "name": "Kuvo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kuvo.tv/",
       "priority": 5
     },
     {
       "name": "NEON",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ntv.ba/",
       "priority": 5
     },
     {
       "name": "NTV IC Kakanj",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.ntvic.ba/",
       "priority": 5
     },
     {
       "name": "NTV Jata",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvjata.com/",
       "priority": 5
     },
     {
       "name": "OBN",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.obn.ba/",
       "priority": 5
     },
     {
       "name": "O Kanal",
-      "isFree": true,
+      "isFree": null,
       "keywords": "o kanal -plus",
       "website": "https://okanal.ba/",
       "priority": 5
     },
     {
       "name": "O Kanal Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://okanal.oslobodjenje.ba/",
       "priority": 5
     },
@@ -402,90 +402,90 @@
     },
     {
       "name": "Posavina",
-      "isFree": true,
+      "isFree": null,
       "website": "https://posavinatv.com/",
       "priority": 5
     },
     {
       "name": "PRO",
-      "isFree": true,
+      "isFree": null,
       "website": "https://protv.ba/",
       "priority": 5
     },
     {
       "name": "RTRS plus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://plus.rtrs.tv/",
       "priority": 5
     },
     {
       "name": "RTRS",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rtrs.tv/",
       "priority": 5
     },
     {
       "name": "RTV 7 Tuzla",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtv7.ba/",
       "priority": 5
     },
     {
       "name": "RTV Bugojno",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtvbugojno.ba/",
       "priority": 5
     },
     {
       "name": "RTV Cazin",
-      "isFree": true,
+      "isFree": null,
       "website": "https://crt.ba/",
       "priority": 5
     },
     {
       "name": "RTV Doboj",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtvdoboj.org/",
       "priority": 5
     },
     {
       "name": "RTV Glas Drine",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtvglasdrine.com/",
       "priority": 5
     },
     {
       "name": "RTV IS",
-      "isFree": true,
+      "isFree": null,
       "website": "https://is-radio.com/",
       "priority": 5
     },
     {
       "name": "RTV Jablanica",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtvjablanica.ba/",
       "priority": 5
     },
     {
       "name": "RTV-KD",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtv-kd.com/",
       "priority": 5
     },
     {
       "name": "RTV Lukavac",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtvlukavac.ba/",
       "priority": 5
     },
     {
       "name": "RTV Maglaj",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RTV Sana",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sanartv.ba/",
       "priority": 5
     },
@@ -503,90 +503,90 @@
     },
     {
       "name": "RTV Vikom",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.vikom.tv/",
       "priority": 5
     },
     {
       "name": "RTV Visoko",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.visoko-rtv.ba/",
       "priority": 5
     },
     {
       "name": "RTV Zenica",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.rtvze.ba/",
       "priority": 5
     },
     {
       "name": "RTV Zivinice",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtvzivinice.tv/",
       "priority": 5
     },
     {
       "name": "Smart Televizija",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvsmart.ba/",
       "priority": 5
     },
     {
       "name": "Super",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.supertelevizija.com/",
       "priority": 5
     },
     {
       "name": "Televizija 5",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.televizija5.ba/",
       "priority": 5
     },
     {
       "name": "Televizija M",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv-m.net/",
       "priority": 5
     },
     {
       "name": "TOK",
-      "isFree": true,
+      "isFree": null,
       "website": "https://toktv.ba/",
       "priority": 5
     },
     {
       "name": "TV Arena",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Podrinje",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvpodrinje.com/",
       "priority": 5
     },
     {
       "name": "TVSA",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvsa.ba/",
       "priority": 5
     },
     {
       "name": "TV Simic",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Zepce",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tv zepce -2 -etno",
       "website": "https://tvzepce.wixsite.com/tvzepce",
       "priority": 5
     },
     {
       "name": "TV Zepce 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvzepce.wixsite.com/tvzepce",
       "priority": 5
     },
@@ -599,25 +599,25 @@
   "Sports": [
     {
       "name": "Arena Sport",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tvarenasport.com/ba",
       "priority": 10
     },
     {
       "name": "Arena Sport 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tvarenasport.com/ba",
       "priority": 10
     },
     {
       "name": "Arena Sport 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tvarenasport.com/ba",
       "priority": 10
     },
     {
       "name": "Arena Sport 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tvarenasport.com/ba",
       "priority": 10
     }
@@ -637,7 +637,7 @@
     },
     {
       "name": "MTV Igman",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.mtvigman.ba",
       "priority": 4
     }
@@ -645,19 +645,19 @@
   "Music Videos": [
     {
       "name": "BN Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bnmusictv.com/",
       "priority": 5
     },
     {
       "name": "ELTA",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.eltatv.net/",
       "priority": 5
     },
     {
       "name": "ELTA 2",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.eltatv.net/",
       "priority": 5
     },
@@ -682,7 +682,7 @@
     },
     {
       "name": "Hayatovci",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.hayat.ba/",
       "priority": 5
     },
@@ -694,25 +694,25 @@
     },
     {
       "name": "Izvorna",
-      "isFree": true,
+      "isFree": null,
       "website": "http://izvornatv.com/",
       "priority": 5
     },
     {
       "name": "Sevdah",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sevdah.tv/",
       "priority": 5
     },
     {
       "name": "TV Zepce Etno",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvzepce.wixsite.com/tvzepce",
       "priority": 5
     },
     {
       "name": "Valentino Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://valentinobh.com/",
       "priority": 5
     }

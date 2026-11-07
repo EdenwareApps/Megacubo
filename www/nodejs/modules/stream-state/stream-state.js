@@ -235,7 +235,9 @@ class StreamState extends EventEmitter {
                     if (mega.isMega(e.url)) {
                         let s = 'tune', atts = mega.parse(e.url);
                         if (atts && atts.mediaType && atts.mediaType != 'live') {
-                            s = 'folder';
+                            // 'all'/'video' pages are listings driven by search terms, so they
+                            // open a search instead of a plain group folder
+                            s = (Array.isArray(atts.terms) && atts.terms.length) ? 'search' : 'folder';
                         }
                         syncData[e.url] = s;
                     } else {

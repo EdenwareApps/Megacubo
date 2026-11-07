@@ -49,37 +49,37 @@
     },
     {
       "name": "Africa Magic Family",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.dstv.com/africamagic/en-ng/channel/africa-magic-family",
       "priority": 5
     },
     {
       "name": "Africa Magic Hausa",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.dstv.com/africamagic/en-ng/channel/africa-magic-hausa",
       "priority": 5
     },
     {
       "name": "Africa Magic Igbo",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.dstv.com/africamagic/en-ng/channel/africa-magic-igbo",
       "priority": 5
     },
     {
       "name": "Africa Magic Showcase",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.dstv.com/africamagic/en-ng/channel/africa-magic-showcase",
       "priority": 5
     },
     {
       "name": "Africa Magic Urban",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.dstv.com/africamagic/en-ng/channel/africa-magic-urban",
       "priority": 5
     },
     {
       "name": "Africa Magic Yoruba",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.dstv.com/africamagic/en-ng/channel/africa-magic-yoruba",
       "priority": 5
     },
@@ -147,26 +147,26 @@
     },
     {
       "name": "Bet 9JA Gold",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.bet9ja.com/",
       "priority": 5
     },
     {
       "name": "Bet 9JA Serie A",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.bet9ja.com/",
       "priority": 5
     },
     {
       "name": "Bet 9JA Virtual Game",
-      "isFree": true,
+      "isFree": false,
       "keywords": "bet 9ja virtual game -2",
       "website": "https://www.bet9ja.com/",
       "priority": 5
     },
     {
       "name": "Bet 9JA Virtual Game 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.bet9ja.com/",
       "priority": 5
     },
@@ -300,7 +300,7 @@
     },
     {
       "name": "GoTV Guide",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.gotvafrica.com/",
       "priority": 5
     },
@@ -709,7 +709,7 @@
     },
     {
       "name": "TNT",
-      "isFree": true,
+      "isFree": false,
       "website": "https://tnttv247.com/",
       "priority": 5
     },
@@ -864,166 +864,166 @@
     },
     {
       "name": "Africa Independent Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "AKBC",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Arise News",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Degue Broadcasting Network",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Galaxy Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "News Central",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Nigerian Television Authority",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Ogun State Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Silverbird Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Superscreen",
-      "isFree": null,
+      "isFree": true,
       "keywords": "superscreen",
       "website": "https://superscreen.tv/",
       "priority": 5
     },
     {
       "name": "Televista",
-      "isFree": null,
+      "isFree": true,
       "keywords": "televista",
       "website": "https://www.televista.me/",
       "priority": 5
     },
     {
       "name": "Wale Adenuga Production",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Media of Nigeria",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Nigerian newspapers",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Cinema of Nigeria",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Telecommunications in Nigeria",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Daawa",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "1TV Network",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "El-zion Global Network",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Gamji TV - Gusau",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Koga",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Minaj Systems Tv Obosi",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Minaj Broadcast Network Obosi",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Minaj Broadcasting International",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Murhi International Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Nassarawa Broadcasting Service",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Odenigbo FM Obosi Anambra state",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Ondo State Radiovision Corporation",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "OYJ",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Rhema",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Sunna trcv",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "TVC Entertainment",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -1241,19 +1241,19 @@
     },
     {
       "name": "Bet 9JA Dog Racing",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.bet9ja.com/",
       "priority": 5
     },
     {
       "name": "Bet 9JA Football",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.bet9ja.com/",
       "priority": 5
     },
     {
       "name": "Bet 9JA League 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.bet9ja.com/",
       "priority": 5
     },
@@ -1771,7 +1771,7 @@
   "Movies & Series": [
     {
       "name": "Africa Magic Epic",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.dstv.com/africamagic/en-ng/channel/africa-magic-epic",
       "priority": 5
     },

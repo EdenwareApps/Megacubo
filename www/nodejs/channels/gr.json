@@ -34,7 +34,7 @@
   "News": [
     {
       "name": "BCI 24 News",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -44,30 +44,30 @@
     },
     {
       "name": "Alter",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Astra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.astratv.gr/live-streaming/",
       "priority": 5
     },
     {
       "name": "Corfu",
-      "isFree": true,
+      "isFree": null,
       "website": "https://corfuchannel.com/",
       "priority": 5
     },
     {
       "name": "Diktyo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.diktyo1.com/",
       "priority": 5
     },
     {
       "name": "Egnatia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.egnatia.tv/",
       "priority": 5
     },
@@ -79,43 +79,43 @@
     },
     {
       "name": "Euro",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.eurotv.gr/",
       "priority": 5
     },
     {
       "name": "Extra ProNews",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.extra3.tv/",
       "priority": 5
     },
     {
       "name": "FORMedia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://formediatv.gr/",
       "priority": 5
     },
     {
       "name": "Mega News",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.megatv.com/meganews/",
       "priority": 5
     },
     {
       "name": "Naftemporiki",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.naftemporiki.gr/ntv/",
       "priority": 5
     },
     {
       "name": "Prime News",
-      "isFree": true,
+      "isFree": null,
       "website": "https://primenewstv.gr/",
       "priority": 6
     },
     {
       "name": "Pronews",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.pronews.gr/",
       "priority": 5
     },
@@ -127,25 +127,25 @@
     },
     {
       "name": "TRT",
-      "isFree": true,
+      "isFree": null,
       "website": "https://trttv.gr/",
       "priority": 5
     },
     {
       "name": "Vergina",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.verginanews.gr/",
       "priority": 5
     },
     {
       "name": "Vima",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.vimanews.gr/",
       "priority": 5
     },
     {
       "name": "Alert",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.alerttv.com.gr/epikoinonia/",
       "priority": 5
     }
@@ -153,198 +153,211 @@
   "Sports": [
     {
       "name": "ERT Sports",
+      "isFree": true,
       "keywords": "ert sports -2 -3",
       "priority": 10
     },
     {
       "name": "ERT Sports 2",
+      "isFree": true,
       "priority": 10
     },
     {
       "name": "ERT Sports 3",
+      "isFree": true,
       "priority": 10
     },
     {
       "name": "Cosmote Sport Highlights",
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Cosmote Sport",
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Cosmote Sport 2",
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Cosmote Sport 3",
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Cosmote Sport 4",
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Cosmote Sport 5",
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Cosmote Sport 6",
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Cosmote Sport 7",
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Cosmote Sport 8",
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Cosmote Sport 9",
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "AEK Super League Pass",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cosmote.gr/eshop/global/gadgets/configurator.jsp?productId=prod1640027_prod3",
       "priority": 5
     },
     {
       "name": "Lucky Picks",
-      "isFree": true,
+      "isFree": null,
       "website": "https://zeusplay.com/services/lucky-picks/",
       "priority": 5
     },
     {
       "name": "Novasports",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novasports.gr/",
       "priority": 10
     },
     {
       "name": "Novasports 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novasports.gr/",
       "priority": 10
     },
     {
       "name": "Novasports 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novasports.gr/",
       "priority": 10
     },
     {
       "name": "Novasports 4",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novasports.gr/",
       "priority": 10
     },
     {
       "name": "Novasports 5",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novasports.gr/",
       "priority": 10
     },
     {
       "name": "Novasports 6",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novasports.gr/",
       "priority": 10
     },
     {
       "name": "Novasports Extra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novasports.gr/",
       "priority": 10
     },
     {
       "name": "Novasports Extra 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novasports.gr/",
       "priority": 10
     },
     {
       "name": "Novasports Extra 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novasports.gr/",
       "priority": 10
     },
     {
       "name": "Novasports Extra 4",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novasports.gr/",
       "priority": 10
     },
     {
       "name": "Novasports News",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novasports.gr/",
       "priority": 10
     },
     {
       "name": "Novasports Premier League",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novasports.gr/",
       "priority": 10
     },
     {
       "name": "Novasports Prime",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novasports.gr/",
       "priority": 10
     },
     {
       "name": "Novasports Start",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novasports.gr/",
       "priority": 10
     },
     {
       "name": "Olympiakos Super League Pass",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cosmote.gr/eshop/global/gadgets/configurator.jsp?productId=prod1640027_prod3",
       "priority": 5
     },
     {
       "name": "Opap Powerspin",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.opap.gr/meet-powerspin",
       "priority": 5
     },
     {
       "name": "Pame Stoixima Lepto Pros Lepto",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.pamestoixima.gr/",
       "priority": 5
     },
     {
       "name": "Pame Stoixima Racing",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.pamestoixima.gr/",
       "priority": 5
     },
     {
       "name": "Pame Stoixima Virtual Sports",
-      "isFree": true,
+      "isFree": null,
       "website": "https://virtualsports.opap.gr/",
       "priority": 10
     },
     {
       "name": "Pame Stoixima Virtual Sports 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://virtualsports.opap.gr/",
       "priority": 10
     },
     {
       "name": "Panathinaikos Super League Pass",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cosmote.gr/eshop/global/gadgets/configurator.jsp?productId=prod1640027_prod3",
       "priority": 5
     },
     {
       "name": "SportPlus",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.thesportplus.com/",
       "priority": 10
     }
@@ -352,28 +365,28 @@
   "Kids": [
     {
       "name": "Kids",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Nickelodeon",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Da Vinci",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Disney Junior",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.disney.gr/disney-junior/",
       "priority": 5
     },
     {
       "name": "Disney XD",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -383,121 +396,121 @@
     },
     {
       "name": "Junior's",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Keedoo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://keedoo.gr/",
       "priority": 5
     },
     {
       "name": "Nickelodeon Plus",
-      "isFree": true,
+      "isFree": false,
       "website": "https://nickelodeon.gr/",
       "priority": 5
     },
     {
       "name": "Smile Plus",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
   "Entertainment": [
     {
       "name": "4E",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ANT",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "APT",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Acheloos",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Aigaio",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Akritas",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Alpha",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Attica",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Axeloos",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Baraza TV Classic Hits",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Baraza TV Greek Music Hits",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Best",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "CANNALI",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Canali",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Choice",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Creta",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Diavata",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Dipso",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "EPT",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -507,7 +520,7 @@
     },
     {
       "name": "ERT",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ert 1 | ert1",
       "priority": 5
     },
@@ -530,22 +543,22 @@
     },
     {
       "name": "Ellas",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Faros",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Faros TV 2",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "FOX Greece",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -555,38 +568,38 @@
     },
     {
       "name": "Galaxy",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Greek TV London",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Groovy",
-      "isFree": true,
+      "isFree": null,
       "keywords": "groovy",
       "priority": 5
     },
     {
       "name": "Hellenic",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "High",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Horse Races",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ionian",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -596,239 +609,239 @@
     },
     {
       "name": "Kontra",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Krete",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MGR",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Magic TV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Maroussiotika",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Mesogeios",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Messinia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "NETMAX",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "NRG 91",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "NRG",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "NS",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Nea",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Notioi",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Open",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "PANIK",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Pella",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Pik Sat",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Reload Play",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Samiaki",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sigma",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Skai",
-      "isFree": true,
+      "isFree": null,
       "keywords": "skai",
       "priority": 5
     },
     {
       "name": "Smile",
-      "isFree": true,
+      "isFree": null,
       "keywords": "smile",
       "priority": 5
     },
     {
       "name": "Super B",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TILEMOUSIKI",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Filopoli",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Notos",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Rodopi",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Vouli Tileorasi",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "WZra Kids",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Xplore",
-      "isFree": true,
+      "isFree": null,
       "keywords": "xplore",
       "priority": 5
     },
     {
       "name": "ZOUGLA",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Zerouno",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ΡΙΚ Sat",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "10",
-      "isFree": true,
+      "isFree": null,
       "website": "https://10channel.gr/",
       "priority": 5
     },
     {
       "name": "Aeolos",
-      "isFree": true,
+      "isFree": null,
       "website": "https://aeolos.tv/",
       "priority": 5
     },
     {
       "name": "Aliteia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Alpha Sat",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.alphatvsat.com/",
       "priority": 5
     },
     {
       "name": "ANT1 Europe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.antennaeurope.gr/",
       "priority": 5
     },
     {
       "name": "ANT1 Pacific",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.antennapacific.gr/",
       "priority": 5
     },
     {
       "name": "ANT1 Satellite",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.antennasatellite.gr/",
       "priority": 5
     },
     {
       "name": "Atlas",
-      "isFree": true,
+      "isFree": null,
       "website": "https://atlastv.gr/",
       "priority": 5
     },
     {
       "name": "Banana",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Blue Sky",
-      "isFree": true,
+      "isFree": false,
       "website": "https://blueskytv.gr/",
       "priority": 5
     },
     {
       "name": "Body in Balance",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.bodyinbalance.gr/",
       "priority": 5
     },
     {
       "name": "Center",
-      "isFree": true,
+      "isFree": null,
       "website": "https://centertv.gr/",
       "priority": 5
     },
@@ -839,153 +852,153 @@
     },
     {
       "name": "Cosmote TV Promo",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cosmote.gr/cosmotetv",
       "priority": 5
     },
     {
       "name": "Crete",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cretetv.gr/",
       "priority": 5
     },
     {
       "name": "DELTA",
-      "isFree": true,
+      "isFree": null,
       "website": "https://deltatv.gr/",
       "priority": 5
     },
     {
       "name": "Dion",
-      "isFree": true,
+      "isFree": null,
       "website": "https://diontv.gr/",
       "priority": 5
     },
     {
       "name": "Ecclesia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ecclesiatv.gr/",
       "priority": 5
     },
     {
       "name": "Ellada",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.elladatv.gr/",
       "priority": 5
     },
     {
       "name": "Epiloges",
-      "isFree": true,
+      "isFree": null,
       "website": "https://epiloges.tv/",
       "priority": 5
     },
     {
       "name": "Epsilon",
-      "isFree": true,
+      "isFree": null,
       "website": "https://epsilon-tv.com/",
       "priority": 5
     },
     {
       "name": "Europe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://europe1.gr/",
       "priority": 5
     },
     {
       "name": "Extacy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://extacytv.gr/",
       "priority": 5
     },
     {
       "name": "Flash",
-      "isFree": true,
+      "isFree": null,
       "website": "https://flash-tv.gr/live/",
       "priority": 5
     },
     {
       "name": "FOX",
-      "isFree": true,
+      "isFree": null,
       "keywords": "fox -greece -life",
       "website": "https://www.fox-greece.gr/",
       "priority": 5
     },
     {
       "name": "FX",
-      "isFree": true,
+      "isFree": false,
       "keywords": "fx -life",
       "website": "https://www.fxchannel.gr/",
       "priority": 5
     },
     {
       "name": "Gnomi",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.gnomi.eu/",
       "priority": 5
     },
     {
       "name": "Hellenic Parliament",
-      "isFree": true,
+      "isFree": null,
       "keywords": "hellenic parliament tv -2 -3",
       "website": "https://www.hellenicparliament.gr/en/",
       "priority": 5
     },
     {
       "name": "Hellenic Parliament TV 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.hellenicparliament.gr/en/",
       "priority": 5
     },
     {
       "name": "Hellenic Parliament TV 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.hellenicparliament.gr/en/",
       "priority": 5
     },
     {
       "name": "Hlektra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.hlektra.gr/",
       "priority": 5
     },
     {
       "name": "Ioannina",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ioanninatv.gr/",
       "priority": 5
     },
     {
       "name": "Kos",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kostv.gr/",
       "priority": 5
     },
     {
       "name": "Kriti",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cretetv.gr/contact-us/",
       "priority": 5
     },
     {
       "name": "Lepanto",
-      "isFree": true,
+      "isFree": null,
       "website": "https://lepantortv.gr/",
       "priority": 5
     },
     {
       "name": "Live",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Makedonia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.maktv.gr/",
       "priority": 5
     },
     {
       "name": "Mega",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.megatv.com/",
       "priority": 5
     },
@@ -996,54 +1009,54 @@
     },
     {
       "name": "Next",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nexttvthrace-makedonia.blogspot.com/",
       "priority": 5
     },
     {
       "name": "Notos",
-      "isFree": true,
+      "isFree": null,
       "website": "https://notostv.gr/",
       "priority": 5
     },
     {
       "name": "Novalife",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.nova.gr/",
       "priority": 5
     },
     {
       "name": "One",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.onetv.gr/",
       "priority": 5
     },
     {
       "name": "ORT",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.patrisnews.com/",
       "priority": 5
     },
     {
       "name": "Patra",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Patrida",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvpatrida.gr/",
       "priority": 5
     },
     {
       "name": "RISE",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rise.gr/",
       "priority": 5
     },
     {
       "name": "Seven",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -1054,84 +1067,84 @@
     },
     {
       "name": "Star",
-      "isFree": true,
+      "isFree": null,
       "keywords": "star channel -international",
       "website": "https://www.star.gr/tv/",
       "priority": 5
     },
     {
       "name": "Star Channel International",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.star.gr/tv/",
       "priority": 5
     },
     {
       "name": "Star Kentrikis Elladas",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvstar.gr/",
       "priority": 5
     },
     {
       "name": "Syros TV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://syrostv1.gr/live-tv/",
       "priority": 5
     },
     {
       "name": "Telekriti",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.telekriti.com/",
       "priority": 5
     },
     {
       "name": "Tempo",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Thessalia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.thessaliatv.gr/",
       "priority": 5
     },
     {
       "name": "Thraki Net",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.thrakinet.tv/",
       "priority": 5
     },
     {
       "name": "TileFOS",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Top",
-      "isFree": true,
+      "isFree": null,
       "website": "https://top-channel.gr/",
       "priority": 5
     },
     {
       "name": "TV Kosmos",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvkosmos.gr/livetv",
       "priority": 5
     },
     {
       "name": "Volcano",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.neasantorinis.gr/",
       "priority": 5
     },
     {
       "name": "West",
-      "isFree": true,
+      "isFree": null,
       "website": "https://west-tv.gr/",
       "priority": 5
     },
     {
       "name": "ART",
-      "isFree": true,
+      "isFree": null,
       "keywords": "art",
       "website": "http://www.arttv.info/",
       "priority": 5
@@ -1140,40 +1153,45 @@
   "Movies & Series": [
     {
       "name": "Alfa Dramas",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Cosmote Cinema",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Cosmote Cinema 2",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Cosmote Cinema 3",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Wixlar",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Action 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://action24.gr/",
       "priority": 5
     },
     {
       "name": "Cosmote Series",
-      "isFree": true,
+      "isFree": false,
       "keywords": "cosmote series -marathon",
       "website": "https://www.cosmote.gr/cosmotetv",
       "priority": 5
     },
     {
       "name": "Cosmote Series Marathon",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cosmote.gr/portal/cosmote-series-marathon",
       "priority": 5
     },
@@ -1184,59 +1202,59 @@
     },
     {
       "name": "FOX Life",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.fox-greece.gr/",
       "priority": 5
     },
     {
       "name": "FX Life",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.fxchannel.gr/",
       "priority": 5
     },
     {
       "name": "Greek Cinema",
-      "isFree": true,
+      "isFree": null,
       "website": "http://greekcinematv.com/",
       "priority": 5
     },
     {
       "name": "Novacinema",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.nova.gr/",
       "priority": 5
     },
     {
       "name": "Novacinema 2",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.nova.gr/",
       "priority": 5
     },
     {
       "name": "Novacinema 3",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.nova.gr/",
       "priority": 5
     },
     {
       "name": "Novacinema 4",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.nova.gr/",
       "priority": 5
     },
     {
       "name": "TV Plus",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Universal",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Village Cinemas",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.villagecinemas.gr/",
       "priority": 5
     }
@@ -1244,52 +1262,52 @@
   "Music Videos": [
     {
       "name": "Baraza",
-      "isFree": true,
+      "isFree": null,
       "keywords": "baraza tv -classic -hits -greek -music",
       "priority": 5
     },
     {
       "name": "Magic",
-      "isFree": true,
+      "isFree": null,
       "keywords": "magic tv -gr",
       "priority": 5
     },
     {
       "name": "NG",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ng -radio",
       "priority": 5
     },
     {
       "name": "Play",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Xalastra",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Athina",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Baraza TV Deep House",
-      "isFree": true,
+      "isFree": null,
       "website": "https://barazaradio.com/",
       "priority": 5
     },
     {
       "name": "Baraza TV Relaxing",
-      "isFree": true,
+      "isFree": null,
       "website": "https://barazaradio.com/",
       "priority": 5
     },
     {
       "name": "Ellinikos FM",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ellinikosfm.com/",
       "priority": 5
     },
@@ -1305,49 +1323,49 @@
     },
     {
       "name": "Mad Greekz",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mad.gr/mad-greekz/",
       "priority": 5
     },
     {
       "name": "Mad",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mad.tv/",
       "priority": 5
     },
     {
       "name": "Mad Viral",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mad.gr/mad-viral/",
       "priority": 5
     },
     {
       "name": "Mad World",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mad.gr/mad-world/",
       "priority": 5
     },
     {
       "name": "Messatida",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.messatidatv.gr/",
       "priority": 5
     },
     {
       "name": "My Radio",
-      "isFree": true,
+      "isFree": null,
       "website": "https://myradionet.gr/contacts/",
       "priority": 5
     },
     {
       "name": "Real Music",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.realmusic.gr/",
       "priority": 5
     },
     {
       "name": "RedMusic",
-      "isFree": true,
+      "isFree": null,
       "website": "https://redmusic.live/",
       "priority": 5
     }
@@ -1367,36 +1385,36 @@
   "Education & Culture": [
     {
       "name": "Cosmote History",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cosmote.gr/cosmotetv",
       "priority": 7
     },
     {
       "name": "National Geographic",
-      "isFree": true,
+      "isFree": false,
       "keywords": "national geographic -wild",
       "website": "https://www.natgeotv.com/gr",
       "priority": 7
     },
     {
       "name": "National Geographic Wild",
-      "isFree": true,
+      "isFree": false,
       "website": "http://natgeotv.com/gr/wild",
       "priority": 7
     },
     {
       "name": "Viasat Explore",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Viasat History",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Viasat Nature",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     }
   ],

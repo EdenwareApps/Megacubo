@@ -35,67 +35,67 @@
     },
     {
       "name": "SHAMMAH",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Africa 24",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "LOOK UP",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Kenya Broadcasting Corporation",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Kenya Television Network",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "NTV",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "KTN News Kenya",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "CHRISTIAN FAITH",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "GIKUYU",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Romanza+ África",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Media of Kenya",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Ukombozi",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "El Shaddai",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     }
   ],
@@ -478,13 +478,13 @@
     },
     {
       "name": "Zuku Novella",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.zuku.co.ke/",
       "priority": 5
     },
     {
       "name": "Zuku Zone",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.zuku.co.ke/",
       "priority": 5
     }

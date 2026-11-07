@@ -485,7 +485,7 @@
     },
     {
       "name": "Setanta Sports Georgia",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {

@@ -7,7 +7,7 @@
     },
     {
       "name": "ARD-alpha",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -19,17 +19,17 @@
     },
     {
       "name": "ARTI",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Alex Berlin",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Antenne Vorarlberg",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -39,18 +39,18 @@
     },
     {
       "name": "BLK Regional",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BLK",
-      "isFree": true,
+      "isFree": null,
       "keywords": "blk tv -hohenmolsen",
       "priority": 5
     },
     {
       "name": "BLK TV Hohenmölsen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -71,29 +71,29 @@
     },
     {
       "name": "Baden",
-      "isFree": true,
+      "isFree": null,
       "keywords": "baden tv -karlsruhe",
       "priority": 5
     },
     {
       "name": "Baden TV Karlsruhe",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Bibel",
-      "isFree": true,
+      "isFree": null,
       "keywords": "bibel tv -impuls -musik",
       "priority": 5
     },
     {
       "name": "Bibel TV Impuls",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Bibel TV Musik",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -103,17 +103,17 @@
     },
     {
       "name": "Campus TV Magdeburg",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Campus-TV-Magdeburg+",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DASDING 90. 8",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -125,17 +125,17 @@
     },
     {
       "name": "Der Serienkanal AT",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Der Serienkanal CH",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Der Serienkanal",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -156,236 +156,236 @@
     },
     {
       "name": "Deutsches Musik Fernsehen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Drama CH",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Drama",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Dresden Fernsehen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "EOTV Germany",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Elbekanal",
-      "isFree": true,
+      "isFree": null,
       "keywords": "elbekanal -schonebeck",
       "priority": 5
     },
     {
       "name": "Elbekanal Schönebeck",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Erz-TV Stollberg",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "FIFA Club WM",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Family AT",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Family CH",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Family",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Filstalwelle",
-      "isFree": true,
+      "isFree": null,
       "keywords": "filstalwelle -goppingen",
       "priority": 5
     },
     {
       "name": "Filstalwelle Göppingen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Finest",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Franken Fernsehen",
-      "isFree": true,
+      "isFree": null,
       "keywords": "franken fernsehen -nurnberg",
       "priority": 5
     },
     {
       "name": "Franken Fernsehen Nürnberg",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Friesischer Rundfunk Friedeburg",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "GERMANY",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "HR",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "HSE",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "HSE24 Extra",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "HSE24 Trend",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Haldensleben",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Hamburg",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Handystar",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Hauptstadt",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Hauptstadt.TV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Health",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Health.TV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Isar",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Jena",
-      "isFree": true,
+      "isFree": null,
       "keywords": "jena tv | jenatv",
       "priority": 5
     },
     {
       "name": "KW TV Wildau",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "KW-TV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kanal 12 Spremberg",
-      "isFree": true,
+      "isFree": null,
       "keywords": "kanal 12 spremberg tv | kanal12 spremberg tv",
       "shortName": "K1ST",
       "priority": 5
     },
     {
       "name": "KiKA",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "KulturMD",
-      "isFree": true,
+      "isFree": null,
       "keywords": "kulturmd -magdeburg",
       "priority": 5
     },
     {
       "name": "KulturMD Magdeburg",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "L-TV Ludwigsburg",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Lausitzwelle",
-      "isFree": true,
+      "isFree": null,
       "keywords": "lausitzwelle -fernsehen",
       "priority": 5
     },
     {
       "name": "Lausitzwelle Fernsehen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Leipzig Fernsehen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Light",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MDF.",
-      "isFree": true,
+      "isFree": null,
       "keywords": "mdf 1 -magdeburg",
       "priority": 5
     },
     {
       "name": "MDF.1 Magdeburg",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -405,28 +405,29 @@
     },
     {
       "name": "Muxx.tv",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MyTVplus",
-      "isFree": true,
+      "isFree": null,
       "keywords": "mytvplus -dresden",
       "priority": 5
     },
     {
       "name": "MyTVplus Dresden",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "München",
-      "isFree": true,
-      "priority": 5
+      "isFree": null,
+      "priority": 5,
+      "website": "https://www.muenchen.tv/"
     },
     {
       "name": "München.tv",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -481,174 +482,174 @@
     },
     {
       "name": "NRT 2",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "NRWISION",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Nahe",
-      "isFree": true,
+      "isFree": null,
       "keywords": "nahe tv | nahetv",
       "priority": 5
     },
     {
       "name": "Niederbayern",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Noa 4 Hamburg",
-      "isFree": true,
+      "isFree": null,
       "keywords": "noa 4 hamburg | noa4 hamburg -hd",
-      "priority": 5,
-      "website": "https://www.noa4.de/hamburg.html"
+      "website": "https://www.noa4.de/hamburg.html",
+      "priority": 5
     },
     {
       "name": "Noa 4 Norderstedt",
-      "isFree": true,
+      "isFree": null,
       "keywords": "noa 4 norderstedt | noa4 norderstedt -hd",
       "shortName": "N4N",
-      "priority": 5,
-      "website": "https://www.noa4.de/norderstedt.html"
+      "website": "https://www.noa4.de/norderstedt.html",
+      "priority": 5
     },
     {
       "name": "OF-TV Offenbach",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Dessau",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Flensburg",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Gießen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Kaiserslautern",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Kassel",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Kiel",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Koblenz",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Ludwigshafen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Magdeburg",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Mainz",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Merseburg",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Merseburg-Querfurt",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Rhein-Main",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK RheinLokal",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Salzwedel",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Stendal",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Suedwestpfalz",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK TV Südwestpfalz",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Trier",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Weinstrasse Landau",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Weinstraße",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK Wernigerode",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ONE",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Oberlausitz",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Oberpfalz",
-      "isFree": true,
+      "isFree": null,
       "keywords": "oberpfalz tv -amberg",
       "priority": 5
     },
     {
       "name": "Oberpfalz TV Amberg",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -673,18 +674,18 @@
     },
     {
       "name": "Oscar am Freitag",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "PUNKTum",
-      "isFree": true,
+      "isFree": null,
       "keywords": "punktum -fernsehen",
       "priority": 5
     },
     {
       "name": "PUNKTum Fernsehen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -706,66 +707,66 @@
     },
     {
       "name": "PunktUm Hettstedt",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Punkteins",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Punktum S�dharz",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ran",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ran 1 | ran1 -regionalfernsehen",
       "shortName": "RAN",
       "priority": 5
     },
     {
       "name": "RAN1 Regionalfernsehen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RBW",
-      "isFree": true,
+      "isFree": null,
       "keywords": "rbw -bitterfeld -wolfen",
       "priority": 5
     },
     {
       "name": "RBW Bitterfeld-Wolfen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RFH",
-      "isFree": true,
+      "isFree": null,
       "keywords": "rfh -harz",
       "priority": 5
     },
     {
       "name": "RFH Harz",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RFO Rosenheim",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RNF",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RON",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -790,54 +791,54 @@
     },
     {
       "name": "RWE Erfurt",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ran1 Dessau-Roßlau",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Regio TV Schwaben",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Regio TV Stuttgart",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rhein Lokal Worms",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rhein Neckar Fernsehen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RheinMain",
-      "isFree": true,
+      "isFree": null,
       "keywords": "rheinmain tv | rheinmaintv",
       "priority": 5
     },
     {
       "name": "Rock Antenne",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rockland",
-      "isFree": true,
+      "isFree": null,
       "keywords": "rockland tv -mainz",
       "priority": 5
     },
     {
       "name": "Rockland TV - Mainz",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -852,109 +853,109 @@
     },
     {
       "name": "Saarland Fernsehen",
-      "isFree": true,
+      "isFree": null,
       "shortName": "SF",
       "priority": 5
     },
     {
       "name": "Saarland Fernsehen 2",
-      "isFree": true,
+      "isFree": null,
       "shortName": "SF 2",
       "priority": 5
     },
     {
       "name": "Santhora Short Film",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Seenluft 24",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sofy",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sonnenklar.TV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Spotlight AT",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Spotlight CH",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Spotlight",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Studio 47",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sylt",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "SÃ¼dtirol",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Südthüringer Regionalfernsehen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Südtirol",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Bayern Live",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Berlin",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Halle",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Mainfranken",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Mittelrhein",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Oberfranken",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV38 Südost-Niedersachen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -970,37 +971,37 @@
     },
     {
       "name": "TVO",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Tagesschau 24",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Teins",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Tesas",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Tide",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "UnserDing Saarbrücken",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Unserding",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -1020,7 +1021,7 @@
     },
     {
       "name": "Westerwald",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -1044,54 +1045,54 @@
     },
     {
       "name": "a.tv",
-      "isFree": true,
+      "isFree": null,
       "keywords": "a tv -augsburg",
       "priority": 5
     },
     {
       "name": "a.tv Augsburg",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "allgäu.tv Kempten",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ems TV Lingen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "eo",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "n-tv Event",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "nrwision Dortmund",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "oeins",
-      "isFree": true,
+      "isFree": null,
       "keywords": "oeins -oldenburg",
       "priority": 5
     },
     {
       "name": "oeins Oldenburg",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "oldenburg eins",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -1101,101 +1102,101 @@
     },
     {
       "name": "teltOwkanal",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "13th Street Universal",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.13thstreet.de/",
       "priority": 5
     },
     {
       "name": "Allgau",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.xn--allgu-jra.tv/",
       "priority": 5
     },
     {
       "name": "Altenburg",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.altenburg.tv/",
       "priority": 5
     },
     {
       "name": "ANIMAL KINGDOM",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Anixe HD Serie",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.anixehd.tv/index.php?hdsd=HD",
       "priority": 5
     },
     {
       "name": "Anixe +",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.anixehd.tv/index.php?hdsd=SD",
       "priority": 5
     },
     {
       "name": "ARD Event",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ard.de/",
       "priority": 5
     },
     {
       "name": "Aristo",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.aristo-tv.de/",
       "priority": 5
     },
     {
       "name": "AstroTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.astrotv.de/",
       "priority": 5
     },
     {
       "name": "Augsburg",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.augsburg.tv/",
       "priority": 5
     },
     {
       "name": "Autentic Travel",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.autentic.com/117/Channels.htm#autentic_travel",
       "priority": 5
     },
     {
       "name": "auto motor und sport",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.auto-motor-und-sport.de/",
       "priority": 10
     },
     {
       "name": "Baden TV Sud",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.baden-tv-sued.com/",
       "priority": 5
     },
     {
       "name": "Bergblick",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bergblick-tv.de/",
       "priority": 5
     },
     {
       "name": "Bild",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bild.de/tv/mediathek/livestream/startseite-77204148.bild.html",
       "priority": 5
     },
     {
       "name": "BonGusto",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bongusto.de/",
       "priority": 5
     },
@@ -1207,7 +1208,7 @@
     },
     {
       "name": "BW TV Alpha",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bundeswehr.de/de/betreuung-fuersorge/radio-andernach-und-bwtv-die-betreuungsmedien-der-bundeswehr",
       "priority": 5
     },
@@ -1219,119 +1220,119 @@
     },
     {
       "name": "ClipMyHorse",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.clipmyhorse.tv/",
       "priority": 5
     },
     {
       "name": "Comedy Central",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.comedycentral.de/",
       "priority": 5
     },
     {
       "name": "Crime + Investigation",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.crimeandinvestigation.de/",
       "priority": 5
     },
     {
       "name": "CroTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://crotvhd.net/",
       "priority": 5
     },
     {
       "name": "Dabei",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dabei-tv.de/",
       "priority": 5
     },
     {
       "name": "Deutschlands GayChat",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Discovery",
-      "isFree": true,
+      "isFree": false,
       "keywords": "discovery -channel",
       "priority": 7
     },
     {
       "name": "DMAX",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.dmax.de/",
       "priority": 5
     },
     {
       "name": "earthTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.earthtv.com/en",
       "priority": 5
     },
     {
       "name": "Elbe Elster Fernsehen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ee-fernsehen.de/",
       "priority": 5
     },
     {
       "name": "EuroAl",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "FOX",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.foxchannel.de",
       "priority": 5
     },
     {
       "name": "FRM-TV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://frm.lokal.studio/",
       "priority": 5
     },
     {
       "name": "Genius Exklusiv",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.genius.tv/",
       "priority": 5
     },
     {
       "name": "Genius Family",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.genius.tv/",
       "priority": 5
     },
     {
       "name": "Greifswald",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.greifswald-tv.de/",
       "priority": 5
     },
     {
       "name": "h",
-      "isFree": true,
+      "isFree": null,
       "website": "https://h-eins.tv/",
       "priority": 5
     },
     {
       "name": "Heimatkanal",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.heimatkanal.de/",
       "priority": 5
     },
     {
       "name": "HGTV",
-      "isFree": true,
+      "isFree": false,
       "website": "https://de.hgtv.com/",
       "priority": 5
     },
     {
       "name": "Hip Trips!",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.highview.com/",
       "priority": 5
     },
@@ -1356,42 +1357,42 @@
     },
     {
       "name": "Kanal 9 Erzgebirge",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kanal9.de/",
       "priority": 5
     },
     {
       "name": "labor 14",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tlm.de/medienbildung/thueringer-lernsender-labor14",
       "priority": 5
     },
     {
       "name": "Lalish",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Landtag BW",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.landtag-bw.de/cms/home/mediathek/landtag-live.html",
       "priority": 5
     },
     {
       "name": "Lausitz",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.lausitz.tv/",
       "priority": 5
     },
     {
       "name": "Lilo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://lilotv.de/",
       "priority": 5
     },
     {
       "name": "L",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.l-tv.de/",
       "priority": 5
     },
@@ -1403,19 +1404,19 @@
     },
     {
       "name": "Marco Polo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.marcopolo.de/tv.html",
       "priority": 5
     },
     {
       "name": "MC EU",
-      "isFree": true,
+      "isFree": null,
       "website": "http://mceu.tv/",
       "priority": 5
     },
     {
       "name": "MC",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mceu.tv/",
       "priority": 5
     },
@@ -1427,49 +1428,43 @@
     },
     {
       "name": "Meissen Fernsehen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.meissen-fernsehen.de/",
       "priority": 5
     },
     {
       "name": "Mittel Erzgebirgs Fernsehen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mef-line.de/",
       "priority": 5
     },
     {
       "name": "Motorvision",
-      "isFree": true,
+      "isFree": false,
       "website": "https://motorvision.tv/",
       "priority": 5
     },
     {
       "name": "Motorvision+",
-      "isFree": true,
+      "isFree": false,
       "website": "https://motorvision.tv/",
       "priority": 5
     },
     {
       "name": "MTV",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.mtv.de/",
       "priority": 5
     },
     {
       "name": "Muldental",
-      "isFree": true,
+      "isFree": null,
       "website": "https://muldentaltv.de/",
       "priority": 5
     },
     {
-      "name": "Munchen",
-      "isFree": true,
-      "website": "https://www.muenchen.tv/",
-      "priority": 5
-    },
-    {
       "name": "MV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mv1.tv/",
       "priority": 5
     },
@@ -1481,42 +1476,42 @@
     },
     {
       "name": "Neisse Welle Guben",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv-nwg.de/",
       "priority": 5
     },
     {
       "name": "neueins",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.neueins.tv/",
       "priority": 5
     },
     {
       "name": "Nick/Comedy Central +",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Niederbayern TV Deggendorf & Straubing",
-      "isFree": true,
+      "isFree": null,
       "website": "https://deggendorf.niederbayerntv.de/",
       "priority": 5
     },
     {
       "name": "Niederbayern TV Landshut",
-      "isFree": true,
+      "isFree": null,
       "website": "https://landshut.niederbayerntv.de/",
       "priority": 5
     },
     {
       "name": "Niederbayern TV Passau",
-      "isFree": true,
+      "isFree": null,
       "website": "https://passau.niederbayerntv.de/",
       "priority": 5
     },
     {
       "name": "Niederbayern TV Satellit",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.niederbayerntv.de/",
       "priority": 5
     },
@@ -1528,20 +1523,20 @@
     },
     {
       "name": "Noviy Mir",
-      "isFree": true,
+      "isFree": null,
       "website": "https://n-w.tv/",
       "priority": 5
     },
     {
       "name": "n-tv",
-      "isFree": true,
+      "isFree": null,
       "keywords": "n-event",
       "website": "https://www.n-tv.de",
       "priority": 5
     },
     {
       "name": "Oder-Spree-Fernsehen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://osftv.de/",
       "priority": 5
     },
@@ -1553,60 +1548,60 @@
     },
     {
       "name": "OK 4",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ok4.tv/",
       "priority": 5
     },
     {
       "name": "OK 54",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ok54.de/",
       "priority": 5
     },
     {
       "name": "OK Fulda",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.medienanstalt-hessen.de/medienprojektzentren-offener-kanal/fulda/",
       "priority": 5
     },
     {
       "name": "OK Giessen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "OK RheinLokal Worms",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rheinlokal.de/",
       "priority": 5
     },
     {
       "name": "OK-TV Ludwigshafen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ok-lu.de/",
       "priority": 5
     },
     {
       "name": "OK:TV Mainz",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ok-mainz.de/",
       "priority": 5
     },
     {
       "name": "OK Weinstrasse Neustadt",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ok-weinstrasse.de/neustadt/oeffnungszeiten-kontakt/",
       "priority": 5
     },
     {
       "name": "Oscar am Freitag-TV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.oscar-am-freitag.de/",
       "priority": 5
     },
     {
       "name": "OTVA",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.otva.de/",
       "priority": 5
     },
@@ -1622,7 +1617,7 @@
     },
     {
       "name": "Pirna",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.pirna-tv.de/",
       "priority": 5
     },
@@ -1648,18 +1643,18 @@
     },
     {
       "name": "ProSiebenSat.1 Welt",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.prosiebensat1welt.com/",
       "priority": 5
     },
     {
       "name": "Punkteins Oberlausitz",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Radio Bremen Fernsehen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://dein.radiobremen.de/",
       "priority": 5
     },
@@ -1671,32 +1666,32 @@
     },
     {
       "name": "Regio TV Rostock",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.regiotv-rostock.de/",
       "priority": 5
     },
     {
       "name": "Rennsteig",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rennsteig.tv/",
       "priority": 5
     },
     {
       "name": "RFO",
-      "isFree": true,
+      "isFree": null,
       "keywords": "rfo -rosenheim",
       "website": "https://www.rfo.de/",
       "priority": 5
     },
     {
       "name": "Riesa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.riesa-tv.de/",
       "priority": 5
     },
     {
       "name": "Romance",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.romance-tv.de/",
       "priority": 5
     },
@@ -1715,7 +1710,7 @@
     },
     {
       "name": "RTL Living",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.rtl-living.de/",
       "priority": 5
     },
@@ -1733,7 +1728,7 @@
     },
     {
       "name": "RTL Passion",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.rtlpassion.de/",
       "priority": 5
     },
@@ -1758,66 +1753,66 @@
     },
     {
       "name": "Rugen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ruegentv.de/",
       "priority": 5
     },
     {
       "name": "Saale Info",
-      "isFree": true,
+      "isFree": null,
       "website": "https://saaleinfo.tv/",
       "priority": 5
     },
     {
       "name": "Sachsen Eins",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sachsen-fernsehen.de/",
       "priority": 5
     },
     {
       "name": "Sachsen Fernsehen Chemnitz",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sachsen-fernsehen.de/kategorie/chemnitz/",
       "priority": 5
     },
     {
       "name": "Sachsen Fernsehen Dresden",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sachsen-fernsehen.de/kategorie/dresden/",
       "priority": 5
     },
     {
       "name": "Sachsen Fernsehen Lausitz",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sachsen-fernsehen.de/lausitz/",
       "priority": 5
     },
     {
       "name": "Sachsen Fernsehen Leipzig",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sachsen-fernsehen.de/kategorie/leipzig/",
       "priority": 5
     },
     {
       "name": "Sachsen Fernsehen Vogtland",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sachsen-fernsehen.de/kategorie/vogtland/",
       "priority": 5
     },
     {
       "name": "Salve",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.salve.tv/",
       "priority": 5
     },
     {
       "name": "Santhora",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "SAT.",
-      "isFree": true,
+      "isFree": null,
       "keywords": "sat 1 -emotions -gold -nrw",
       "website": "https://video.sat1.de/",
       "priority": 5
@@ -1842,13 +1837,13 @@
     },
     {
       "name": "Schlager Deluxe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://schlagerdeluxe.de/",
       "priority": 5
     },
     {
       "name": "Sender Neu Jerusalem",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.neu-jerusalem.de/",
       "priority": 5
     },
@@ -1860,61 +1855,61 @@
     },
     {
       "name": "Sky Atlantic",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 5
     },
     {
       "name": "Sky Comedy",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/sky-comedy",
       "priority": 5
     },
     {
       "name": "Sky Krimi",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 5
     },
     {
       "name": "Sky One",
-      "isFree": true,
+      "isFree": false,
       "website": "http://sky.de/sky1",
       "priority": 5
     },
     {
       "name": "Sky Replay",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 5
     },
     {
       "name": "Sky Serien & Shows",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Showcase",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 5
     },
     {
       "name": "Sonnenklar",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sonnenklar.tv/",
       "priority": 5
     },
     {
       "name": "Sonus FM",
-      "isFree": true,
+      "isFree": null,
       "keywords": "sonus fm -alemania",
       "website": "https://www.sonus.fm/",
       "priority": 5
     },
     {
       "name": "Sony",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sonychannel.de/",
       "priority": 5
     },
@@ -1926,25 +1921,25 @@
     },
     {
       "name": "Spiegel Geschichte",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.spiegel-geschichte.tv/",
       "priority": 5
     },
     {
       "name": "SRF",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.srf-online.de/",
       "priority": 5
     },
     {
       "name": "Stralsund",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fas-tv.de/",
       "priority": 5
     },
     {
       "name": "Strausberg",
-      "isFree": true,
+      "isFree": null,
       "website": "https://strausberg.tv/",
       "priority": 5
     },
@@ -1968,42 +1963,42 @@
     },
     {
       "name": "SYFY",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.syfy.de/",
       "priority": 5
     },
     {
       "name": "TELE 5",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tele5.de/",
       "priority": 5
     },
     {
       "name": "Telebom",
-      "isFree": true,
+      "isFree": null,
       "keywords": "telebom -teledom",
       "website": "http://www.kinomir.tv/",
       "priority": 5
     },
     {
       "name": "Telebom & Teledom",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Teledom",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.kinomir.tv/",
       "priority": 5
     },
     {
       "name": "tiviTURK",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TLC",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tlc.de/",
       "priority": 5
     },
@@ -2015,54 +2010,49 @@
     },
     {
       "name": "Torgau-TV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.torgau-tv.de/",
       "priority": 5
     },
     {
-      "name": "TV38 Sudost-Niedersachen",
-      "isFree": true,
-      "priority": 5
-    },
-    {
       "name": "TV-BB",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvbb.online/",
       "priority": 5
     },
     {
       "name": "TVRUS",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvrus.eu/",
       "priority": 5
     },
     {
       "name": "TV:SCHWERIN",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv-schwerin.de/",
       "priority": 5
     },
     {
       "name": "TV Westsachsen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.westsachsen.tv/",
       "priority": 5
     },
     {
       "name": "Universal",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.universaltv.de/",
       "priority": 5
     },
     {
       "name": "Usedom",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.usedomtv.de/",
       "priority": 5
     },
     {
       "name": "Vodafone",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.vodafone.de/",
       "priority": 5
     },
@@ -2074,13 +2064,13 @@
     },
     {
       "name": "Voxup",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.vox.de/cms/voxup.html",
       "priority": 5
     },
     {
       "name": "Waidwerk",
-      "isFree": true,
+      "isFree": null,
       "website": "https://waidwerk.tv/",
       "priority": 5
     },
@@ -2103,19 +2093,19 @@
     },
     {
       "name": "Wetter.com",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.wetter.com/tv/",
       "priority": 5
     },
     {
       "name": "Wir 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://wir24.tv/",
       "priority": 5
     },
     {
       "name": "Wismar",
-      "isFree": true,
+      "isFree": null,
       "website": "https://wismar-tv.de/",
       "priority": 5
     },
@@ -2128,20 +2118,20 @@
     },
     {
       "name": "WW",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ww tv | wwtv",
       "website": "https://www.ww-tv.de/",
       "priority": 5
     },
     {
       "name": "Xplore",
-      "isFree": true,
+      "isFree": null,
       "website": "https://xplore-tv.de/",
       "priority": 5
     },
     {
       "name": "YOL",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.yoltv.eu/",
       "priority": 5
     },
@@ -2193,42 +2183,42 @@
     },
     {
       "name": "RTL Television",
-      "isFree": null,
-      "priority": 5
-    },
-    {
-      "name": "Super RTL",
-      "isFree": null,
-      "priority": 5
-    },
-    {
-      "name": "Nickelodeon",
       "isFree": true,
       "priority": 5
     },
     {
+      "name": "Super RTL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": false,
+      "priority": 5
+    },
+    {
       "name": "MTV Germany",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Eurosport",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "QVC Germany",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Disney",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Euronews",
-      "isFree": null,
+      "isFree": true,
       "keywords": "euronews -deutsch",
       "priority": 5
     },
@@ -2239,22 +2229,22 @@
     },
     {
       "name": "Sky Cinema",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Crime",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Sci-Fi",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "RTL Crime",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2264,23 +2254,23 @@
     },
     {
       "name": "Animal Planet Germany",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Eurosport 2",
-      "isFree": null,
+      "isFree": false,
       "keywords": "eurosport 2 -xtra",
       "priority": 10
     },
     {
       "name": "Cartoonito",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Cartoon Network",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2300,12 +2290,12 @@
     },
     {
       "name": "Nicktoons",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Nick Jr.",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2315,28 +2305,28 @@
     },
     {
       "name": "AXN Black",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "AXN White",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "History",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "DAZN",
-      "isFree": null,
+      "isFree": false,
       "keywords": "dazn -fast",
       "priority": 5
     },
     {
       "name": "Sportdigital",
-      "isFree": null,
+      "isFree": false,
       "keywords": "sportdigital -edge -fussball -2",
       "priority": 10
     },
@@ -2352,7 +2342,7 @@
     },
     {
       "name": "Nat Geo Wild",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2367,8 +2357,8 @@
     },
     {
       "name": "A&E",
+      "isFree": false,
       "keywords": "a e | a&e | aee | arts entertainment",
-      "isFree": null,
       "priority": 5
     },
     {
@@ -2388,22 +2378,22 @@
     },
     {
       "name": "Discovery Geschichte",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Disney Cinemagic",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Disney Jr.",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Disney XD",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2413,7 +2403,7 @@
     },
     {
       "name": "E!",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2463,7 +2453,7 @@
     },
     {
       "name": "MTV Brand New",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2483,28 +2473,28 @@
     },
     {
       "name": "Premiere Serie",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "RBB Brandenburg",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "RTL International",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "ServusTV",
-      "isFree": null,
+      "isFree": true,
       "keywords": "servustv -deutschland",
       "priority": 5
     },
     {
       "name": "Sky 3D",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2524,7 +2514,7 @@
     },
     {
       "name": "Toon Disney",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2534,22 +2524,22 @@
     },
     {
       "name": "Travel Channel International",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "VIVA",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "VIVA Plus",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "VIVA Zwei",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2559,7 +2549,7 @@
     },
     {
       "name": "ZDF 2",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2574,9 +2564,9 @@
     },
     {
       "name": "ZDF Musikkanal",
-      "isFree": null,
+      "isFree": true,
       "retransmits": "ZDF",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "ZDFtheaterkanal",
@@ -2635,37 +2625,37 @@
     },
     {
       "name": "Sky Cinema Premiere + 24",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Cinema Highlights",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Sport Bundesliga 1 - 10",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky Sport UHD",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky Sport Bundesliga UHD",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sportdigital EDGE",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sportdigital Fussball 2",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
@@ -2682,11 +2672,6 @@
       "name": "L-TV",
       "isFree": null,
       "keywords": "l-ludwigsburg",
-      "priority": 5
-    },
-    {
-      "name": "Rhein-Neckar Fernsehen",
-      "isFree": null,
       "priority": 5
     },
     {
@@ -2731,7 +2716,7 @@
     },
     {
       "name": "TVA - TVAktuell",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2741,11 +2726,6 @@
     },
     {
       "name": "BFtv",
-      "isFree": null,
-      "priority": 5
-    },
-    {
-      "name": "Elbe-Elster-Fernsehen",
       "isFree": null,
       "priority": 5
     },
@@ -2766,11 +2746,6 @@
     },
     {
       "name": "Oderland.TV",
-      "isFree": null,
-      "priority": 5
-    },
-    {
-      "name": "Oder-Spree Fernsehen",
       "isFree": null,
       "priority": 5
     },
@@ -2806,7 +2781,7 @@
     },
     {
       "name": "WMZ",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2822,7 +2797,7 @@
     },
     {
       "name": "Offener Kanal Offenbach/Frankfurt",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2867,11 +2842,6 @@
       "priority": 5
     },
     {
-      "name": "TV-Schwerin",
-      "isFree": null,
-      "priority": 5
-    },
-    {
       "name": "Vorpommern",
       "isFree": null,
       "priority": 5
@@ -2910,7 +2880,7 @@
     },
     {
       "name": "Offener Kanal Kirchheimbolanden",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -3026,7 +2996,7 @@
     },
     {
       "name": "tvM Meissen Fernsehen",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -3041,17 +3011,17 @@
     },
     {
       "name": "Offener Kanal Magdeburg",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Offener Kanal Merseburg-Querfurt",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Offener Kanal Wettin",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -3066,7 +3036,7 @@
     },
     {
       "name": "Offener Kanal Flensburg",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -3106,7 +3076,7 @@
     },
     {
       "name": "Blue Movie",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -3135,62 +3105,217 @@
       "priority": 5
     },
     {
-      "name": "Hip Trips",
-      "isFree": null,
-      "priority": 5
-    },
-    {
       "name": "MTV Music",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Arts",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Info",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Select",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Sport Fanzone",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "JenaTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.jenatv.de/",
       "priority": 5
     },
     {
       "name": "naheTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nahetv.de/?page_id=9",
       "priority": 5
     },
     {
       "name": "noa4 Norderstedt",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.noa4.de/norderstedt.html",
       "priority": 5
     },
     {
       "name": "RTLup",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rtl-up.de/",
       "priority": 5
     },
     {
       "name": "wwtv",
       "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Arirang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KBS World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AXN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "tvN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "BBC Earth",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Channel",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Food Network",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Lifetime",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "ORF 1",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ORF 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ORF III",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PULS 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PULS acht",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "oe24.TV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "3+",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rocket Beans TV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Classica",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nautical Channel",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Silverline",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "UHD1",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Top Serien",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "123.tv",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DF1",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canale 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DR1",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DR2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 2",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "WDR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MDR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BR",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RBB",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SWR",
+      "isFree": true,
       "priority": 5
     }
   ],
@@ -3202,13 +3327,13 @@
     },
     {
       "name": "CNN International",
-      "isFree": true,
+      "isFree": null,
       "keywords": "cnn international -germany",
       "priority": 5
     },
     {
       "name": "CNN International Germany",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -3253,7 +3378,7 @@
     },
     {
       "name": "Der Aktionaer",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.deraktionaer.de/",
       "priority": 5
     },
@@ -3266,44 +3391,84 @@
     },
     {
       "name": "Kanal 13",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Meydan",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.meydan.tv/az/",
       "priority": 5
     },
     {
       "name": "Nachrichten 360",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ost West",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ostwest.tv/",
       "priority": 5
     },
     {
       "name": "RT",
-      "isFree": true,
+      "isFree": null,
       "website": "https://de.rt.com/",
       "priority": 5
     },
     {
       "name": "SchwarzRotGoldTV",
-      "isFree": true,
+      "isFree": null,
       "website": "http://schwarzrotgold.tv/",
       "priority": 5
     },
     {
       "name": "Sky Sport News",
-      "isFree": true,
+      "isFree": false,
       "keywords": "sky sport news",
       "website": "https://sport.sky.de/",
       "priority": 10
+    },
+    {
+      "name": "France 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NHK World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CGTN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CCTV-4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABC Australia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNBC",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "TV5 Monde",
+      "isFree": true,
+      "priority": 5
     }
   ],
   "Religious": [
@@ -3395,457 +3560,493 @@
   "Cooking": [
     {
       "name": "Tastemade Deutschland",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
   "Sports": [
     {
       "name": "World of Freesports",
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "DAZN FAST",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "DF",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.df1.de/",
       "priority": 5
     },
     {
       "name": "eSports",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.esports1.de/",
       "priority": 10
     },
     {
       "name": "Eurosport 2 Xtra",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.eurosport.de/",
       "priority": 10
     },
     {
       "name": "FC Bayern.TV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://fcbayern.com/fcbayerntv/en",
       "priority": 5
     },
     {
       "name": "German Tote",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.germantote.tv/#/",
       "priority": 5
     },
     {
       "name": "Magenta Sport",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.magentasport.de/",
       "priority": 10
     },
     {
       "name": "More Than Sports",
-      "isFree": true,
+      "isFree": null,
       "website": "https://morethansports.tv/contact/",
       "priority": 10
     },
     {
       "name": "Sky Sport",
-      "isFree": true,
+      "isFree": false,
       "keywords": "sky sport -1 -10 -11 -12 -13 -14 -2 -3 -4 -5 -6 -7 -8 -9 -bundesliga -f1 -golf -kompakt -mix -news -hd -premier -league -tennis -top -event",
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport 10",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport 11",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport 12",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport 13",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport 14",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport 6",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport 7",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport 8",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport 9",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Bundesliga",
-      "isFree": true,
+      "isFree": false,
       "keywords": "sky sport bundesliga -1 -10 -2 -3 -4 -5 -6 -7 -8 -9",
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Bundesliga 10",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Bundesliga 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Bundesliga 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Bundesliga 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Bundesliga 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Bundesliga 6",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Bundesliga 7",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Bundesliga 8",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Bundesliga 9",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport F",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/mehr-sport/formel-1-170562",
       "priority": 10
     },
     {
       "name": "Sky Sport Golf",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Kompakt",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Kompakt 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Kompakt 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Kompakt 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Kompakt 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Mix",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Premier League",
-      "isFree": true,
+      "isFree": false,
       "website": "https://sport.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Tennis",
-      "isFree": true,
+      "isFree": false,
       "website": "https://sport.sky.de/",
       "priority": 10
     },
     {
       "name": "Sky Sport Top Event",
-      "isFree": true,
+      "isFree": false,
       "website": "https://sport.sky.de/",
       "priority": 10
     },
     {
       "name": "Sport",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.sport1.de/sport1/",
       "priority": 10
     },
     {
       "name": "Sport1+",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.sport1.de/sport1plus/",
       "priority": 10
     },
     {
       "name": "Sportdigital FUSSBALL",
-      "isFree": true,
+      "isFree": false,
       "website": "https://start.sportdigital.de/",
       "priority": 10
     },
     {
       "name": "Streamster.tv",
-      "isFree": true,
+      "isFree": null,
       "website": "https://streamster.tv/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Sports",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "SPOTV",
+      "isFree": false,
       "priority": 5
     }
   ],
   "Kids": [
     {
       "name": "3 ABN KIDS",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Animax",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.animaxtv.de/",
       "priority": 5
     },
     {
       "name": "Boomerang",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.boomerangtv.de/",
       "priority": 5
     },
     {
       "name": "Junior",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.junior.tv/",
       "priority": 5
     },
     {
       "name": "RiC",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ric -international",
       "website": "http://www.rictv.de/",
       "priority": 5
     },
     {
       "name": "RiC International",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.rictv.de/",
+      "priority": 5
+    },
+    {
+      "name": "CBeebies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Baby TV",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Disney Channel",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "nick",
+      "isFree": null,
       "priority": 5
     }
   ],
   "Music Videos": [
     {
       "name": "Adria Music Television",
-      "isFree": true,
+      "isFree": null,
       "website": "https://folx.network/adria-music-television/",
       "priority": 5
     },
     {
       "name": "Deluxe Dance",
-      "isFree": true,
+      "isFree": null,
       "website": "https://deluxemusic.de/kontakt/",
       "priority": 5
     },
     {
       "name": "Deluxe Flashback",
-      "isFree": true,
+      "isFree": null,
       "website": "https://deluxemusic.de/kontakt/",
       "priority": 5
     },
     {
       "name": "Deluxe Lounge",
-      "isFree": true,
+      "isFree": null,
       "keywords": "deluxe lounge",
       "website": "https://deluxemusic.de/kontakt/",
       "priority": 5
     },
     {
       "name": "Deluxe Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://deluxemusic.de/kontakt/",
       "priority": 5
     },
     {
       "name": "Deluxe Rap",
-      "isFree": true,
+      "isFree": null,
       "website": "https://deluxemusic.de/kontakt/",
       "priority": 5
     },
     {
       "name": "DMF",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dmf.tv",
       "priority": 5
     },
     {
       "name": "Folx Music Television",
-      "isFree": true,
+      "isFree": null,
       "website": "https://folx.network/folx-music-television/",
       "priority": 5
     },
     {
       "name": "Goldstar",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.goldstar-tv.de/",
       "priority": 5
     },
     {
       "name": "Good-Sound",
-      "isFree": true,
+      "isFree": null,
       "website": "https://good-sound.de/",
       "priority": 5
     },
     {
       "name": "Gute Laune",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.gutelaunetv.de/",
       "priority": 5
     },
     {
       "name": "Jukebox",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.jukebox-tv.de/",
       "priority": 5
     },
     {
       "name": "MagentaMusik 360",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.magentamusik.de/",
       "priority": 5
     },
     {
       "name": "Nice",
-      "isFree": true,
+      "isFree": null,
       "website": "https://du-bist-nice.de/",
       "priority": 5
     },
     {
       "name": "Nuclear Blast",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nuclearblast.com/pages/band-faq",
       "priority": 5
     },
     {
       "name": "One Adria",
-      "isFree": true,
+      "isFree": null,
       "website": "https://folx.network/one-adria-music-television/",
       "priority": 5
     },
     {
       "name": "One Music Television",
-      "isFree": true,
+      "isFree": null,
       "website": "https://folx.network/one-music-television/",
       "priority": 5
     },
     {
       "name": "TeleGold",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.telegold.de/",
       "priority": 5
     },
     {
       "name": "Volksmusik",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.volksmusik.tv/",
       "priority": 5
     },
     {
       "name": "Zwei Music Television",
-      "isFree": true,
+      "isFree": null,
       "website": "https://folx.network/zwei-music-television/",
+      "priority": 5
+    },
+    {
+      "name": "Mezzo",
+      "isFree": false,
       "priority": 5
     }
   ],
@@ -3881,54 +4082,60 @@
   "Movies & Series": [
     {
       "name": "Action Movies AT",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Action Movies CH",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Action Movies",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Comedy Movies AT",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Comedy Movies CH",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Comedy Movies",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Bjgtjme Free Movies",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bjgtjme.com/",
       "priority": 5
     },
     {
       "name": "Eagle Cinema Aktion",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Grjngo Western Movies",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.grjngo.com/",
       "priority": 5
     },
     {
       "name": "Kinowelt",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kinowelt.tv/",
       "priority": 5
     },
     {
       "name": "Nash Kinomir",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.kinomir.tv/",
       "priority": 5
     },
@@ -3940,55 +4147,55 @@
     },
     {
       "name": "Silverline Movie",
-      "isFree": true,
+      "isFree": null,
       "website": "https://silverline.tv/",
       "priority": 5
     },
     {
       "name": "Sky Cinema Action",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 5
     },
     {
       "name": "Sky Cinema Best Of",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 5
     },
     {
       "name": "Sky Cinema Classics",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 5
     },
     {
       "name": "Sky Cinema Family",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 5
     },
     {
       "name": "Sky Cinema Fun",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 5
     },
     {
       "name": "Sky Cinema Premieren",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 5
     },
     {
       "name": "Sky Cinema Special",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 5
     },
     {
       "name": "Sky Cinema Thriller",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 5
     }
@@ -4002,7 +4209,7 @@
     },
     {
       "name": "Eropuls.de",
-      "isFree": null,
+      "isFree": true,
       "website": "https://www.eropuls.de/TVSHOP/",
       "priority": 4
     },
@@ -4102,13 +4309,13 @@
     },
     {
       "name": "Animal Planet",
-      "isFree": true,
+      "isFree": false,
       "website": "https://animalplanet.de/",
       "priority": 5
     },
     {
       "name": "Autentic History",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.autentic.com/117/Channels.htm#autentic_history",
       "priority": 7
     },
@@ -4187,31 +4394,31 @@
     },
     {
       "name": "Nat Geo People",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "National Geographic",
-      "isFree": true,
+      "isFree": false,
       "keywords": "national geographic -wild",
       "website": "http://www.nationalgeographic.de/",
       "priority": 7
     },
     {
       "name": "National Geographic Wild",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.nationalgeographic.de/",
       "priority": 7
     },
     {
       "name": "Sky Documentaries",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 5
     },
     {
       "name": "Sky Nature",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.de/",
       "priority": 5
     },
@@ -4231,6 +4438,7 @@
   "Added": [
     {
       "name": "Sky Deutschland",
+      "isFree": false,
       "priority": 5
     }
   ]

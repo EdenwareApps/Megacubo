@@ -474,7 +474,7 @@
     },
     {
       "name": "TVN 14",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tvn14.com/",
       "priority": 5
     },

@@ -31,7 +31,8 @@
     {
       "name": "Canal Visión Dorada",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "http://canalvisiondorada.com.co/"
     },
     {
       "name": "Enlace Televisión",
@@ -72,11 +73,11 @@
       "retransmits": "Canal Caracol",
       "shortName": "Caracol",
       "website": "https://caracol.com.co",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "TVN Global",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -701,12 +702,6 @@
       "priority": 5
     },
     {
-      "name": "Canal Vision Dorada",
-      "isFree": true,
-      "website": "http://canalvisiondorada.com.co/",
-      "priority": 5
-    },
-    {
       "name": "Canal Vision",
       "isFree": true,
       "website": "https://www.visiontvcolombia.com/",
@@ -1090,12 +1085,6 @@
     {
       "name": "En Casa",
       "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "Enlace Television",
-      "isFree": true,
-      "website": "https://enlacetelevision.com/",
       "priority": 5
     },
     {
@@ -1533,12 +1522,6 @@
       "priority": 5
     },
     {
-      "name": "Senal Colombia",
-      "isFree": true,
-      "website": "https://www.senalcolombia.tv/",
-      "priority": 5
-    },
-    {
       "name": "Senal Pacande",
       "isFree": true,
       "priority": 5
@@ -1725,7 +1708,7 @@
     },
     {
       "name": "Telenet Television",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2582,11 +2565,6 @@
       "priority": 5
     },
     {
-      "name": "Telemusica",
-      "isFree": true,
-      "priority": 5
-    },
-    {
       "name": "Tropical",
       "isFree": true,
       "website": "https://tropicaltv.com.co/",
@@ -2614,16 +2592,19 @@
   "Movies & Series": [
     {
       "name": "Chavo",
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Cinema +",
+      "isFree": true,
       "keywords": "cinema plus | cinemaplus",
       "shortName": "Cinema +",
       "priority": 5
     },
     {
       "name": "MovieFe",
+      "isFree": true,
       "priority": 5
     },
     {

@@ -5,6 +5,13 @@ import { terms, resolveListDatabaseFile, match } from '../../lists/tools.js'
 
 const EPG_LOOKUP_CACHE_SIZE = 386
 const CACHE_MISS_ENTRY = Object.freeze({ miss: true, programmes: [] })
+/**
+ * Misses are cached only briefly: while an EPG is still ingesting channels, a lookup can miss
+ * even though the channel data arrives seconds later. A permanent miss would keep the channel
+ * without programme data (and without its artwork) for the whole session.
+ */
+const CACHE_MISS_TTL = 30 * 1000
+const CACHE_HIT_TTL = 5 * 60 * 1000
 
 class LRUCache {
   constructor(limit) {
@@ -29,6 +36,10 @@ class LRUCache {
       const oldestKey = this.map.keys().next().value
       this.map.delete(oldestKey)
     }
+  }
+
+  delete(key) {
+    return this.map.delete(key)
   }
 
   clear() {
@@ -306,17 +317,23 @@ export class EPG extends EPGUpdater {
 
   _getCachedLookupEntry(termsKey) {
     if (!termsKey || !this.lookupCache) return undefined
-    return this.lookupCache.get(termsKey)
+    const cached = this.lookupCache.get(termsKey)
+    if (!cached) return undefined
+    if (cached.expires && cached.expires <= Date.now()) {
+      this.lookupCache.delete(termsKey)
+      return undefined
+    }
+    return cached.value
   }
 
   _setCachedLookupEntry(termsKey, value) {
     if (!termsKey || !this.lookupCache) return
-    this.lookupCache.set(termsKey, value)
+    this.lookupCache.set(termsKey, { value, expires: Date.now() + CACHE_HIT_TTL })
   }
 
   _cacheLookupMiss(termsKey) {
     if (!termsKey || !this.lookupCache) return
-    this.lookupCache.set(termsKey, CACHE_MISS_ENTRY)
+    this.lookupCache.set(termsKey, { value: CACHE_MISS_ENTRY, expires: Date.now() + CACHE_MISS_TTL })
   }
 
   async resolveLiveNowAndNext(channelDescriptor, options = {}) {
@@ -371,28 +388,24 @@ export class EPG extends EPGUpdater {
       return CACHE_MISS_ENTRY
     }
 
-    let bestScore = 0
-    const candidateIds = []
+    // Collect every candidate ordered by match score, so an exact-but-empty channel
+    // (e.g. "ESPN" indexed with no future programmes) can fall back to a sibling
+    // channel that actually has data (e.g. "ESPN 3").
+    const candidates = []
 
     for (const [name, nameTerms] of termMap.entries()) {
       if (!Array.isArray(nameTerms) || nameTerms.length === 0) continue
       const score = match(searchTerms, nameTerms, false)
       if (!score) continue
-
-      if (score > bestScore) {
-        bestScore = score
-        candidateIds.length = 0
-      }
-
-      if (score === bestScore) {
-        candidateIds.push(name)
-      }
+      candidates.push({ name, score })
     }
 
-    if (candidateIds.length === 0) {
+    if (!candidates.length) {
       this._cacheLookupMiss(termsKey)
       return CACHE_MISS_ENTRY
     }
+
+    candidates.sort((a, b) => b.score - a.score)
 
     const now = typeof options.now === 'number' ? options.now : (Date.now() / 1000)
     const fetchLimit = Math.max(2, options.limit || 2)
@@ -400,7 +413,8 @@ export class EPG extends EPGUpdater {
 
     let bestCandidate = null
 
-    for (const candidateId of candidateIds) {
+    for (const candidate of candidates) {
+      const candidateId = candidate.name
       const query = { ...queryBase, channel: candidateId }
       let programmes = []
 
@@ -420,17 +434,26 @@ export class EPG extends EPGUpdater {
 
       if (
         !bestCandidate ||
-        trimmed.length > bestCandidate.programmes.length ||
+        candidate.score > bestCandidate.score ||
         (
-          trimmed.length === bestCandidate.programmes.length &&
-          candidateStart < (bestCandidate.programmes[0]?.start ?? Number.MAX_SAFE_INTEGER)
+          candidate.score === bestCandidate.score &&
+          (
+            trimmed.length > bestCandidate.programmes.length ||
+            (
+              trimmed.length === bestCandidate.programmes.length &&
+              candidateStart < (bestCandidate.programmes[0]?.start ?? Number.MAX_SAFE_INTEGER)
+            )
+          )
         )
       ) {
         bestCandidate = {
           channel: candidateId,
+          score: candidate.score,
           programmes: trimmed
         }
       }
+
+      if (bestCandidate.score >= 3) break
     }
 
     if (!bestCandidate) {

@@ -2,36 +2,36 @@
   "Music Videos": [
     {
       "name": "Sky Folk",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Balkan Music",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.balkanika.tv/",
       "priority": 5
     },
     {
       "name": "Folk",
-      "isFree": true,
+      "isFree": null,
       "website": "https://stream.nasatv.com.mk/folktv/",
       "priority": 5
     },
     {
       "name": "Hi Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.himusic.tv",
       "priority": 5
     },
     {
       "name": "Jazz",
-      "isFree": true,
+      "isFree": null,
       "website": "https://stream.nasatv.com.mk/jazztv/",
       "priority": 5
     },
     {
       "name": "Love",
-      "isFree": true,
+      "isFree": null,
       "website": "https://stream.nasatv.com.mk/lovetv/",
       "priority": 5
     },
@@ -43,25 +43,25 @@
     },
     {
       "name": "Rock",
-      "isFree": true,
+      "isFree": null,
       "website": "https://stream.nasatv.com.mk/rocktv/",
       "priority": 5
     },
     {
       "name": "Star Folk",
-      "isFree": true,
+      "isFree": null,
       "website": "https://starfolk.net/",
       "priority": 5
     },
     {
       "name": "Star Plus Televizija",
-      "isFree": true,
+      "isFree": false,
       "website": "https://starplustv.com/",
       "priority": 5
     },
     {
       "name": "TopEstrada",
-      "isFree": true,
+      "isFree": null,
       "website": "https://topestrada.tv/",
       "priority": 5
     }
@@ -69,7 +69,7 @@
   "Entertainment": [
     {
       "name": "Alfa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://alfa.mk/",
       "priority": 5
     },
@@ -81,31 +81,31 @@
     },
     {
       "name": "Cool",
-      "isFree": true,
+      "isFree": null,
       "website": "https://stream.nasatv.com.mk/cooltv/",
       "priority": 5
     },
     {
       "name": "Kanal 5",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kanal5.com.mk/",
       "priority": 5
     },
     {
       "name": "Kanal 8",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.kanal8.mk/",
       "priority": 5
     },
     {
       "name": "Klan Macedonia",
-      "isFree": true,
+      "isFree": null,
       "website": "http://klanmacedonia.mk/",
       "priority": 5
     },
     {
       "name": "Koha",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvkoha.tv/",
       "priority": 5
     },
@@ -117,19 +117,19 @@
     },
     {
       "name": "Makedonsko Sonce",
-      "isFree": true,
+      "isFree": null,
       "website": "http://makedonskosonce.com/",
       "priority": 5
     },
     {
       "name": "M-Net",
-      "isFree": true,
+      "isFree": false,
       "website": "https://mnet.mk/",
       "priority": 5
     },
     {
       "name": "MRT",
-      "isFree": true,
+      "isFree": null,
       "keywords": "mrt 1 -sat",
       "website": "https://www.mrt.com.mk/",
       "priority": 5
@@ -154,13 +154,13 @@
     },
     {
       "name": "MTM",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mtm.mk/",
       "priority": 5
     },
     {
       "name": "Nasa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nasatv.com.mk/",
       "priority": 5
     },
@@ -172,46 +172,46 @@
     },
     {
       "name": "Sitel",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sitel.com.mk/",
       "priority": 5
     },
     {
       "name": "Spektra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://spektra.com.mk/",
       "priority": 5
     },
     {
       "name": "Sutel",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Televizija Kobra",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Televizija Protel",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Televizija Star",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvstar.com.mk/",
       "priority": 5
     },
     {
       "name": "Telma",
-      "isFree": true,
+      "isFree": null,
       "website": "https://telma.com.mk/",
       "priority": 5
     },
     {
       "name": "Tera",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -222,7 +222,7 @@
     },
     {
       "name": "TV 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.24.mk/",
       "priority": 5
     },
@@ -234,50 +234,50 @@
     },
     {
       "name": "TV Edo",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV ERA",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Festa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvfesta.mk/",
       "priority": 5
     },
     {
       "name": "TV Globi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://globi.mk/",
       "priority": 5
     },
     {
       "name": "TV Gurra",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Iris",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Kaltrina",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Kanal VIS",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kanalvis.com/",
       "priority": 5
     },
     {
       "name": "TV KISS & Menada",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -288,65 +288,65 @@
     },
     {
       "name": "TV NOVA 12",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvnova12.mk/",
       "priority": 5
     },
     {
       "name": "TV Orbis",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvorbis.com.mk/",
       "priority": 5
     },
     {
       "name": "TVPlus",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Pollogu",
-      "isFree": true,
+      "isFree": null,
       "website": "https://pollogu.mk",
       "priority": 5
     },
     {
       "name": "TV Shenja",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Sonce",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tv-sonce.com/tv-sonce.com",
       "priority": 5
     },
     {
       "name": "TV Svet",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Uskana",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.uskana.mk/",
       "priority": 5
     },
     {
       "name": "TV Zdravkin",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
   "News": [
     {
       "name": "M-Net Info",
-      "isFree": true,
+      "isFree": false,
       "website": "https://info.mnet.mk/",
       "priority": 5
     },
     {
       "name": "News33.tv",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.news33.tv/",
       "priority": 5
     }
@@ -354,7 +354,7 @@
   "Kids": [
     {
       "name": "M-Net Kids",
-      "isFree": true,
+      "isFree": false,
       "website": "https://kids.mnet.mk/",
       "priority": 5
     }
@@ -362,7 +362,7 @@
   "Sports": [
     {
       "name": "M-Net Sport",
-      "isFree": true,
+      "isFree": false,
       "website": "http://sport.mnet.mk/",
       "priority": 10
     },

@@ -88,7 +88,8 @@
     {
       "name": "Argentinísima Satelital",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "http://argentinisimatv.com.ar/"
     },
     {
       "name": "CANAL TDC",
@@ -285,7 +286,8 @@
       "name": "TV Pública",
       "isFree": true,
       "website": "https://www.tvpublica.com.ar",
-      "priority": 5
+      "priority": 5,
+      "keywords": "tv publica -fueguina -marcos -paz"
     },
     {
       "name": "TVG América",
@@ -325,7 +327,8 @@
     {
       "name": "Tierra Mía",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://www.diario26.com/"
     },
     {
       "name": "VerTV",
@@ -398,14 +401,8 @@
       "priority": 5
     },
     {
-      "name": "Argentinisima Satelital",
-      "isFree": true,
-      "website": "http://argentinisimatv.com.ar/",
-      "priority": 5
-    },
-    {
       "name": "Astro Net",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -451,7 +448,7 @@
     },
     {
       "name": "Bravo",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -1415,7 +1412,7 @@
     },
     {
       "name": "El Gourmet",
-      "isFree": true,
+      "isFree": false,
       "website": "http://elgourmet.com/",
       "priority": 5
     },
@@ -1578,11 +1575,6 @@
       "priority": 5
     },
     {
-      "name": "Live Peru TV Streaming",
-      "isFree": true,
-      "priority": 5
-    },
-    {
       "name": "LTO Television",
       "isFree": true,
       "website": "https://lastejasonline.blogspot.com/p/lto-television.html",
@@ -1596,7 +1588,7 @@
     },
     {
       "name": "Mas Chic",
-      "isFree": true,
+      "isFree": false,
       "website": "https://maschic.com/",
       "priority": 5
     },
@@ -1821,13 +1813,13 @@
     },
     {
       "name": "Sony",
-      "isFree": true,
+      "isFree": false,
       "website": "https://la.sonychannel.com/",
       "priority": 5
     },
     {
       "name": "Space",
-      "isFree": true,
+      "isFree": false,
       "website": "https://canalspacela.com/",
       "priority": 5
     },
@@ -1970,12 +1962,6 @@
       "priority": 5
     },
     {
-      "name": "Tierra Mia",
-      "isFree": true,
-      "website": "https://www.diario26.com/",
-      "priority": 5
-    },
-    {
       "name": "TIV Television",
       "isFree": true,
       "website": "http://bieninformado.com.ar/",
@@ -2019,13 +2005,6 @@
       "name": "TVMAXCBA",
       "isFree": true,
       "website": "https://en.tvmaxcba.com/",
-      "priority": 5
-    },
-    {
-      "name": "TV Publica",
-      "isFree": true,
-      "keywords": "tv publica -fueguina -marcos -paz",
-      "website": "https://www.tvpublica.com.ar/",
       "priority": 5
     },
     {
@@ -2307,14 +2286,17 @@
   "Sports": [
     {
       "name": "AgrotendenciaTV",
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Claro Sports",
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "DeporTV",
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2336,25 +2318,25 @@
     },
     {
       "name": "ESPN Premium",
-      "isFree": true,
+      "isFree": false,
       "website": "http://espn.com.ar/",
       "priority": 10
     },
     {
       "name": "FOX Sports",
-      "isFree": true,
+      "isFree": false,
       "keywords": "fox sports -2 -3",
       "priority": 10
     },
     {
       "name": "FOX Sports 2",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.foxsportsla.com/",
       "priority": 10
     },
     {
       "name": "FOX Sports 3",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.foxsportsla.com/",
       "priority": 10
     },
@@ -2366,44 +2348,44 @@
     },
     {
       "name": "TNT Sports",
-      "isFree": true,
+      "isFree": false,
       "website": "https://tntsports.com.ar/",
       "priority": 10
     },
     {
       "name": "TyC Sports",
-      "isFree": true,
+      "isFree": false,
       "keywords": "tyc sports -2 -3 -4 -latin -america -usa",
       "website": "http://www.tycsports.com/",
       "priority": 10
     },
     {
       "name": "TyC Sports 2",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tycsports.com/",
       "priority": 10
     },
     {
       "name": "TyC Sports 3",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tycsports.com/",
       "priority": 10
     },
     {
       "name": "TyC Sports 4",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tycsports.com/",
       "priority": 10
     },
     {
       "name": "TyC Sports Latin America",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tycsports.com/global/internacional.php",
       "priority": 10
     },
     {
       "name": "TyC Sports USA",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tycsports.com/global/internacional.php",
       "priority": 10
     }
@@ -2474,7 +2456,7 @@
     },
     {
       "name": "Boomerang Latinoamérica",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2500,13 +2482,13 @@
     },
     {
       "name": "Disney Channel Latin America",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.disneylatino.com/tv",
       "priority": 5
     },
     {
       "name": "Disney Jr. Latin America",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.disneylatino.com/",
       "priority": 5
     },
@@ -2868,10 +2850,12 @@
   "Movies & Series": [
     {
       "name": "CINE.AR",
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "SEO TV Novelas",
+      "isFree": true,
       "priority": 5
     },
     {

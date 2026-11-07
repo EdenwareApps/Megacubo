@@ -2,13 +2,13 @@
   "Entertainment": [
     {
       "name": "Boom",
-      "isFree": true,
+      "isFree": null,
       "keywords": "boom",
       "priority": 5
     },
     {
       "name": "Canal Macau",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -18,18 +18,18 @@
     },
     {
       "name": "STV",
-      "isFree": true,
+      "isFree": null,
       "keywords": "stv | soico",
       "priority": 5
     },
     {
       "name": "TDM Info",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TDM Entertainment",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -45,29 +45,29 @@
     },
     {
       "name": "Zap Novelas",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Zap Viva",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Lotus",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.lotustv.cc/",
       "priority": 5
     },
     {
       "name": "MASTV",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.imastv.com/",
       "priority": 5
     },
     {
       "name": "MCTV Channel",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.macaucabletv.com/",
       "priority": 5
     },
@@ -79,19 +79,19 @@
     },
     {
       "name": "TDM",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tdm.com.mo/c_tv/?ch=hdctvp",
       "priority": 5
     },
     {
       "name": "TDM-Macau Satellite",
-      "isFree": true,
+      "isFree": null,
       "website": "http://new.tdm.com.mo/c_tv/?ch=sat",
       "priority": 5
     },
     {
       "name": "TDM Ou Mun",
-      "isFree": true,
+      "isFree": null,
       "website": "http://new.tdm.com.mo/c_tv/?ch=ctvp",
       "priority": 5
     }
@@ -99,49 +99,51 @@
   "Kids": [
     {
       "name": "Boomerang",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     }
   ],
   "Movies & Series": [
     {
       "name": "Blast",
+      "isFree": null,
       "priority": 5
     }
   ],
   "Music Videos": [
     {
       "name": "Afro Music",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
   "Sports": [
     {
       "name": "TDM Sport",
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "Football",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.macaucabletv.com/",
       "priority": 5
     },
     {
       "name": "MCTV Info-Sports",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.macaucabletv.com/",
       "priority": 10
     },
     {
       "name": "Sports",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.macaucabletv.com/",
       "priority": 10
     },
     {
       "name": "TDM Sports",
-      "isFree": true,
+      "isFree": null,
       "website": "http://new.tdm.com.mo/c_tv/?ch=sport",
       "priority": 10
     }
@@ -155,7 +157,7 @@
     },
     {
       "name": "TDM Information",
-      "isFree": true,
+      "isFree": null,
       "website": "http://new.tdm.com.mo/c_tv/?ch=info",
       "priority": 5
     }

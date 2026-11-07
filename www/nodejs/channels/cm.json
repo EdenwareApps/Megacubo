@@ -474,8 +474,8 @@
     },
     {
       "name": "Excel Discovery",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Global Impact Television",

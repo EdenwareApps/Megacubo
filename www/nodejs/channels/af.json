@@ -51,18 +51,22 @@
   "Movies & Series": [
     {
       "name": "&Pictures",
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "&TV",
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "&privé",
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Thrill",
+      "isFree": true,
       "priority": 5
     }
   ],
@@ -74,7 +78,7 @@
     },
     {
       "name": "AMC",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.amctv.media/",
       "priority": 5
     },

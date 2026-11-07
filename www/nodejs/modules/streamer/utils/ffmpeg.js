@@ -449,6 +449,13 @@ class StreamerFFmpeg extends EventEmitter {
         }
         if (this.opts.videoCodec == 'libx264') {
             this.decoder.outputOptions('-profile:v', this.opts.vprofile || 'baseline');
+            if (this.opts.forceVideoReencode) {
+                // The source had no keyframes at all; force a fixed GOP so every HLS segment
+                // starts with an IDR and MSE can start decoding right away.
+                this.decoder.
+                    outputOptions('-force_key_frames', 'expr:gte(t,n_forced*2)').
+                    outputOptions('-sc_threshold', 0);
+            }
             //this.decoder.outputOptions('-filter_complex', 'scale=iw*min(1\,min(640/iw\,360/ih)):-1')
         }
         if (typeof(this.source) == 'string' && this.source.indexOf('http') == 0) { // skip other protocols

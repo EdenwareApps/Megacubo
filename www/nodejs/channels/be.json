@@ -12,152 +12,152 @@
     },
     {
       "name": "ABX",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Be Ciné",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Be Séries",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "BRUZZ",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Discovery",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Disney",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Disney Jr.",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "National Geographic",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Nickelodeon/MTV Netherlands",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Nick Jr.",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Pickx+",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Pickx+ Sports",
-      "isFree": null,
+      "isFree": true,
       "priority": 10
     },
     {
       "name": "Play",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Qmusic",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Radio Contact Vision",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Studio 100",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Star",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Tipikvision",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "TLC",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "VTM/VTM Kids",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "VTM 2",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "VTM 3",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Nickelodeon",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Tipik",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     }
   ],
   "News": [
     {
       "name": "LN 24",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Canal Z",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.canalz.be/",
       "priority": 5
     },
     {
       "name": "HLN Live",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.hln.be/",
       "priority": 5
     },
     {
       "name": "Kanaal Z",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.kanaalz.be/",
       "priority": 5
     },
     {
       "name": "Sterk",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sterktv1.net/",
       "priority": 5
     }
@@ -165,7 +165,7 @@
   "Entertainment": [
     {
       "name": "A T V",
-      "isFree": true,
+      "isFree": null,
       "keywords": "a t v | atv",
       "priority": 5
     },
@@ -176,12 +176,12 @@
     },
     {
       "name": "BX",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Canal C",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -191,7 +191,7 @@
     },
     {
       "name": "City Music",
-      "isFree": true,
+      "isFree": null,
       "keywords": "city music",
       "priority": 5
     },
@@ -223,22 +223,22 @@
     },
     {
       "name": "MNM",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MaTele",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "NoTele",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ROB",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -247,101 +247,96 @@
       "priority": 5
     },
     {
-      "name": "RTL-TVi",
-      "isFree": true,
-      "priority": 5
-    },
-    {
       "name": "TV Oost",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "XITE",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "AB 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ab3.be/",
       "priority": 5
     },
     {
       "name": "ABXplore",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.abxplore.be/",
       "priority": 5
     },
     {
       "name": "ACTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.antennecentre.tv/",
       "priority": 5
     },
     {
       "name": "Aktif",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.aktiftv.com.tr/",
       "priority": 5
     },
     {
       "name": "AVS",
-      "isFree": true,
+      "isFree": null,
       "keywords": "avs -gent",
       "website": "https://www.avs.be/",
       "priority": 5
     },
     {
       "name": "AVS Gent",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.avs.be/",
       "priority": 5
     },
     {
       "name": "Be",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.betv.be",
       "priority": 5
     },
     {
       "name": "Be 1+1hr",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.betv.be",
       "priority": 5
     },
     {
       "name": "Belgian Federal Parliament",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.fed-parl.be/index.html",
       "priority": 5
     },
     {
       "name": "Bouke",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BRF",
-      "isFree": true,
+      "isFree": null,
       "website": "https://m.brf.be/",
       "priority": 5
     },
     {
       "name": "Canal Atlas",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.canalatlas.com/",
       "priority": 5
     },
     {
       "name": "Chamber of Representatives",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.lachambre.be/media/index.html",
       "priority": 5
     },
     {
       "name": "Dobbit",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dobbit.be/fr/home",
       "priority": 5
     },
@@ -361,13 +356,13 @@
     },
     {
       "name": "Eclips",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.eclipstv.be/",
       "priority": 5
     },
     {
       "name": "Focus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.focus-wtv.be/",
       "priority": 5
     },
@@ -385,7 +380,7 @@
     },
     {
       "name": "Maghreb",
-      "isFree": true,
+      "isFree": null,
       "website": "https://maghrebtelevision.com/",
       "priority": 5
     },
@@ -397,25 +392,25 @@
     },
     {
       "name": "Ment",
-      "isFree": true,
+      "isFree": null,
       "website": "https://menttv.be/",
       "priority": 5
     },
     {
       "name": "Njam!",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.njam.tv/",
       "priority": 5
     },
     {
       "name": "Pickx Live",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.proximus.be/",
       "priority": 5
     },
     {
       "name": "Plattelands",
-      "isFree": true,
+      "isFree": null,
       "website": "https://plattelandstv.be/",
       "priority": 5
     },
@@ -457,37 +452,37 @@
     },
     {
       "name": "Promius Pickx InfoChannel",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.pickx.be/",
       "priority": 5
     },
     {
       "name": "Proximus 11",
-      "isFree": true,
+      "isFree": false,
       "website": "https://proximus.be/",
       "priority": 5
     },
     {
       "name": "QU4TRE Liege Media",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.qu4tre.be/",
       "priority": 5
     },
     {
       "name": "Radio",
-      "isFree": true,
+      "isFree": null,
       "website": "https://radio1.be/",
       "priority": 5
     },
     {
       "name": "Radio 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://radio2.be/",
       "priority": 5
     },
     {
       "name": "Ring",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ringtv.be/",
       "priority": 5
     },
@@ -511,13 +506,13 @@
     },
     {
       "name": "RTV Kempen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtv.be/regios/kempen",
       "priority": 5
     },
     {
       "name": "RTV Mech",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -528,31 +523,31 @@
     },
     {
       "name": "Tele MB",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.telemb.be/",
       "priority": 5
     },
     {
       "name": "Telesambre",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.telesambre.be/",
       "priority": 5
     },
     {
       "name": "TVcom",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvcom.be/",
       "priority": 5
     },
     {
       "name": "TV Limburg",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tvlimburg.be/",
       "priority": 5
     },
     {
       "name": "TV Lux",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvlux.be/",
       "priority": 5
     },
@@ -564,19 +559,19 @@
     },
     {
       "name": "TV Vlaanderen",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tv-vlaanderen.be/",
       "priority": 5
     },
     {
       "name": "Vedia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.vedia.be/",
       "priority": 5
     },
     {
       "name": "Vlaams Parlement",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.vlaamsparlement.be/nl/tv",
       "priority": 5
     },
@@ -594,7 +589,7 @@
     },
     {
       "name": "VTM",
-      "isFree": true,
+      "isFree": null,
       "keywords": "vtm -2 -3 -4 -gold -kids -life",
       "website": "https://vtm.be/",
       "priority": 5
@@ -626,41 +621,41 @@
   "Music Videos": [
     {
       "name": "Q-Music",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Fun Vision",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.funradio.be/funvision/",
       "priority": 5
     },
     {
       "name": "Joe FM",
-      "isFree": true,
+      "isFree": null,
       "website": "https://joe.be/",
       "priority": 5
     },
     {
       "name": "Klara",
-      "isFree": true,
+      "isFree": null,
       "website": "https://klara.be/",
       "priority": 5
     },
     {
       "name": "Q-music Vlaanderen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Radio Extremix",
-      "isFree": true,
+      "isFree": null,
       "website": "https://radioextremix.be/",
       "priority": 5
     },
     {
       "name": "StuBru",
-      "isFree": true,
+      "isFree": null,
       "website": "https://stubru.be/",
       "priority": 5
     }
@@ -698,36 +693,36 @@
   "Movies & Series": [
     {
       "name": "Be Cine",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.betv.be/",
       "priority": 5
     },
     {
       "name": "Be Series",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "CINAF",
-      "isFree": true,
+      "isFree": null,
       "website": "https://cinaf.tv/fr/",
       "priority": 5
     },
     {
       "name": "Cine+ Classic",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canalplus.com/chaines/cineplus",
       "priority": 5
     },
     {
       "name": "Cine+ Frisson",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canalplus.com/chaines/cineplus",
       "priority": 5
     },
     {
       "name": "Cine+ Premier",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canalplus.com/chaines/cineplus",
       "priority": 5
     },
@@ -759,19 +754,19 @@
   "Kids": [
     {
       "name": "JapanimTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://foxkidstv.be/broadcaster/japanimtv/stream/player",
       "priority": 5
     },
     {
       "name": "Nickelodeon Flanders",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nickelodeon.be/",
       "priority": 5
     },
     {
       "name": "Nickelodeon Wallonia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://fr.nickelodeon.be/",
       "priority": 5
     },
@@ -881,37 +876,37 @@
     },
     {
       "name": "Sport 10",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sport10.be/",
       "priority": 10
     },
     {
       "name": "Sporza",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sporza.be/nl/",
       "priority": 5
     },
     {
       "name": "VOOsport World",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.voo.be/en/tv/voosport-world",
       "priority": 10
     },
     {
       "name": "VOOsport World 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.voo.be/en/tv/voosport-world",
       "priority": 10
     },
     {
       "name": "VOOsport World 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.voo.be/en/tv/voosport-world",
       "priority": 10
     },
     {
       "name": "VOOsport World 4",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.voo.be/en/tv/voosport-world",
       "priority": 10
     }
@@ -919,6 +914,7 @@
   "Added": [
     {
       "name": "RTBF",
+      "isFree": true,
       "priority": 5
     }
   ]

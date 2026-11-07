@@ -126,7 +126,7 @@
     },
     {
       "name": "One TV Discovery 6",
-      "isFree": true,
+      "isFree": false,
       "website": "http://digitalsky.com.kh/EN/Channel-List/OneTV-Discovery-6",
       "priority": 7
     },

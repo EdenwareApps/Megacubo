@@ -2,64 +2,64 @@
   "Entertainment": [
     {
       "name": "CroTV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Elektrika",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Nova",
-      "isFree": true,
+      "isFree": null,
       "keywords": "nova -2 -action -cinema -gold",
       "priority": 5
     },
     {
       "name": "Nova 2",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Nova Action",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Nova Gold",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ocko",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ocko -expres -gold -star",
       "priority": 5
     },
     {
       "name": "Ocko Expres",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ocko Gold",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ocko STAR",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Polar",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Praha",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -75,32 +75,28 @@
     {
       "name": "RTM plus",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "http://www.rtmplus.cz/"
     },
     {
       "name": "Slagr",
-      "isFree": true,
+      "isFree": null,
       "keywords": "slagr",
       "priority": 5
     },
     {
       "name": "TV Natura",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Vychodoceska",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "Východočeská",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Šlágr 2",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -111,42 +107,42 @@
     },
     {
       "name": "C 8",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "CMS",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cmstv.cz/",
       "priority": 5
     },
     {
       "name": "CS Mystery",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kinosvet.tv/",
       "priority": 5
     },
     {
       "name": "CT",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.ceskatelevize.cz/vysilani/",
       "priority": 5
     },
     {
       "name": "CT 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ceskatelevize.cz/porady/ct3/",
       "priority": 5
     },
     {
       "name": "DATEL",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dacice.cz/aplikace-media/dacicka-televize/",
       "priority": 5
     },
     {
       "name": "DTX",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -169,42 +165,42 @@
     },
     {
       "name": "Hobby",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvhobby.cz/",
       "priority": 5
     },
     {
       "name": "JC",
-      "isFree": true,
+      "isFree": null,
       "website": "https://jc1.cz/",
       "priority": 5
     },
     {
       "name": "JHTV",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.jhtv.cz",
       "priority": 5
     },
     {
       "name": "Jihoceska televize",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.jihoceskatelevize.cz/",
       "priority": 5
     },
     {
       "name": "KLADNo",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Krusna",
-      "isFree": true,
+      "isFree": null,
       "website": "https://krusna.tv/",
       "priority": 5
     },
     {
       "name": "Kuryr",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kuryr.tv/",
       "priority": 5
     },
@@ -223,72 +219,72 @@
     },
     {
       "name": "LTV Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ltv-plus.cz/",
       "priority": 5
     },
     {
       "name": "Mnam",
-      "isFree": true,
+      "isFree": null,
       "website": "https://imnam.cz/",
       "priority": 5
     },
     {
       "name": "Mnau",
-      "isFree": true,
+      "isFree": null,
       "website": "https://imnau.cz/",
       "priority": 5
     },
     {
       "name": "Nova Fun",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.nova.cz/",
       "priority": 5
     },
     {
       "name": "Nova International",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tv.nova.cz/",
       "priority": 5
     },
     {
       "name": "Nova Lady",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Nova Sport 5",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mujtvprogram.cz/",
       "priority": 10
     },
     {
       "name": "Nova Sport 6",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mujtvprogram.cz/",
       "priority": 10
     },
     {
       "name": "OIK",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.oiktv.cz/",
       "priority": 5
     },
     {
       "name": "OK",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.oktv.cz/",
       "priority": 5
     },
     {
       "name": "Plzen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.plzen.cz/",
       "priority": 5
     },
     {
       "name": "Polar 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://polar.cz/polar2",
       "priority": 5
     },
@@ -337,26 +333,20 @@
     },
     {
       "name": "Rebel",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvrebel.cz/",
       "priority": 5
     },
     {
       "name": "regionalnitelevize",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.regionalnitelevize.cz/",
       "priority": 5
     },
     {
       "name": "Relax",
-      "isFree": true,
+      "isFree": null,
       "website": "https://televizerelax.cz/",
-      "priority": 5
-    },
-    {
-      "name": "RTM+",
-      "isFree": true,
-      "website": "http://www.rtmplus.cz/",
       "priority": 5
     },
     {
@@ -367,25 +357,25 @@
     },
     {
       "name": "Televize FILMpro",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.filmpro.cz/",
       "priority": 5
     },
     {
       "name": "Televize Prerov",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvprerov.cz/",
       "priority": 5
     },
     {
       "name": "Televize Seznam",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.televizeseznam.cz/",
       "priority": 5
     },
     {
       "name": "TIK Bohumin",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tik.tvmarko.cz/",
       "priority": 5
     },
@@ -397,91 +387,91 @@
     },
     {
       "name": "TV Beskyd",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvbeskyd.cz/",
       "priority": 5
     },
     {
       "name": "TV Brno",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvbrno1.cz/",
       "priority": 5
     },
     {
       "name": "TV DAKR",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dakr-tv.cz/",
       "priority": 5
     },
     {
       "name": "TVMohelnice",
-      "isFree": true,
+      "isFree": null,
       "website": "http://mohelnickatelevize.cz/",
       "priority": 5
     },
     {
       "name": "TV Morava",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvmorava.cz/",
       "priority": 5
     },
     {
       "name": "TV Noe+",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvnoe.cz/live-noeplus",
       "priority": 5
     },
     {
       "name": "TV Nova",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tv.nova.cz/",
       "priority": 5
     },
     {
       "name": "TV Paprika",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tvpaprika.cz/",
       "priority": 5
     },
     {
       "name": "TVS",
-      "isFree": true,
+      "isFree": null,
       "website": "https://itvs24.cz/",
       "priority": 5
     },
     {
       "name": "Up Network",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.up.network/",
       "priority": 5
     },
     {
       "name": "UTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.televizeutv.cz/",
       "priority": 5
     },
     {
       "name": "V",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.televizev1.cz/",
       "priority": 5
     },
     {
       "name": "V24tv",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.v24tv.cz/",
       "priority": 5
     },
     {
       "name": "Yachting",
-      "isFree": true,
+      "isFree": null,
       "website": "https://yachtingtv.tv/",
       "priority": 5
     },
     {
       "name": "ZAK",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.zaktv.cz/",
       "priority": 5
     }
@@ -494,7 +484,7 @@
     },
     {
       "name": "CS History",
-      "isFree": true,
+      "isFree": false,
       "website": "https://wartv.cz/",
       "priority": 7
     },
@@ -512,20 +502,20 @@
     },
     {
       "name": "History",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.history.com/",
       "priority": 7
     },
     {
       "name": "National Geographic",
-      "isFree": true,
+      "isFree": false,
       "keywords": "national geographic -wild",
       "website": "http://www.natgeotv.com/cz",
       "priority": 7
     },
     {
       "name": "National Geographic Wild",
-      "isFree": true,
+      "isFree": false,
       "website": "http://natgeotv.com/cz/",
       "priority": 7
     },
@@ -538,19 +528,19 @@
     },
     {
       "name": "Viasat Explore",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viasatexplore.cz/",
       "priority": 5
     },
     {
       "name": "Viasat History",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viasathistory.cz/",
       "priority": 7
     },
     {
       "name": "Viasat Nature",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viasatnature.cz/",
       "priority": 5
     }
@@ -558,57 +548,57 @@
   "Music Videos": [
     {
       "name": "Retro Music",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Retro Music Television",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Óčko",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ocko -expres -gold",
       "priority": 5
     },
     {
       "name": "Óčko Expres",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Óčko Gold",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Lounge",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.loungetv.cz/",
       "priority": 5
     },
     {
       "name": "Ocko Black",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ocko.tv/",
       "priority": 5
     },
     {
       "name": "Slager Muzika",
-      "isFree": true,
+      "isFree": null,
       "website": "https://slagrtv.cz/",
       "priority": 5
     },
     {
       "name": "Slager Original",
-      "isFree": true,
+      "isFree": null,
       "website": "https://slagrtv.cz/",
       "priority": 5
     },
     {
       "name": "Slager Premium",
-      "isFree": true,
+      "isFree": null,
       "website": "https://slagrtv.cz/",
       "priority": 5
     }
@@ -616,30 +606,31 @@
   "Movies & Series": [
     {
       "name": "Nova Cinema",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "CS Film",
-      "isFree": true,
+      "isFree": null,
       "website": "https://csfilm.joj.cz/",
       "priority": 5
     },
     {
       "name": "CS Horror",
-      "isFree": true,
+      "isFree": null,
       "website": "https://hororfilm.tv/",
       "priority": 5
     },
     {
       "name": "Film Europe",
-      "isFree": true,
+      "isFree": null,
       "keywords": "film europe -plus",
       "website": "https://filmeurope.cz/cs/tv",
       "priority": 5
     },
     {
       "name": "Film+",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.filmplustv.cz/",
       "priority": 5
     },
@@ -651,7 +642,7 @@
     },
     {
       "name": "Paramount Network",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.paramountnetwork.cz/",
       "priority": 5
     }
@@ -673,13 +664,13 @@
   "Sports": [
     {
       "name": "Canal+ Sport",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplussport.cz/",
       "priority": 10
     },
     {
       "name": "Canal+ Sport 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplussport.cz/",
       "priority": 10
     },
@@ -691,110 +682,110 @@
     },
     {
       "name": "Golf",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.golfchannel.cz/",
       "priority": 5
     },
     {
       "name": "Nova Sport",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sport.tn.nova.cz/",
       "priority": 10
     },
     {
       "name": "Nova Sport 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sport.tn.nova.cz/",
       "priority": 10
     },
     {
       "name": "Nova Sport 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sport.tn.nova.cz/",
       "priority": 10
     },
     {
       "name": "Nova Sport 4",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sport.tn.nova.cz/",
       "priority": 10
     },
     {
       "name": "O2 TV Fotbal",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.o2tv.cz/tv/kanaly/O2%20Sport%20HD/",
       "priority": 5
     },
     {
       "name": "O2 TV Sport",
-      "isFree": true,
+      "isFree": false,
       "keywords": "o2 tv sport -2 -3 -4 -5 -6",
       "website": "https://www.o2tv.cz/tv/kanaly/O2%20Sport%20HD/",
       "priority": 10
     },
     {
       "name": "O2 TV Sport 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.o2tv.cz/tv/kanaly/O2%20Sport%20HD/",
       "priority": 10
     },
     {
       "name": "O2 TV Sport 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.o2tv.cz/tv/kanaly/O2%20Sport%20HD/",
       "priority": 10
     },
     {
       "name": "O2 TV Sport 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.o2tv.cz/tv/kanaly/O2%20Sport%20HD/",
       "priority": 10
     },
     {
       "name": "O2 TV Sport 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.o2tv.cz/tv/kanaly/O2%20Sport%20HD/",
       "priority": 10
     },
     {
       "name": "O2 TV Sport 6",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.o2tv.cz/tv/kanaly/O2%20Sport%20HD/",
       "priority": 10
     },
     {
       "name": "O2 TV Tenis",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.o2tv.cz/tv/kanaly/O2%20Sport%20HD/",
       "priority": 5
     },
     {
       "name": "Sport",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.sport1tv.cz/",
       "priority": 10
     },
     {
       "name": "Sport 2",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.sport1tv.cz/",
       "priority": 10
     },
     {
       "name": "Sport 3",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.sport1tv.cz/",
       "priority": 10
     },
     {
       "name": "Sport 5",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sport5.cz/",
       "priority": 10
     },
     {
       "name": "Sporty",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sportytv.cz/",
       "priority": 10
     }
@@ -814,25 +805,25 @@
     },
     {
       "name": "Current Time",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.currenttime.tv/",
       "priority": 5
     },
     {
       "name": "Info TV Brno a Jizni Morava",
-      "isFree": true,
+      "isFree": null,
       "website": "https://infotvbrno.cz/",
       "priority": 5
     },
     {
       "name": "TN Live",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tn.nova.cz/tnlive",
       "priority": 5
     },
     {
       "name": "V.O.X",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.voxtv.cz/",
       "priority": 5
     }
@@ -840,49 +831,49 @@
   "Kids": [
     {
       "name": "CT Decko",
-      "isFree": true,
+      "isFree": null,
       "website": "http://decko.cz/",
       "priority": 5
     },
     {
       "name": "Disney",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.disney.cz/DisneyChannel",
       "priority": 5
     },
     {
       "name": "Disney Junior",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.disney.cz/disney-junior",
       "priority": 5
     },
     {
       "name": "Minimax CEE",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.minimaxcz.tv/",
       "priority": 5
     },
     {
       "name": "Nickelodeon",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nickelodeon.cz/",
       "priority": 5
     },
     {
       "name": "Nick Jr",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nickelodeon.cz/",
       "priority": 5
     },
     {
       "name": "Nicktoons",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.nicktoons.cz/",
       "priority": 5
     },
     {
       "name": "TeenNick",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.nickelodeon.cz/",
       "priority": 5
     }

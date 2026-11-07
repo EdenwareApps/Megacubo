@@ -20,6 +20,10 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                 this.lastFatalErrorTime = 0
                 this.isReloading = false
                 this.isSkippingSegment = false
+                this.decodeFailuresBeforeStart = 0
+                this.noFrameChecks = 0
+                this.decodeFallbackRequested = false
+                this.appendedTracks = {}
                 
                 // Monitoramento de progresso
                 this.lastProgressTime = 0
@@ -33,6 +37,40 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                 this.lastFragmentLoad = 0
                 
                 this.setup('video')
+        }
+        /**
+         * Number of frames actually rendered so far. Zero means the media pipeline never
+         * produced a picture (typical when MSE rejects the first, non-keyframe, sample).
+         * Returns -1 when the browser can't tell us.
+         */
+        decodedFrames() {
+                const el = this.object
+                if (!el) return -1
+                if (typeof el.getVideoPlaybackQuality === 'function') {
+                        const q = el.getVideoPlaybackQuality()
+                        return (q && q.totalVideoFrames) || 0
+                }
+                if (typeof el.webkitDecodedFrameCount === 'number') {
+                        return el.webkitDecodedFrameCount
+                }
+                return -1
+        }
+        /**
+         * Whether the stream being played carries a video track. Used to tell an audio-only
+         * stream (no frame is expected) apart from a stream whose video never decodes.
+         */
+        hasVideoTrack() {
+                const el = this.object
+                if (el && el.videoWidth > 0) return true
+                // hls.js creates and fills a video SourceBuffer whenever the demuxer found a
+                // video track, even when the decoder then rejects every sample.
+                if (this.appendedTracks.video) return true
+                const level = this.hls && this.hls.levels && this.hls.levels[this.hls.currentLevel >= 0 ? this.hls.currentLevel : 0]
+                if (level && (level.width > 0 || level.videoCodec)) return true
+                // Positive evidence of an audio-only stream: audio track but no video track.
+                if ((level && level.audioCodec) || this.appendedTracks.audio) return false
+                const mimetype = String(this.currentMimetype || this.mediatype || '')
+                return mimetype.startsWith('audio/') ? false : true
         }
         load(src, mimetype, additionalSubtitles, cookie, mediatype) {
                 if (!src) {
@@ -55,6 +93,12 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                 // Reset fatal errors count on new load if enough time has passed or source changed
                 const currentTime = this.time()
                 const srcChanged = src !== this.currentSrc
+                if (srcChanged) {
+                        this.decodeFailuresBeforeStart = 0
+                        this.noFrameChecks = 0
+                        this.decodeFallbackRequested = false
+                        this.appendedTracks = {}
+                }
                 if (currentTime != this.lastFatalErrorTime || srcChanged) {
                         this.fatalErrorsCount = 0
                 }
@@ -102,6 +146,9 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                 // IMPORTANT: attachMedia() must be called BEFORE loadSource() according to hls.js best practices
                 hls.attachMedia(this.object)
                 hls.loadSource(this.currentSrc)
+                hls.on(Events.BUFFER_APPENDED, (event, data) => {
+                        if (data && data.type) this.appendedTracks[data.type] = true
+                })
                 hls.on(Events.ERROR, (event, data) => {
                         // Normalize error data structure - hls.js can pass data directly or as event.data
                         if (!data && event && typeof event === 'object') {
@@ -183,6 +230,29 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                 // Reduced from 20 to prevent OOM issues with live streams                                      
                                 const isLive = this.mediatype === 'live'
                                 const maxRetries = currentTime > 0 ? (isLive ? 5 : 10) : 3
+
+                                // Some live H.264 sources never emit IDR frames, so the first sample
+                                // appended to MSE is not a keyframe and Chromium aborts with
+                                // PIPELINE_ERROR_DECODE. ExoPlayer tolerates it, MSE does not, and no
+                                // amount of reloading fixes it: only transcoding the stream (ffmpeg
+                                // starts with an IDR) gives us a playable HLS back. Flag it once,
+                                // before burning the retry budget, so main can offer that to the user.
+                                // Note: currentTime is useless here, the gap controller already wants
+                                // to seek into the (undecodable) buffered range. What really tells us
+                                // nothing was ever shown is the rendered frame counter.
+                                const decodedFrames = this.decodedFrames()
+                                if (decodedFrames > 0) {
+                                        this.decodeFailuresBeforeStart = 0
+                                } else if (data.type === ErrorTypes.MEDIA_ERROR && decodedFrames === 0) {
+                                        this.decodeFailuresBeforeStart++
+                                        if (this.decodeFailuresBeforeStart >= 2) {
+                                                console.error('HLS: media decode keeps failing before playback start, requesting transcoding')
+                                                this.decodeFailuresBeforeStart = 0
+                                                this.decodeFallbackRequested = true
+                                                this.emit('error', 'DECODE_UNSUPPORTED', true)
+                                                return
+                                        }
+                                }
 
                                 if (this.fatalErrorsCount >= maxRetries) {
                                         console.error('HLS fatal error: max retries reached', this.fatalErrorsCount, data.type, 'isLive:', isLive)
@@ -622,6 +692,25 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                 // Reset buffer stall count when there's real progress
                                 if (this.bufferStallCount > 0) {
                                         this.bufferStallCount = 0
+                                }
+                        }
+
+                        // Some live H.264 sources never emit IDR frames, so MSE accepts the
+                        // buffer but the decoder rejects every sample (PIPELINE_ERROR_DECODE).
+                        // Timeline advances and audio may play while not a single picture is
+                        // rendered, and hls.js sees no error of its own to react to. Count
+                        // rendered frames ourselves and report it so main can offer transcoding.
+                        if (!this.decodeFallbackRequested && this.hasVideoTrack() && this.object.currentTime > 0) {
+                                if (this.decodedFrames() === 0) {
+                                        this.noFrameChecks++
+                                        if (this.noFrameChecks >= 4) { // ~8s of advancing playback without a single frame
+                                                console.error('HLS: no video frame rendered after', this.noFrameChecks * 2, 's of playback, offering transcoding')
+                                                this.decodeFallbackRequested = true
+                                                this.emit('error', 'DECODE_UNSUPPORTED', true)
+                                                return
+                                        }
+                                } else {
+                                        this.noFrameChecks = 0
                                 }
                         }
                 }, 2000) // Check every 2 seconds

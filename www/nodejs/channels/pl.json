@@ -2,52 +2,47 @@
   "Entertainment": [
     {
       "name": "4FUN",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Echo 24",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ezo",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sfera",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV K Kujawy",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Kujawy",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Republika",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Torun",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "TV Toruń",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Trwam",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -139,435 +134,436 @@
     },
     {
       "name": "TVT",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tvt -zgorzelec",
       "priority": 5
     },
     {
       "name": "TVT Zgorzelec",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Telewizja Pogranicze",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Telewizja Toruń",
-      "isFree": true,
-      "priority": 5
+      "isFree": null,
+      "priority": 5,
+      "website": "https://www.toruntv.pl/"
     },
     {
       "name": "Trwam",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "dlaCiebie",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "13 Ulica",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.13ulica.pl/",
       "priority": 5
     },
     {
       "name": "Active Family",
-      "isFree": true,
+      "isFree": null,
       "website": "https://activefamily.pl/",
       "priority": 5
     },
     {
       "name": "Adventure",
-      "isFree": true,
+      "isFree": null,
       "website": "https://adventuretv.pl/",
       "priority": 5
     },
     {
       "name": "Alfa TVP",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvp.pl/program-tv/alfa-tvp",
       "priority": 5
     },
     {
       "name": "American Crime",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rakuten.tv/pl/live_channels/american-crime-channel",
       "priority": 5
     },
     {
       "name": "Belsat",
-      "isFree": true,
+      "isFree": null,
       "website": "https://belsat.eu/",
       "priority": 5
     },
     {
       "name": "Bigtime",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rakuten.tv",
       "priority": 5
     },
     {
       "name": "Biznes 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.biznes24.pl/",
       "priority": 5
     },
     {
       "name": "BTB",
-      "isFree": true,
+      "isFree": null,
       "keywords": "btb -info -international -music",
       "website": "https://btb.j00r.us/",
       "priority": 5
     },
     {
       "name": "BTB International",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Buzzfeed Unsolved",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rakuten.tv/pl/live_channels/filmrise-buzzfeed-unsolved",
       "priority": 5
     },
     {
       "name": "Canal+ »",
-      "isFree": true,
+      "isFree": false,
       "website": "https://pl.canalplus.com/oferta-satelitarna/",
       "priority": 5
     },
     {
       "name": "CANAL+ 360",
-      "isFree": true,
+      "isFree": false,
       "website": "https://pl.canalplus.com/",
       "priority": 5
     },
     {
       "name": "Canal+ 4K Ultra",
-      "isFree": true,
+      "isFree": false,
       "website": "https://pl.canalplus.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Domo",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 2",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 3",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 4",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 5",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 6",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 7",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Kuchnia",
-      "isFree": true,
+      "isFree": false,
       "website": "https://canalpluskuchnia.pl/",
       "priority": 5
     },
     {
       "name": "Canal+ Now",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.canalplus.pl/",
       "priority": 5
     },
     {
       "name": "Canal+ Premium",
-      "isFree": true,
+      "isFree": false,
       "website": "https://pl.canalplus.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Sport 5",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Car City Adventures",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rakuten.tv",
       "priority": 5
     },
     {
       "name": "CBS Reality",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cbsreality.tv/domowa.php",
       "priority": 5
     },
     {
       "name": "Comedy Central",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.comedycentral.pl/",
       "priority": 5
     },
     {
       "name": "Comedy Channel Extra",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Crime + Investigation Polsat",
-      "isFree": true,
+      "isFree": false,
       "keywords": "crime plus investigation polsat | crimeplusinvestigation polsat",
       "website": "https://www.crimeinvestigation.pl/",
       "priority": 5
     },
     {
       "name": "Discovery",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoverychannel.pl/",
       "priority": 7
     },
     {
       "name": "Discovery Life",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.discoverylife.pl/",
       "priority": 7
     },
     {
       "name": "Dr G Medical Examiner",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rakuten.tv/pl/live_channels/filmrise-dr-g-medical-examiner",
       "priority": 5
     },
     {
       "name": "DTX",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.dtxpolska.pl/",
       "priority": 5
     },
     {
       "name": "E!",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.eonline.com/",
       "priority": 5
     },
     {
       "name": "Emocje",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Fokus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fokus.tv/",
       "priority": 5
     },
     {
       "name": "Food Network",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.foodnetwork.pl/",
       "priority": 5
     },
     {
       "name": "FOX",
-      "isFree": true,
+      "isFree": null,
       "keywords": "fox -comedy",
       "website": "http://www.foxtv.pl/",
       "priority": 5
     },
     {
       "name": "FOX Comedy",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.foxcomedy.pl/",
       "priority": 5
     },
     {
       "name": "Gold",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.totv.com.pl/",
       "priority": 5
     },
     {
       "name": "Golf Zone",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Grjngo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rakuten.tv",
       "priority": 5
     },
     {
       "name": "Hard Knocks Fighting Championship",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "HBO 3",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.hbo.pl/HBOComedy.aspx",
       "priority": 6
     },
     {
       "name": "HGTV",
-      "isFree": true,
+      "isFree": false,
       "website": "https://hgtv.pl/",
       "priority": 5
     },
     {
       "name": "Home",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "HTS Slubice",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.slubice.tv/",
       "priority": 5
     },
     {
       "name": "ITVN Europe",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.itvn.pl/",
       "priority": 5
     },
     {
       "name": "ITVN Extra",
-      "isFree": true,
+      "isFree": null,
       "website": "http://itvnextra.pl/",
       "priority": 5
     },
     {
       "name": "Jail",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rakuten.tv/pl/live_channels/jail",
       "priority": 5
     },
     {
       "name": "Kabaret",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kabarettv.pl/",
       "priority": 5
     },
     {
       "name": "Lifetime",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.lifetimetv.pl/",
       "priority": 5
     },
     {
       "name": "Mazowsze",
-      "isFree": true,
+      "isFree": null,
       "website": "http://mazowsze.tv/",
       "priority": 5
     },
     {
       "name": "Metro",
-      "isFree": true,
+      "isFree": null,
       "website": "https://metro.tv/",
       "priority": 5
     },
     {
       "name": "Moconomy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rakuten.tv",
       "priority": 5
     },
     {
       "name": "Monster Jam",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Motowizja",
-      "isFree": true,
+      "isFree": null,
       "website": "https://motowizja.pl/",
       "priority": 5
     },
     {
       "name": "MTV",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.mtv.pl/",
       "priority": 5
     },
     {
       "name": "Murator",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.murator.mediateka.pl/",
       "priority": 5
     },
     {
       "name": "NewTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.newtv.com.pl/",
       "priority": 5
     },
     {
       "name": "Novelas+",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Nowa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nowa.tv/",
       "priority": 5
     },
     {
       "name": "PFL MMA",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "PinoTV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Planete+",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.planeteplus.pl/",
       "priority": 5
     },
     {
       "name": "Pogoda 24",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Polonia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://polonia1.tv/",
       "priority": 5
     },
     {
       "name": "Polo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.polotv.pl/",
       "priority": 5
     },
@@ -592,7 +588,7 @@
     },
     {
       "name": "Polsat Comedy Central Extra",
-      "isFree": true,
+      "isFree": false,
       "website": "http://comedycentral.pl/family",
       "priority": 5
     },
@@ -648,13 +644,13 @@
     },
     {
       "name": "Poradnik Zdrowie",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.poradnikzdrowie.mediateka.pl/",
       "priority": 5
     },
     {
       "name": "Power",
-      "isFree": true,
+      "isFree": null,
       "website": "https://powertv.pl/",
       "priority": 5
     },
@@ -666,65 +662,65 @@
     },
     {
       "name": "Raciborz 24",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.raciborz24.pl/",
       "priority": 5
     },
     {
       "name": "Radiowa Czworka",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.polskieradio.pl",
       "priority": 5
     },
     {
       "name": "Red Carpet",
-      "isFree": true,
+      "isFree": null,
       "keywords": "red carpet tv -international",
       "website": "https://red-carpet.pl/",
       "priority": 5
     },
     {
       "name": "Red Carpet TV International",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Romance",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.romance-tv.pl/",
       "priority": 5
     },
     {
       "name": "Royalworld",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rakuten.tv/pl/live_channels/royalworld-pl",
       "priority": 5
     },
     {
       "name": "Sci Fi",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.scifiuniversal.pl/",
       "priority": 5
     },
     {
       "name": "Shades of Black",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Stars",
-      "isFree": true,
+      "isFree": null,
       "website": "http://starstv.eu/",
       "priority": 5
     },
     {
       "name": "Strongman Champions League",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "StudioMed",
-      "isFree": true,
+      "isFree": null,
       "website": "http://studiomed.tv/",
       "priority": 5
     },
@@ -735,164 +731,158 @@
     },
     {
       "name": "Superstacja",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Swiebodzin",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.swiebodzin.tv/",
       "priority": 5
     },
     {
       "name": "Szlagier",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.szlagiertv.com/",
       "priority": 5
     },
     {
       "name": "Tarnowska",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tarnowska.tv/",
       "priority": 5
     },
     {
       "name": "TBN Polska",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tbnpolska.tv/",
       "priority": 5
     },
     {
       "name": "Tele 5",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tele 5 | tele5",
       "website": "https://www.tele5.pl/",
       "priority": 5
     },
     {
       "name": "Telewizja Gorzow",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.telewizjagorzow.pl/",
       "priority": 5
     },
     {
       "name": "Telewizja Imperium",
-      "isFree": true,
+      "isFree": null,
       "website": "https://imperiummedia.pl/",
       "priority": 5
     },
     {
       "name": "Telewizja iTTV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Telewizja Jaslo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvjaslo.pl/",
       "priority": 5
     },
     {
       "name": "Telewizja Luban",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tvluban.pl/",
       "priority": 5
     },
     {
       "name": "Telewizja Narew",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.narew.info/",
       "priority": 5
     },
     {
       "name": "Telewizja Obiektyw",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvobiektyw.pl/",
       "priority": 5
     },
     {
       "name": "Telewizja Olsztyn",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.telewizjaolsztyn.pl/",
       "priority": 5
     },
     {
       "name": "Telewizja Pogranicze Glubczyce",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Telewizja Regionalna Zary",
-      "isFree": true,
+      "isFree": null,
       "website": "https://telewizjazary.pl/",
       "priority": 5
     },
     {
       "name": "Telewizja Relax",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvrelax.pl/",
       "priority": 5
     },
     {
       "name": "Telewizja Sudecka",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvsudecka.pl/",
       "priority": 5
     },
     {
-      "name": "Telewizja Torun",
-      "isFree": true,
-      "website": "https://www.toruntv.pl/",
-      "priority": 5
-    },
-    {
       "name": "Telewizja Zabrze",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvzabrze.pl/",
       "priority": 5
     },
     {
       "name": "Timeless Dizi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://dizi.pl/",
       "priority": 5
     },
     {
       "name": "TLC",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tlcpolska.pl/",
       "priority": 5
     },
     {
       "name": "TNA Wrestling",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TNT",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "TOP Barca",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Top Million Dollar Agent",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rakuten.tv/pl/live_channels/top-million-dollar-agent",
       "priority": 5
     },
     {
       "name": "Top Movies Polska",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rakuten.tv",
       "priority": 5
     },
     {
       "name": "Travel",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.travelchanneltv.pl/",
       "priority": 5
     },
@@ -904,7 +894,7 @@
     },
     {
       "name": "TV 4",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tv4.pl/",
       "priority": 5
     },
@@ -916,7 +906,7 @@
     },
     {
       "name": "TV ASTA",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvasta.pl/",
       "priority": 5
     },
@@ -933,25 +923,25 @@
     },
     {
       "name": "TV Dami",
-      "isFree": true,
+      "isFree": null,
       "website": "https://dami24.pl/",
       "priority": 5
     },
     {
       "name": "TVK Stella",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvkstella.pl",
       "priority": 5
     },
     {
       "name": "TV Mazowsze",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvmazowsze.pl/",
       "priority": 5
     },
     {
       "name": "TVN",
-      "isFree": true,
+      "isFree": false,
       "keywords": "tvn -7 -fabula -style -turbo",
       "website": "http://www.tvn.pl/",
       "priority": 5
@@ -965,7 +955,7 @@
     },
     {
       "name": "TVN24 BiS",
-      "isFree": true,
+      "isFree": false,
       "website": "http://tvn24bis.pl/",
       "priority": 5
     },
@@ -977,37 +967,37 @@
     },
     {
       "name": "TVN Fabula",
-      "isFree": true,
+      "isFree": false,
       "website": "http://tvnfabula.pl/",
       "priority": 5
     },
     {
       "name": "TVN Style",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tvnstyle.pl/",
       "priority": 5
     },
     {
       "name": "TVN Turbo",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tvnturbo.pl/",
       "priority": 5
     },
     {
       "name": "TV Okazje",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvokazje.pl/",
       "priority": 5
     },
     {
       "name": "TV Orion",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tvorion.pl",
       "priority": 5
     },
     {
       "name": "TVP",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvp1.tvp.pl/",
       "priority": 5
     },
@@ -1023,32 +1013,7 @@
       "priority": 5
     },
     {
-      "name": "TVP 3 Gdansk",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "TVP 3 Gorzow Wielkopolski",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "TVP 3 Krakow",
-      "isFree": true,
-      "priority": 5
-    },
-    {
       "name": "TVP 3 Lodz",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "TVP 3 Poznan",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "TVP 3 Rzeszow",
       "isFree": true,
       "priority": 5
     },
@@ -1114,121 +1079,121 @@
     },
     {
       "name": "TV Regionalna Lubin",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "tvregionalna",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvregionalna.pl/",
       "priority": 5
     },
     {
       "name": "TV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.ropczyce.eu/",
       "priority": 5
     },
     {
       "name": "TVS",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvs.pl/",
       "priority": 5
     },
     {
       "name": "TV Slowianin",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvslowianin.pl/",
       "priority": 5
     },
     {
       "name": "TV Toya",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tvtoya.pl/",
       "priority": 5
     },
     {
       "name": "Twoja",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Viasat Explore Classic",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.rakuten.tv/",
       "priority": 5
     },
     {
       "name": "Viasat True Crime",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ViDoc",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "VOD",
-      "isFree": true,
+      "isFree": null,
       "keywords": "vod -202 -203 -204 -205 -206 -207 -208",
       "priority": 5
     },
     {
       "name": "VOD 202",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cyfrowypolsat.pl/vod/tv/",
       "priority": 5
     },
     {
       "name": "VOD 203",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cyfrowypolsat.pl/vod/tv/",
       "priority": 5
     },
     {
       "name": "VOD 204",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cyfrowypolsat.pl/vod/tv/",
       "priority": 5
     },
     {
       "name": "VOD 205",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cyfrowypolsat.pl/vod/tv/",
       "priority": 5
     },
     {
       "name": "VOD 206",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cyfrowypolsat.pl/vod/tv/",
       "priority": 5
     },
     {
       "name": "VOD 207",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cyfrowypolsat.pl/vod/tv/",
       "priority": 5
     },
     {
       "name": "VOD 208",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cyfrowypolsat.pl/vod/tv/",
       "priority": 5
     },
     {
       "name": "Water Planet",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "World Billiards",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "W Polsce",
-      "isFree": true,
+      "isFree": null,
       "website": "http://wpolsce.pl/",
       "priority": 5
     },
@@ -1240,35 +1205,35 @@
     },
     {
       "name": "Zachodniopomorska Telewizja",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.zachodniopomorska.tv/",
       "priority": 5
     },
     {
       "name": "Zee One",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Z Nation",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Zoom",
-      "isFree": true,
+      "isFree": null,
       "website": "http://zoomtv.pl/",
       "priority": 5
     },
     {
       "name": "TVN International",
-      "isFree": null,
+      "isFree": false,
       "keywords": "tvn international -extra",
       "priority": 5
     },
     {
       "name": "TVN International Extra",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -1350,22 +1315,22 @@
     },
     {
       "name": "Polsat 2 HD*",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Polsat News HD*",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Polsat Sport 1 HD*",
-      "isFree": null,
+      "isFree": true,
       "priority": 10
     },
     {
       "name": "Polsat Sport 2 HD*",
-      "isFree": null,
+      "isFree": true,
       "priority": 10
     },
     {
@@ -1380,17 +1345,17 @@
     },
     {
       "name": "Polsat Cafe HD*",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Polsat Play HD*",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Polsat Film HD*",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -1401,22 +1366,22 @@
     },
     {
       "name": "Polsat Seriale HD*",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Polsat Viasat Explore HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Polsat Viasat History HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Polsat Music HD*",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -1447,47 +1412,42 @@
     },
     {
       "name": "TVN24 BiS HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "TVN Fabuła",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "TVN Style HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "TVN Turbo HD*",
-      "isFree": null,
-      "priority": 5
-    },
-    {
-      "name": "TTV**",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "HGTV HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Food Network HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Discovery Channel HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Discovery Science HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
@@ -1497,7 +1457,7 @@
     },
     {
       "name": "TLC HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -1507,22 +1467,22 @@
     },
     {
       "name": "Discovery Life HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Warner TV HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Cartoon Network HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Cartoonito HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -1532,107 +1492,107 @@
     },
     {
       "name": "Canal+ 1 HD*",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Canal+ Sport HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Canal+ Sport 5 HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Canal+ 360 HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 4 HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 8",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 9",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 10",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 11",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 12",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 13",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 14",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 15",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 16",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 17",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Extra 18",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Film HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Seriale HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Kuchnia HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Domo HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Ale Kino+ HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -1715,102 +1675,102 @@
     },
     {
       "name": "Sky News",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Sky Sport Box Office",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky Sport Main Event",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky Sport Premier League",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky Sport Futbol",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky Sport Golf",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky Sport Action",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky Sport Arena",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky Sport Mix",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky Sport News",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky Sport Racing",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky Cinema Premiere",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Cinema Select",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Cinema Hits",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Cinema Family",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Cinema Action",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Cinema Comedy",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Cinema Drama",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Cinema Sci Fi Horror",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Kids",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -1820,12 +1780,12 @@
     },
     {
       "name": "BBC Lifestyle HD*",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "HBO 3 HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 6
     },
     {
@@ -1840,52 +1800,52 @@
     },
     {
       "name": "Comedy Central HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Nickelodeon",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Polska HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Disney Channel HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Disney XD",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Disney Jr",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "FX HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "FX Comedy HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "National Geographic HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "National Geographic Wild HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
@@ -1920,7 +1880,7 @@
     },
     {
       "name": "TVC Reality",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -1935,12 +1895,12 @@
     },
     {
       "name": "AMC",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sundance",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -1966,17 +1926,17 @@
     },
     {
       "name": "History HD*",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "History 2",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Crime+Investigation Polsat HD*",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2031,12 +1991,12 @@
     },
     {
       "name": "Bloomberg",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Arirang",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2056,7 +2016,7 @@
     },
     {
       "name": "Show TV HD*",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2091,12 +2051,12 @@
     },
     {
       "name": "Mezzo",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Mezzo Live",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2146,7 +2106,7 @@
     },
     {
       "name": "Reality Kings",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2156,7 +2116,7 @@
     },
     {
       "name": "Culture - history",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
@@ -2171,7 +2131,7 @@
     },
     {
       "name": "Sky Cinema Animation",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2356,17 +2316,17 @@
     },
     {
       "name": "RTL",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "VOX",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Phoenix",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2376,7 +2336,7 @@
     },
     {
       "name": "Prima",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2391,17 +2351,12 @@
     },
     {
       "name": "Discovery Science",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Cartoonito",
-      "isFree": null,
-      "priority": 5
-    },
-    {
-      "name": "Canal+",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2426,47 +2381,47 @@
     },
     {
       "name": "Sky Sport Cricket",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky Sport Tennis",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky Cinema Classics",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Cinema Thriller",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "BBC Earth",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "E! Entertainment",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Polska",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "FX",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "FX Comedy",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2476,12 +2431,12 @@
     },
     {
       "name": "History",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Sport Klub",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
@@ -2496,77 +2451,102 @@
     },
     {
       "name": "Canal+ Sport",
-      "isFree": true,
+      "isFree": false,
       "keywords": "canalplus sport -2 -3 -4 -5",
       "website": "https://tv.pl.canalplus.com/sport/oferta-sportowa",
       "priority": 10
     },
     {
       "name": "Canal+ Dokument",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus.pl/dokument",
       "priority": 5
     },
     {
       "name": "Eska",
-      "isFree": true,
+      "isFree": null,
       "keywords": "eska tv -extra",
       "website": "https://www.eska.tv/",
       "priority": 5
     },
     {
       "name": "Eska TV Extra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.eska.tv/",
       "priority": 5
     },
     {
       "name": "JAZZ",
-      "isFree": true,
+      "isFree": null,
       "website": "https://en.jazztelevision.tv/jazz",
       "priority": 5
     },
     {
       "name": "Nicktoons",
-      "isFree": true,
+      "isFree": false,
       "website": "http://nicktoons.nick.com.pl/",
       "priority": 5
     },
     {
       "name": "Paramount Network",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.paramountchannel.pl/",
       "priority": 5
     },
     {
       "name": "Canal+ Sport 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://tv.pl.canalplus.com/sport/oferta-sportowa",
       "priority": 10
     },
     {
       "name": "Eleven Sports",
-      "isFree": true,
+      "isFree": false,
       "keywords": "eleven sports 1 -4k",
       "website": "https://www.elevensports.pl/",
       "priority": 10
     },
     {
       "name": "Eleven Sports 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.elevensports.pl/",
       "priority": 10
     },
     {
       "name": "Eleven Sports 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.elevensports.pl/",
       "priority": 10
     },
     {
       "name": "TV Republika Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvrepublika.pl/",
+      "priority": 5
+    },
+    {
+      "name": "KBS World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AXN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Crime & Investigation",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "TV Relax",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "PROART",
+      "isFree": null,
       "priority": 5
     }
   ],
@@ -2578,7 +2558,7 @@
     },
     {
       "name": "Animal Planet",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.animalplanet.pl/",
       "priority": 5
     },
@@ -2590,49 +2570,49 @@
     },
     {
       "name": "Discovery Historia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.discoveryhistoria.pl/",
       "priority": 7
     },
     {
       "name": "Investigation Discovery",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.discoverychannel.pl/",
       "priority": 7
     },
     {
       "name": "Nat Geo People",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "National Geographic",
-      "isFree": true,
+      "isFree": false,
       "keywords": "national geographic -wild",
       "website": "http://www.natgeotv.com/pl",
       "priority": 7
     },
     {
       "name": "National Geographic Wild",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.natgeotv.com/pl/wild",
       "priority": 7
     },
     {
       "name": "Polsat Viasat Explore",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viasatexplore.pl/",
       "priority": 5
     },
     {
       "name": "Polsat Viasat History",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viasathistory.pl/",
       "priority": 7
     },
     {
       "name": "Polsat Viasat Nature",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viasatnature.pl/",
       "priority": 5
     },
@@ -2640,6 +2620,11 @@
       "name": "TVP Kultura 2",
       "isFree": true,
       "website": "https://kultura2.tvp.pl/",
+      "priority": 5
+    },
+    {
+      "name": "English Club TV",
+      "isFree": true,
       "priority": 5
     }
   ],
@@ -2653,79 +2638,79 @@
   "Music Videos": [
     {
       "name": "4 Fun Dance",
-      "isFree": true,
+      "isFree": null,
       "website": "https://4fun.tv/dance",
       "priority": 5
     },
     {
       "name": "4 Fun",
-      "isFree": true,
+      "isFree": null,
       "website": "https://4fun.tv/",
       "priority": 5
     },
     {
       "name": "BTB Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://btb.j00r.us",
       "priority": 5
     },
     {
       "name": "Disco Polo Music",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.discopolomusic.pl/",
       "priority": 5
     },
     {
       "name": "Eska Hity na Czasie",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.eska.mediateka.pl/",
       "priority": 5
     },
     {
       "name": "Eska Rock Dobrze Rockuje",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.eskarock.mediateka.pl/",
       "priority": 5
     },
     {
       "name": "HiDance",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.hidance.mediateka.pl/",
       "priority": 5
     },
     {
       "name": "HiMusic",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.himusic.mediateka.pl/",
       "priority": 5
     },
     {
       "name": "Junior Music",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kino Polska Muzyka",
-      "isFree": true,
+      "isFree": null,
       "keywords": "kino polska muzyka -international",
       "website": "http://kinopolskamuzyka.pl/",
       "priority": 5
     },
     {
       "name": "Mixtape",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mixtapetv.pl/",
       "priority": 5
     },
     {
       "name": "Music Box Polska",
-      "isFree": true,
+      "isFree": null,
       "website": "https://musicboxtv.pl/",
       "priority": 5
     },
     {
       "name": "Music+",
-      "isFree": true,
+      "isFree": null,
       "website": "https://telewizjamusicplus.pl/",
       "priority": 5
     },
@@ -2737,18 +2722,18 @@
     },
     {
       "name": "SAYHi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.sayhi.mediateka.pl/",
       "priority": 5
     },
     {
       "name": "Ultra TV 4K",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "VH",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -2767,13 +2752,13 @@
   "Kids": [
     {
       "name": "4 Fun Kids",
-      "isFree": true,
+      "isFree": null,
       "website": "https://4fun.tv/kids",
       "priority": 5
     },
     {
       "name": "Cartoon Classics",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rakuten.tv/pl/live_channels/cartoon-classics",
       "priority": 5
     },
@@ -2785,31 +2770,31 @@
     },
     {
       "name": "Disney",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.disney.pl/",
       "priority": 5
     },
     {
       "name": "Disney Junior",
-      "isFree": true,
+      "isFree": false,
       "website": "http://disneyjunior.disney.com/",
       "priority": 5
     },
     {
       "name": "Kapitan Bomba",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cda.pl/tv/kapitan_bomba",
       "priority": 5
     },
     {
       "name": "MiniMini+",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.miniminiplus.pl/",
       "priority": 5
     },
     {
       "name": "Nick Jr",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.nickjr.com.pl/",
       "priority": 5
     },
@@ -2821,19 +2806,19 @@
     },
     {
       "name": "Porucznik Kabura",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cda.pl/tv/porucznik_kabura",
       "priority": 5
     },
     {
       "name": "TeenNick",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nick.com.pl/",
       "priority": 5
     },
     {
       "name": "Top Kids",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -2848,62 +2833,72 @@
       "isFree": true,
       "website": "https://www.tvp.pl/program-tv/abc2",
       "priority": 5
+    },
+    {
+      "name": "Baby TV",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "ducktv",
+      "isFree": null,
+      "priority": 5
     }
   ],
   "Movies & Series": [
     {
       "name": "Ale Kino+",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.alekinoplus.pl/",
       "priority": 5
     },
     {
       "name": "Canal+ Film",
-      "isFree": true,
+      "isFree": false,
       "website": "https://tv.pl.canalplus.com/film/oferta-filmowa",
       "priority": 5
     },
     {
       "name": "Canal+ Seriale",
-      "isFree": true,
+      "isFree": false,
       "website": "https://pl.canalplus.com/",
       "priority": 5
     },
     {
       "name": "CBS Europa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cbseuropa.eu/",
       "priority": 5
     },
     {
       "name": "HBO",
-      "isFree": true,
+      "isFree": false,
       "keywords": "hbo -2 -3",
       "website": "http://www.hbo.pl/",
       "priority": 6
     },
     {
       "name": "HBO 2",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.hbo.pl/HBO2.aspx",
       "priority": 6
     },
     {
       "name": "Kino Polska",
-      "isFree": true,
+      "isFree": null,
       "keywords": "kino polska -international -muzyka",
       "website": "http://kinopolska.pl/",
       "priority": 5
     },
     {
       "name": "Kino",
-      "isFree": true,
+      "isFree": null,
       "website": "https://spiintl.com/channels/kinotv",
       "priority": 5
     },
     {
       "name": "Novela",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.novela.tv/",
       "priority": 5
     },
@@ -2934,7 +2929,7 @@
     },
     {
       "name": "Warner",
-      "isFree": true,
+      "isFree": null,
       "website": "https://warnertv.pl/",
       "priority": 5
     }
@@ -2942,54 +2937,54 @@
   "Sports": [
     {
       "name": "Cafe Futbol",
-      "isFree": true,
+      "isFree": null,
       "website": "https://embed.pluscdn.pl/embed/XNgSz8/media/1517831/live",
       "priority": 5
     },
     {
       "name": "Canal+ Sport 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://tv.pl.canalplus.com/sport/oferta-sportowa",
       "priority": 10
     },
     {
       "name": "Canal+ Sport 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://tv.pl.canalplus.com/sport/oferta-sportowa",
       "priority": 10
     },
     {
       "name": "Eleven Sports 1 4K",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Eleven Sports 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.elevensports.pl/",
       "priority": 10
     },
     {
       "name": "Extreme Sports Channel Polska",
-      "isFree": true,
+      "isFree": null,
       "website": "http://pl.extreme.com/",
       "priority": 10
     },
     {
       "name": "Golf",
-      "isFree": true,
+      "isFree": null,
       "website": "http://golfchannel.pl/",
       "priority": 5
     },
     {
       "name": "Gramy Dalej",
-      "isFree": true,
+      "isFree": null,
       "website": "https://embed-e2-16.pluscdn.pl/embed/XNgSz8/media/1517832/live",
       "priority": 5
     },
     {
       "name": "NSport+",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.nsport.pl/",
       "priority": 10
     },
@@ -3039,7 +3034,7 @@
     },
     {
       "name": "RACER International",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rakuten.tv/pl/live_channels/racer-international",
       "priority": 5
     },
@@ -3048,6 +3043,16 @@
       "isFree": true,
       "website": "https://sport.tvp.pl/",
       "priority": 10
+    },
+    {
+      "name": "beIN Sports",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "SPOTV",
+      "isFree": false,
+      "priority": 5
     }
   ],
   "News": [
@@ -3059,7 +3064,7 @@
     },
     {
       "name": "NewsWorld",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rakuten.tv/pl/live_channels/newsworld",
       "priority": 5
     },
@@ -3089,37 +3094,37 @@
     },
     {
       "name": "RTVP",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtvpodlasie.pl/",
       "priority": 5
     },
     {
       "name": "Super Express",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.se.mediateka.pl/",
       "priority": 5
     },
     {
       "name": "Telewizja Biznesowa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://telewizjabiznesowa.pl/",
       "priority": 5
     },
     {
       "name": "The Reuters 60",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rakuten.tv/pl/live_channels/reuters-new",
       "priority": 5
     },
     {
       "name": "Truso",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.truso.tv/",
       "priority": 5
     },
     {
       "name": "TVMN",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvmn.pl/",
       "priority": 5
     },
@@ -3137,8 +3142,53 @@
     },
     {
       "name": "TV Wielkopolska",
-      "isFree": true,
+      "isFree": null,
       "website": "https://wielkopolska.tv/",
+      "priority": 5
+    },
+    {
+      "name": "France 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DW",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NHK World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CGTN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CCTV-4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABC Australia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNBC",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "TV5 Monde",
+      "isFree": true,
       "priority": 5
     }
   ],

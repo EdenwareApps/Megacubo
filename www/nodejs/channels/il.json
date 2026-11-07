@@ -2,12 +2,12 @@
   "News": [
     {
       "name": "Channel 2 News",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Channel 2",
-      "isFree": true,
+      "isFree": null,
       "keywords": "channel 2 -news",
       "priority": 5
     },
@@ -49,19 +49,19 @@
     },
     {
       "name": "Relevant",
-      "isFree": true,
+      "isFree": null,
       "website": "https://relevant.co.il/",
       "priority": 5
     },
     {
       "name": "TV7 Israel News",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tv7israelnews.com/",
       "priority": 5
     },
     {
       "name": "Yes News",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.yes.co.il/",
       "priority": 5
     }
@@ -99,66 +99,70 @@
   "Sports": [
     {
       "name": "Sport 2",
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "Sport 3",
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "Sport 4",
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "Sports",
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "5Gold",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.sport5.co.il/",
       "priority": 5
     },
     {
       "name": "5Live",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.sport5.co.il/",
       "priority": 5
     },
     {
       "name": "5Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.sport5.co.il/",
       "priority": 5
     },
     {
       "name": "5Sport",
-      "isFree": true,
+      "isFree": null,
       "keywords": "5sport -4k",
       "website": "http://www.sport5.co.il/",
       "priority": 10
     },
     {
       "name": "5Sport 4K",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.sport5.co.il/",
       "priority": 10
     },
     {
       "name": "5Stars",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.sport5.co.il/",
       "priority": 5
     },
     {
       "name": "One 2",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.one.co.il/",
       "priority": 5
     },
     {
       "name": "Sport",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sport1.maariv.co.il/",
       "priority": 10
     }
@@ -166,7 +170,7 @@
   "Entertainment": [
     {
       "name": "As a Child",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -176,12 +180,12 @@
     },
     {
       "name": "Hala",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Israel Pars",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -191,7 +195,7 @@
     },
     {
       "name": "Kabbalah for the People",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -201,17 +205,17 @@
     },
     {
       "name": "Knesset",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Makan 33",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Musayof",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -221,55 +225,55 @@
     },
     {
       "name": "Ynet Live",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Big Brother Israel",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.mako.co.il/tv-bigbrother",
       "priority": 5
     },
     {
       "name": "Channel 13",
-      "isFree": true,
+      "isFree": null,
       "website": "https://13tv.co.il/",
       "priority": 5
     },
     {
       "name": "Comedy Central",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.comedycentral.co.il/he/home",
       "priority": 5
     },
     {
       "name": "E!",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.eonline.com/",
       "priority": 5
     },
     {
       "name": "Ego",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ego -total",
       "website": "https://www.ananey.com/channels/ego/",
       "priority": 5
     },
     {
       "name": "Ego Total",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ananey.com/channels/ego/",
       "priority": 5
     },
     {
       "name": "Food",
-      "isFree": true,
+      "isFree": null,
       "website": "https://xnet.ynet.co.il/home/0",
       "priority": 5
     },
     {
       "name": "Good Life",
-      "isFree": true,
+      "isFree": null,
       "website": "https://xnet.ynet.co.il/home/0",
       "priority": 5
     },
@@ -281,17 +285,17 @@
     },
     {
       "name": "Home +",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Humour",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ILTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://iltv.tv/",
       "priority": 5
     },
@@ -303,74 +307,74 @@
     },
     {
       "name": "Now 14",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.now14.co.il/",
       "priority": 5
     },
     {
       "name": "One",
-      "isFree": true,
+      "isFree": null,
       "keywords": "one -2",
       "website": "http://www.one.co.il/",
       "priority": 5
     },
     {
       "name": "Ran TV Israel",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.radioran.co.il/",
       "priority": 5
     },
     {
       "name": "The Israeli Network",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tin.tv/",
       "priority": 5
     },
     {
       "name": "Viva",
-      "isFree": true,
+      "isFree": false,
       "keywords": "viva -plus -sheli",
       "website": "https://viva.walla.co.il/item/1683908",
       "priority": 5
     },
     {
       "name": "Viva Plus",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viva.walla.co.il/item/1888338",
       "priority": 5
     },
     {
       "name": "Viva Sheli",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viva.walla.co.il/",
       "priority": 5
     },
     {
       "name": "Wiz",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.wiztv.co.il/",
       "priority": 5
     },
     {
       "name": "Yam Tichoni 25",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Yes Docu",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.yes.co.il/",
       "priority": 5
     },
     {
       "name": "Yes DVDbox",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.yes.co.il/",
       "priority": 5
     },
     {
       "name": "Yes Israeli",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.yes.co.il/",
       "priority": 5
     },
@@ -384,66 +388,66 @@
   "Music Videos": [
     {
       "name": "Channel 24",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Music",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
   "Kids": [
     {
       "name": "Arutz HaYeladim",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kidstv.co.il/",
       "priority": 5
     },
     {
       "name": "Disney",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.disney.co.il/",
       "priority": 5
     },
     {
       "name": "Disney Junior",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.disney.co.il/disney-junior/",
       "priority": 5
     },
     {
       "name": "Hop!",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.hop.co.il/",
       "priority": 5
     },
     {
       "name": "Junior",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Nickelodeon",
-      "isFree": true,
+      "isFree": false,
       "website": "http://nick.co.il/",
       "priority": 5
     },
     {
       "name": "Nick Jr.",
-      "isFree": true,
+      "isFree": false,
       "website": "http://nick.co.il/",
       "priority": 5
     },
     {
       "name": "TeenNick",
-      "isFree": true,
+      "isFree": null,
       "website": "http://nick.co.il/",
       "priority": 5
     },
     {
       "name": "Zoom",
-      "isFree": true,
+      "isFree": null,
       "website": "http://zoomtv.co.il/",
       "priority": 5
     }
@@ -451,35 +455,35 @@
   "Movies & Series": [
     {
       "name": "AXN",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Bollyshow",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Yes Movies Action",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.yes.co.il/",
       "priority": 5
     },
     {
       "name": "Yes Movies Comedy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.yes.co.il/",
       "priority": 5
     },
     {
       "name": "Yes Movies Drama",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.yes.co.il/",
       "priority": 5
     },
     {
       "name": "Yes Movies Kids",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.yes.co.il/",
       "priority": 5
     },
@@ -510,14 +514,14 @@
     },
     {
       "name": "National Geographic",
-      "isFree": true,
+      "isFree": false,
       "keywords": "national geographic -wild",
       "website": "http://natgeotv.com/asia",
       "priority": 7
     },
     {
       "name": "National Geographic Wild",
-      "isFree": true,
+      "isFree": false,
       "website": "http://natgeotv.com/asia",
       "priority": 7
     }

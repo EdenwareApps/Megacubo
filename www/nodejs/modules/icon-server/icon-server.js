@@ -666,6 +666,11 @@ class IconServer extends IconServerStore {
         range = this.addRenderTolerance(range, entries.length);
         this.renderRange(range, path);
     }
+    entryIconSignature(e) {
+        if (!e) return ''
+        const p = e.programme
+        return [e.name || '', e.icon || '', p ? (p.title || '') : '', p ? (p.icon || '') : ''].join('|')
+    }
     renderRange(range, path) {
         if (path == menu.path && Array.isArray(menu.pages[path])) {
             range = this.addRenderTolerance(range, menu.pages[path].length);
@@ -693,7 +698,11 @@ class IconServer extends IconServerStore {
                 }
                 menu.pages[path].slice(range.start, range.end).map((e, i) => {
                     const j = range.start + i;
-                    if ((!this.rendering[j] || this.rendering[j].entry.name != e.name) && this.qualifyEntry(e)) {
+                    // entries receive EPG data after the first paint, so the icon has to be
+                    // resolved again whenever the programme info changes
+                    const prev = this.rendering[j] ? this.rendering[j].entry : null
+                    const changed = !prev || this.entryIconSignature(prev) != this.entryIconSignature(e)
+                    if (changed && this.qualifyEntry(e)) {
                         this.rendering[j] = this.get(e); // do not use then directly to avoid losing destroy method
                     }
                 })

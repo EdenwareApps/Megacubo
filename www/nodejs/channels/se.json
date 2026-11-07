@@ -2,169 +2,170 @@
   "Sports": [
     {
       "name": "ATG",
+      "isFree": null,
       "keywords": "atg -live",
       "priority": 5
     },
     {
       "name": "C More Golf",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "C More Mix",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "C More Sport",
-      "isFree": true,
+      "isFree": false,
       "keywords": "c more sport -undefined -sf -kanalen",
       "website": "http://www.cmore.se/",
       "priority": 10
     },
     {
       "name": "C More Sport / SF Kanalen",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cmore.se/",
       "priority": 10
     },
     {
       "name": "C More Tennis",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "eSportsTV",
-      "isFree": true,
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "Sportkanalen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sportkanalen.se/",
       "priority": 10
     },
     {
       "name": "TV4 Fotboll",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "TV4 Hockey",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "TV4 Motor",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "TV4 Sport",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tv4 sport -live -1 -2 -3 -4 -xtra",
       "priority": 10
     },
     {
       "name": "TV4 Sportkanalen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sportkanalen.se/",
       "priority": 10
     },
     {
       "name": "TV4 Sport Xtra",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tv4sportxtra.se/",
       "priority": 10
     },
     {
       "name": "TV4 Tennis",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "V Sport 2",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "V Sport 3",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "V Sport Extra",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "V Sport Football",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "V Sport Golf",
-      "isFree": true,
+      "isFree": false,
       "website": "https://web.archive.org/web/20081022121248/http://www.viasatsport.se/content/blogcategory/29/38/",
       "priority": 10
     },
     {
       "name": "V Sport Live",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "V Sport Live 2",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "V Sport Live 3",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "V Sport Live 4",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "V Sport Live 5",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "V Sport Motor",
-      "isFree": true,
+      "isFree": false,
       "website": "https://web.archive.org/web/20081027070838/http://www.viasat4.no/sport/viasatmotor/",
       "priority": 10
     },
     {
       "name": "V Sport +",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viaplay.fi/package_sport",
       "priority": 10
     },
     {
       "name": "V Sport Premium",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "V Sport Ultra",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "V Sport Vinter",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.viasat.no/content/viasat-hockey-4",
       "priority": 10
     },
@@ -175,7 +176,7 @@
     },
     {
       "name": "TV 12",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -185,12 +186,12 @@
     },
     {
       "name": "TV 6",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "TV 8",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -200,7 +201,7 @@
     },
     {
       "name": "V Sport Hockey",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
@@ -215,32 +216,32 @@
     },
     {
       "name": "Discovery",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "TLC",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Global",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Nickelodeon",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Nick Jr",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Nicktoons",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -261,32 +262,32 @@
     },
     {
       "name": "Animal Planet Nordic",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Cartoonito",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Cartoon Network Nordic",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Eurosport",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Eurosport 2",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky Showtime",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -296,7 +297,7 @@
     },
     {
       "name": "CNBC Nordic",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -306,17 +307,17 @@
     },
     {
       "name": "National Geographic Channel HD Scandinavia",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "National Geographic Channel Scandinavia",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "History",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
@@ -336,27 +337,27 @@
     },
     {
       "name": "Da Vinci Kids",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Al Jazeera English",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "BBC News",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Bloomberg Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "CBS Reality",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -371,47 +372,47 @@
     },
     {
       "name": "Deutsche Welle",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Discovery HD Showcase",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Discovery Science Europe",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Discovery Travel & Living Europe",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Discovery World Europe",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Disney",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "E!",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "ESPN Classic",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "EuroNews",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -426,7 +427,7 @@
     },
     {
       "name": "France 24",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -451,17 +452,17 @@
     },
     {
       "name": "Investigation Discovery",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Mezzo",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Mezzo Live",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -476,7 +477,7 @@
     },
     {
       "name": "Nat Geo Wild",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -501,12 +502,12 @@
     },
     {
       "name": "SABC News International",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Sky News",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -516,12 +517,12 @@
     },
     {
       "name": "Travel Channel Europe",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "TV5Monde",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -547,12 +548,12 @@
     },
     {
       "name": "Öppna Kanalen Skövde",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Öppna Kanalen Stockholm",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -562,7 +563,7 @@
     },
     {
       "name": "BBC Earth",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -582,37 +583,37 @@
     },
     {
       "name": "C More Film",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Comedy",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Drama",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Comedy Central",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Discovery Mix",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Disney Junior",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Disney XD",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -642,7 +643,7 @@
     },
     {
       "name": "Hallmark Channel Scandilux",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -672,37 +673,37 @@
     },
     {
       "name": "MTV 80s",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV 90s",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV 00s",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Club MTV",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Hits",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Rocks",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Live",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -712,7 +713,7 @@
     },
     {
       "name": "Paramount Network",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -722,7 +723,7 @@
     },
     {
       "name": "Showtime Scandinavia",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -732,12 +733,12 @@
     },
     {
       "name": "Sky Entertainment",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "SuperSport",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
@@ -747,7 +748,7 @@
     },
     {
       "name": "SVT Extra",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -757,7 +758,7 @@
     },
     {
       "name": "Toon Disney Scandinavia",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -777,17 +778,17 @@
     },
     {
       "name": "TV 21",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "TVG",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "TCM Nordic",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -797,7 +798,7 @@
     },
     {
       "name": "TNT",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -807,7 +808,7 @@
     },
     {
       "name": "VH1 Classic",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -817,17 +818,17 @@
     },
     {
       "name": "Viasat Sport 2",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Viasat Sport 3",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Viasat Sport 24",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
@@ -839,28 +840,28 @@
   "News": [
     {
       "name": "Di",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Expressen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Miracle",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Aznews",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.aznews.tv/",
       "priority": 5
     },
     {
       "name": "TV4 News",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tv4news.se/",
       "priority": 5
     }
@@ -875,223 +876,223 @@
   "Entertainment": [
     {
       "name": "ATG Live",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Aftonbladet",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Dagens Industri",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Himlen TV 7",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kanal 10",
-      "isFree": true,
+      "isFree": null,
       "keywords": "kanal 10 -asia",
       "priority": 5
     },
     {
       "name": "Kanal 10 Asia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV 4 Nyheterna",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tv 4 nyheterna | tv4nyheterna",
       "priority": 5
     },
     {
       "name": "TV 4 Svensk Politik",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tv 4 svensk politik | tv4 svensk politik",
       "shortName": "T4SP",
       "priority": 5
     },
     {
       "name": "Västmanlands",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Västmanlands Television",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Aryen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.aryen.tv/",
       "priority": 5
     },
     {
       "name": "Brhan",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "C More Action",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "C More Emotion",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "C More Extreme",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "C More First",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "C More Live 2",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "C More Live 3",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "C More Live 4",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "C More Live 5",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "C More Live",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "C More Stars",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "Dalavision",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.dalavision.se",
       "priority": 5
     },
     {
       "name": "Discovery+ Extra",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryplus.com/",
       "priority": 7
     },
     {
       "name": "Discovery+ Extra 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryplus.com/",
       "priority": 7
     },
     {
       "name": "Discovery+ Extra 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryplus.com/",
       "priority": 7
     },
     {
       "name": "Discovery+ Extra 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryplus.com/",
       "priority": 7
     },
     {
       "name": "Discovery+ Extra 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryplus.com/",
       "priority": 7
     },
     {
       "name": "Discovery+ Extra 6",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryplus.com/",
       "priority": 7
     },
     {
       "name": "Discovery+ Extra 7",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryplus.com/",
       "priority": 7
     },
     {
       "name": "Discovery+ Extra 8",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryplus.com/",
       "priority": 7
     },
     {
       "name": "Glimt",
-      "isFree": true,
+      "isFree": null,
       "website": "https://glimt.tv/",
       "priority": 5
     },
     {
       "name": "Godare",
-      "isFree": true,
+      "isFree": null,
       "website": "https://godare.se/",
       "priority": 5
     },
     {
       "name": "Jonkopings Lokal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.jonkopingtv.se/",
       "priority": 5
     },
     {
       "name": "Kanal 9",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.discoveryplus.com/se/channel/kanal-9",
       "priority": 5
     },
     {
       "name": "Lokal TV Uddevalla",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ltvu.se/",
       "priority": 5
     },
     {
       "name": "MTV",
-      "isFree": true,
+      "isFree": false,
       "keywords": "mtv -aitio -viihde",
       "website": "https://www.mtv.se/",
       "priority": 5
     },
     {
       "name": "MTV Aitio",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mtv.fi/",
       "priority": 5
     },
@@ -1126,12 +1127,12 @@
     },
     {
       "name": "RTV AlbSe",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "SF kanalen",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
@@ -1143,30 +1144,30 @@
     },
     {
       "name": "Sky Showtime 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.skyshowtime.com/se",
       "priority": 5
     },
     {
       "name": "SportExpressen",
-      "isFree": true,
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "Sundskanalen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sundskanalen.se/",
       "priority": 5
     },
     {
       "name": "Suroyo",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.suroyotv.com/",
       "priority": 5
     },
     {
       "name": "Suryoyo Sat",
-      "isFree": true,
+      "isFree": null,
       "website": "http://suryoyosat.com/",
       "priority": 5
     },
@@ -1280,7 +1281,7 @@
     },
     {
       "name": "TV2Stad",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tv2stad.se/",
       "priority": 5
     },
@@ -1292,88 +1293,83 @@
     },
     {
       "name": "TV4 Hits",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "TV4 Komedi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tv4.se/tv4komedi",
       "priority": 5
     },
     {
       "name": "TV4 Science Fiction",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV4 Sport Live",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cmore.se/",
       "priority": 10
     },
     {
       "name": "TV4 Sport Live 2",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cmore.se/",
       "priority": 10
     },
     {
       "name": "TV4 Sport Live 3",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cmore.se/",
       "priority": 10
     },
     {
       "name": "TV4 Sport Live 4",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cmore.se/",
       "priority": 10
     },
     {
       "name": "TV4 Stars",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "TV Malmo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://malmomediakanal.se/",
       "priority": 5
     },
     {
       "name": "TV Malung Salen",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tvmalung-salen.se/",
       "priority": 5
     },
     {
       "name": "TV Vision Sverige",
-      "isFree": true,
+      "isFree": null,
       "website": "https://visionsverige.com/",
       "priority": 5
     },
     {
       "name": "TV Vision Sweden",
-      "isFree": true,
+      "isFree": null,
       "website": "https://visionsverige.com/",
       "priority": 5
     },
     {
-      "name": "Vastmanlands",
-      "isFree": true,
-      "priority": 5
-    },
-    {
       "name": "Viasat Film Comedy",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "YouSat",
-      "isFree": true,
+      "isFree": null,
       "website": "https://yousat.tv/",
       "priority": 5
     }
@@ -1405,14 +1401,14 @@
     },
     {
       "name": "National Geographic",
-      "isFree": true,
+      "isFree": false,
       "keywords": "national geographic -wild",
       "website": "http://www.natgeotv.com/se",
       "priority": 7
     },
     {
       "name": "National Geographic Wild",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.natgeotv.com/se",
       "priority": 7
     },
@@ -1425,19 +1421,19 @@
     },
     {
       "name": "Viasat Explore",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viasatexplore.eu/",
       "priority": 5
     },
     {
       "name": "Viasat History",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viasathistory.eu/",
       "priority": 7
     },
     {
       "name": "Viasat Nature",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viasatnature.eu/",
       "priority": 5
     }
@@ -1445,7 +1441,7 @@
   "Kids": [
     {
       "name": "C More Kids",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cmore.se/",
       "priority": 5
     }
@@ -1453,63 +1449,63 @@
   "Movies & Series": [
     {
       "name": "C More Series",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "MTV Viihde",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cmore.se/",
       "priority": 5
     },
     {
       "name": "Paramount+ Movies",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.paramountplus.com/se/",
       "priority": 5
     },
     {
       "name": "Paramount+ Series",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.paramountplus.com/se/",
       "priority": 5
     },
     {
       "name": "TV4 Film",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tv4.se/tv4film",
       "priority": 5
     },
     {
       "name": "TV4 Guld",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tv4.se/guld",
       "priority": 5
     },
     {
       "name": "V Film Action",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "V Film Family",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "V Film Hits",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "V Film Premiere",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Viasat Film Drama",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     }
   ],
@@ -1530,7 +1526,7 @@
   "Music Videos": [
     {
       "name": "Musik i Syd",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.musikisydchannel.se/",
       "priority": 5
     }

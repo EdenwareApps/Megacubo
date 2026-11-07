@@ -1,5 +1,5 @@
 <script>
-    import { onMount } from 'svelte';
+    import { onMount, tick } from 'svelte';
     import { initApp } from '../src/scripts/app';
     import { css } from '../src/scripts/utils';
     import { main } from '../../modules/bridge/renderer';
@@ -34,6 +34,85 @@
     let menubar = $state(null);
     let dialog;
 
+    // Billboard (hero) mirrors the focused entry — it is purely presentational and
+    // never participates in SpatialNavigation, so keyboard/remote focus is unchanged.
+    const onHome = $derived(!path);
+    const focusedItem = $derived(items[selectedIndex] || null);
+    // Some icons are Font Awesome class names ("fas fa-plus") instead of image URLs.
+    // Those can't be used as artwork, so the billboard falls back to the text title.
+    const focusedArt = $derived((() => {
+        const url = (focusedItem && icons[focusedItem.path]?.url) || '';
+        return (url && !/\s/.test(url) && !/^fa[slrbd]?-/i.test(url)) ? url : '';
+    })());
+    const focusedIs2x = $derived(!!focusedItem?.class?.includes('entry-2x'));
+    // Entries without artwork (recommendations, placeholders, channels without a
+    // logo) still paint the billboard: it falls back to the app logo instead of
+    // leaving the hero with an empty ("none") background.
+    const defaultHeroArt = './assets/images/default_icon_white.png';
+    const heroBackdropArt = $derived(focusedArt || defaultHeroArt);
+    // Billboard badge: playable entries (channels, streams, meta entries) keep the
+    // play glyph, anything else shows its own icon (e.g. "fas fa-fire" for trending).
+    const focusedMetaIcon = $derived((() => {
+        const item = focusedItem;
+        if (!item) return 'fas fa-play';
+        const fa = String(item.fa || '').trim();
+        const playable = !!(item.isChannel || item.programme ||
+            (item.class && String(item.class).includes('entry-meta-stream')) ||
+            (typeof item.url == 'string' && (/^mega:\/\//i.test(item.url) || /mediaType=live/i.test(item.url))));
+        if (!playable && /(^|\s)fa-[\w-]+/.test(fa)) {
+            return fa;
+        }
+        return 'fas fa-play';
+    })());
+    // The badge is already a circle, so a circular glyph inside it draws a circle
+    // within a circle ("fa-play-circle"). Any "-circle" is dropped from the icon
+    // that lands in the badge; the entry glyph itself stays untouched.
+    function circleFreeIcon(icon) {
+        return String(icon || '')
+            .trim()
+            .replace(/(^|\s)fa-([\w-]*?)-circle(?=\s|$)/g, '$1fa-$2')
+            .replace(/(^|\s)fa-circle-([\w-]+)/g, '$1fa-$2');
+    }
+    const heroBadgeIcon = $derived(circleFreeIcon(focusedMetaIcon));
+    const focusedMeta = $derived((() => {
+        let text = [focusedItem?.details, main?.menu?.maskValue?.(focusedItem?.value, focusedItem?.mask)].filter(v => v).join(' &middot; ');
+        // The badge already renders the entry glyph, so an icon opening the details
+        // ("<i class='fas fa-play-circle'></i> Ao Vivo · ...") would duplicate it.
+        const badgeGlyph = (focusedMetaIcon.match(/fa-[\w-]+/) || [''])[0];
+        if (!text || !badgeGlyph) {
+            return text;
+        }
+        let leading;
+        while ((leading = text.match(/^\s*<i\b[^>]*>\s*<\/i>/))) {
+            const glyph = (leading[0].match(/fa-[\w-]+/) || [''])[0];
+            if (!glyph || !(glyph.includes(badgeGlyph) || badgeGlyph.includes(glyph))) break;
+            text = text.slice(leading[0].length);
+        }
+        return text.trim();
+    })());
+    const gridColumns = $derived(Math.max(1, (main?.menu?.gridLayoutX || viewSize.x || 1)));
+    const focusedRow = $derived(gridColumns ? Math.floor(selectedIndex / gridColumns) : 0);
+    function rowOf(item) {
+        return Math.floor((item?.tabindex || 0) / (gridColumns || 1));
+    }
+
+    // The backend knows whether an artwork is opaque only after it is fetched, which usually
+    // happens after the entries are prepared; deriving the cover state from the reactive icon
+    // map makes the entries stretch as soon as the artwork arrives, on the very first visit.
+    function isCover(item) {
+        if (!item || item.side) return false;
+        const icon = icons && icons[item.path];
+        if (icon && icon.cover) {
+            return !!(main?.config?.['stretch-logos'] || item.class?.includes('entry-force-cover'));
+        }
+        return !!item.cover;
+    }
+
+    function wrapperClass(item) {
+        const base = (item?.wrapperClass || '').replace(' entry-cover-active', '');
+        return isCover(item) ? base + ' entry-cover-active' : base;
+    }
+
     function setupNavigation() {
         ([
             {
@@ -51,6 +130,8 @@
                     if (direction == 'up' || direction == 'down') {
                         let playing = main?.menu?.inPlayer?.()
                         if (!playing) {
+                            /*
+                            // Disabled for now because it is too aggressive and can cause the menu to jump around unexpectedly.
                             let n, i = main?.menu?.selectedIndex || 0
                             const x = main?.menu?.gridLayoutX || 0, container = main?.menu?.scrollContainer
                             // Ensure valid scrollTop calculation
@@ -106,6 +187,7 @@
                                 main.menu.emit('focus-index', n)
                                 main.menu.emit('x-select', null)
                             }
+                            */
                             return true
                         } else if(direction == 'up') {
                             main?.menu?.showWhilePlaying?.(false)
@@ -124,6 +206,7 @@
                 },
                 overScrollAction: (direction, e) => {
                     if (direction == 'up' || direction == 'down') {
+                        return true // disable vertical default overscroll behavior when in side menu
                         let playing = main?.menu?.inPlayer?.()
                         if (!playing) {
                             const entryNavs = main?.menu?.container?.querySelectorAll?.('entry-nav') || [];
@@ -334,6 +417,14 @@
                 if (main?.menu) {
                     main.menu.navigation = spatialNavigation;
                     main.menu.dialogs = dialog;
+                    // "Back to top" must go through the grid: scrolling the viewport before the
+                    // first rows are rendered lets the mandatory scroll-snap pull it back down.
+                    main.menu.scrollToTop = async () => {
+                        const done = await virtualGrid?.scrollToIndex?.(0)
+                        if (done === false) {
+                            main.menu.scrollTop(0, false, true)
+                        }
+                    };
                     main.menu.on('reset', reset);
                     main.menu.on('navigate', reset);
                     main.menu.on('updated', () => {
@@ -353,6 +444,12 @@
                     main.menu.on('focus-index', async index => {
                         await virtualGrid.scrollToIndex(index)
                         spatialNavigation.focusIndex(index)
+                    });
+                    main.menu.on('side-menu', async () => {
+                        // The sidebar changes the grid viewport and card sizes, so the
+                        // virtual rows must be measured again after the layout settles.
+                        await tick();
+                        refresh();
                     });
                     main.menu.on('focus', element => {
                         spatialNavigation.focus(element)
@@ -376,11 +473,34 @@
     });
 </script>
 <div id="main">
+    {#if focusedItem && onHome}
+    <div id="menu-hero" aria-hidden="true">
+        <div class="hero-backdrop" class:hero-backdrop-default={!focusedArt} style:background-image={`url("${heroBackdropArt}")`}></div>
+        <div class="hero-scrim"></div>
+        <div class="hero-body">
+            {#if focusedArt}
+            <div class="hero-art"><img src="{focusedArt}" alt="" draggable="false" /></div>
+            {/if}
+            <div class="hero-info">
+                <div class="hero-title">{@html focusedItem.rawname || focusedItem.name}</div>
+                <div class="hero-meta">
+                    <span class="hero-play"><i class="{heroBadgeIcon}"></i></span>
+                    {#if focusedMeta}
+                    <span class="hero-meta-text">{@html focusedMeta}</span>
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+    {/if}
     <a href="#close-menu" aria-label="{lang.CLOSE}" title="{lang.CLOSE}" id="menu-playing-close">
         <div>
             <i class="fas fa-times-circle"></i>
         </div>
     </a>
+    <button id="nav-toggle" type="button" aria-label="{lang.MENU || 'Menu'}" title="{lang.MENU || 'Menu'}" tabindex="-1">
+        <i class="fas fa-bars" aria-hidden="true"></i>
+    </button>
     <div id="menu">
         <span class="menu-omni" style="flex: 1;">
             <span id="menu-search">
@@ -405,27 +525,20 @@
                     </a>
                     {/each}
                 </div>
-                <div class="side-menu-toggle">
-                    <div>
-                        <span>
-                            <img src="assets/images/default_icon_white.png" alt="" style="width: 4vmax; height: 4vmax; margin: 0.5vmax 0;" loading="lazy" />
-                        </span>
-                    </div>
-                </div>
             </nav>
         </div>
         <div class="content-out">
-            <content role="region" onmouseenter={() => main?.menu?.sideMenu(false)}>
+            <content role="region" onmousemove={(event) => main?.menu?.closeOnHover?.(event)}>
                 <VirtualGrid width="var(--menu-width)" height="var(--menu-height)" items={items || []} let:item itemWidth={itemWidth} itemHeight={itemHeight} bind:this={virtualGrid} bind:range bind:isTop bind:isBottom bind:refresh>
                     {#snippet children(item)}
-                    <a href="{item.url}" tabindex="{item.tabindex}" class="{item.class} {selectedIndex == item.tabindex ? 'selected' : ''}" title="{item.name}" aria-label="{item.name}" 
+                    <a href="{item.url}" tabindex="{item.tabindex}" class="{item.class} {selectedIndex == item.tabindex ? 'selected' : ''} {rowOf(item) === focusedRow ? 'focus-row' : ''}" title="{item.name}" aria-label="{item.name}" 
                         data-type="{item.type}" data-path="{item.path}" key="{item.key}"  draggable="false" 
                         data-range-start="{item.range ? item.range.start : 0}" data-range-end="{item.range ? item.range.end : 100}" data-range-step="{item.range ? item.range.step || 1 : 1}" 
                         data-mask="{item.mask}" data-original-icon="{item.originalIcon}" data-question="{item.question}" 
                         style="order: {item.tabindex};" onmouseenter={(event) => focusElement(event.target)}
                         >
-                        <span class="{item.wrapperClass}">
-                            {#if item.cover && icons && icons[item.path] && icons[item.path].url}
+                        <span class="{wrapperClass(item)}">
+                            {#if isCover(item) && icons && icons[item.path] && icons[item.path].url}
                                 <div class="entry-cover-container" aria-hidden="true">
                                     <img src="{icons[item.path].url}" alt="" draggable="false" />
                                 </div>
@@ -444,7 +557,7 @@
                                 {#if (!icons || !icons[item.path] || item.type == 'back' || (icons[item.path].url && icons[item.path].url.startsWith('fa')))}
                                     <i class="{item.fa}" style="{item.faStyle||''}" aria-hidden="true"></i>
                                 {:else}
-                                    {#if !item.cover && icons && icons[item.path] && icons[item.path].url}
+                                    {#if !isCover(item) && icons && icons[item.path] && icons[item.path].url}
                                         <img src="{transparentImage}" draggable="false" alt="" style="background-image: url({icons[item.path].url})" aria-hidden="true" />
                                     {/if}
                                 {/if}
@@ -504,67 +617,27 @@ svelte-virtual-grid-viewport {
 #menu::-webkit-scrollbar {
     display: none;
 }
-.side-menu-toggle, .side-menu-toggle > div {
-    width: 0 !important;
-    overflow: visible;
-}
-.side-menu-toggle > div {
-    height: var(--menu-height);
-    display: flex;
-    color: var(--font-color);
-    padding: var(--padding-2x) var(--padding);
-    box-sizing: border-box;
-    font-size: 4vmin;
-    align-items: center;
-    justify-content: center;
-    margin-left: var(--menu-scrollbar-width);
-}
-.side-menu-toggle > div > span {
-    flex-direction: row;
-    display: flex;
-    width: var(--padding);
-    justify-content: center;
-    border-radius: 100vw;
-    background: transparent;
-    padding: 0.75vmax 3vmax;
-    color: var(--secondary-font-color);
-    position: absolute;
-    z-index: 1;
-    opacity: 1;
-    transition: opacity 0.15s ease-in 0s;
-    align-self: center;
-    box-shadow: inset -0.1vmin 0 rgba(255,255,255, 0.175);
-}
-html.curtains-closed .side-menu-toggle > div > span, body.video .side-menu-toggle > div > span {
-    background: black;
-}
-html.curtains-closed .side-menu-toggle > div > span, body.video .side-menu-toggle > div > span, body.side-menu .side-menu-toggle > div > span {
-    opacity: 0;
-    box-shadow: none;
-}
-body.side-menu:not(.idle) .side-menu-toggle > div > span {
-    background: var(--background-color);
-}
-body:not(.side-menu) .side-menu-toggle > div > span > img {
-    animation: shake 5s infinite ease-out;
-}
-@keyframes shake {
-    0% { margin-left: 0vh; }
-    92% { margin-left: 0vh; }
-    94% { margin-left: 0.5vh; }
-    96% { margin-left: 0vh; }
-    98% { margin-left: 0.5vh; }
-    100% { margin-left: 0vh; }
-}
-body.video #menubar  {
-    display: none;
-}
 .side-menu-out {
-    transition: width 0.15s ease-in;
-    display: flex; 
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    display: flex;
     width: var(--nav-width);
-    max-height: var(--menu-height);
+    height: var(--menu-height);
     padding-right: var(--padding-quarter); /* bugfix: avoid a white vertical line on menu-playing */
+    background: linear-gradient(90deg, rgba(11, 11, 14, 0.995) 0%, rgba(11, 11, 14, 0.99) 88%, rgba(11, 11, 14, 0.86) 96%, rgba(11, 11, 14, 0.62) 100%);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    transform: translateX(-100%);
+    transition: transform var(--menu-fx-nav-duration) ease-in-out 0s, box-shadow var(--menu-fx-nav-duration) ease-in-out 0s;
+}
+body.side-menu .side-menu-out {
+    transform: none;
+    box-shadow: 0.4vmax 0 4vmax rgba(0, 0, 0, 0.55);
+}
+body.side-menu-instant .side-menu-out {
+    transition: none;
 }
 body.video:not(.menu-playing) .side-menu-out {
     display: none;
@@ -572,18 +645,59 @@ body.video:not(.menu-playing) .side-menu-out {
 body.video:not(.menu-playing) #menu {
     top: 100vh;
 }
-.side-menu-toggle i.fa-chevron-down {
-    animation: fa-shake 5s 3 ease-in;
-    animation-iteration-count: infinite;
-    transform: inherit;
+#nav-toggle {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    z-index: 4;
+    transform: translateY(-50%);
+    display: flex;
+    /* Touch devices get a proper tap target; on desktop the pill stays compact. */
+    width: 3.6vmin;
+    height: 5.4vmin;
+    padding: 0;
+    margin: 0;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--nf-line);
+    border-left: 0;
+    border-radius: 0 999px 999px 0;
+    background: rgba(15, 15, 19, 0.92);
+    color: var(--nf-text);
+    font-size: 1.9vmin;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.15s ease-out 0s, background-color 0.15s ease-out 0s;
 }
-@keyframes fa-shake {
-    0%, 3%, 8% {
-        transform: translateX(0vmin);
+#nav-toggle:hover {
+    opacity: 1;
+    background: rgba(30, 30, 36, 0.98);
+}
+#nav-toggle i {
+    margin-right: var(--menu-padding);
+}
+@media (pointer: coarse) {
+    /* Finger-friendly target: a ~3.6vmin pill is only ~14px wide on a phone,
+       far below the 44px minimum touch size, so taps landed on the grid behind. */
+    #nav-toggle {
+        width: max(46px, 3.6vmin);
+        height: max(58px, 5.4vmin);
+        font-size: max(18px, 1.9vmin);
+        opacity: 0.94;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
     }
-    7% {
-        transform: translateX(-0.5vmin);
-    }
+}
+body.side-menu #nav-toggle,
+body.omni #nav-toggle,
+body.dialog #nav-toggle,
+body.video #nav-toggle {
+    opacity: 0;
+    pointer-events: none;
+}
+body.video #menubar {
+    display: none;
 }
 #menu content {
     width: 100%;
@@ -599,7 +713,7 @@ body.omni content {
 }
 #menu .menu-omni {
     position: fixed;
-    left: var(--nav-width);
+    left: 0;
     top: -30vh;
     background: linear-gradient(to bottom, var(--background-color) -50%, var(--background-color) 36%, var(--shadow-background-color) 77.5%, transparent 100%);
     width: 100%;
@@ -617,15 +731,13 @@ body.omni content {
 body.omni .menu-omni {
     top: 0 !important;
 }
-body.side-menu #menu .menu-omni {
-    left: 0;
-}
 body.video.menu-playing #menu .menu-omni {
     background: linear-gradient(to bottom, var(--shadow-background-color) -50%, #000 37%, var(--shadow-background-color) 77.5%, transparent 100%) !important;
 }
 #menu .menu-omni > span {
-    background: linear-gradient(to bottom, rgba(255,255,255, 1) 0%, rgba(255,255,255, 0.5) 100%);
-    border-radius: var(--padding-2x);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--nf-line);
+    border-radius: 999px;
     min-width: calc(var(--menu-entry-name-font-size) * 14);
     text-align: left;
     align-items: center;
@@ -734,19 +846,15 @@ body:not(.portrait) #menu content a.entry-2x {
     padding-right: var(--padding-half);
     margin-left: var(--padding-half);
     flex-basis: 100%;
-    background: rgba(0,0,0, 0.1);
+    background: transparent;
     border-top-left-radius: var(--radius);
     border-bottom-left-radius: var(--radius);
     max-height: var(--menu-height);    
     scroll-snap-type: y mandatory;
     overflow: hidden auto;
 }
-body.side-menu #menu .content-out {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-}
 body.side-menu svelte-virtual-grid-contents a .entry-wrapper span, body.side-menu svelte-virtual-grid-contents a .entry-cover-container {
-    opacity: 0.333;
+    opacity: 0.5;
 }
 #menu nav > div {
     width: 100%;
@@ -771,7 +879,7 @@ body.side-menu svelte-virtual-grid-contents a .entry-wrapper span, body.side-men
     justify-content: center;
     align-content: center;
     display: flex;
-    line-height: 100%; 
+    line-height: 140%; 
     box-sizing: border-box !important;
     white-space: pre-wrap;
     flex-grow: 1;
@@ -787,12 +895,6 @@ body.video #menu a.selected span.entry-wrapper {
 #menu nav a .entry-wrapper > span {
     margin-left: var(--padding-half);
     white-space: normal;
-}
-body.side-menu:not(.dialog) #menu nav {
-    display: flex;    
-}
-body.side-menu .side-menu-toggle {
-    display: none;
 }
 #menu .menu-time {
     display: flex;
@@ -842,7 +944,7 @@ div#arrow > div > * {
     display: flex;
     align-items: flex-end;
     width: 100%;
-    background: rgba(0,0,0, 0.1);
+    background: transparent;
     border-radius: var(--radius);
 }
 #menu content {
@@ -969,22 +1071,26 @@ body.portrait #menu content a .entry-icon-image i {
     display: inline-flex;    
     border-radius: var(--radius);
     box-sizing: border-box;
-    border: 1px solid rgba(255, 255, 255, 0.009);
+    border: 1px solid var(--nf-line);
+    background: linear-gradient(180deg, var(--nf-surface) 0%, var(--nf-surface-2) 100%);
     transition: transform 0.1s ease-in;
     width: 98%;
     height: 96%;
 }
+body:not(.portrait) #menu svelte-virtual-grid-contents a.entry-2x span.entry-wrapper {
+    width: 98.75%;
+}
 #menu a.selected span.entry-wrapper {
-    border-color: rgba(255, 255, 255, 0.009);
+    border-color: var(--nf-accent);
     background: linear-gradient(to top, rgba(150, 150, 150, 0.5) 0%, rgba(150, 150, 150, 0.75) 75%, rgba(150, 150, 150, 1) 100%);
-    box-shadow: 0 0 2px white;
+    box-shadow: 0 0 0 2px var(--nf-accent), 0 1vmin 2.5vmin rgba(0, 0, 0, 0.85), 0 0 3.5vmin var(--nf-accent-soft);
     z-index: 0;
 }
 svelte-virtual-grid-contents a.selected {
     overflow: visible !important;
 }
 svelte-virtual-grid-contents a.selected > span {
-    transform: scale(1.01);
+    transform: scale(1.06);
     transform-origin: center center;
 }
 controls button.selected span.button-icon, seekbar div.selected, a.control-layer-icon.selected, button.control-layer-icon.selected, div#arrow-down-hint i.selected {
@@ -1204,14 +1310,435 @@ body.video.menu-playing #menu-playing-close {
     font-weight: bold;
 }
 span.entry-status-flag-success {
-    background: #094;
+    background: var(--nf-accent);
 }
 span.entry-status-flag-failure {
-    background: #f04;
+    background: var(--nf-danger);
 }
 .entry-cover-container {    
     min-height: 100%;
     display: flex;
     justify-content: center;
+}
+/* ------------------------------------------------------------------
+   Netflix-like restyle (keeps the virtual grid + SpatialNavigation
+   untouched, only the visual layer changes).
+   The theme module injects !important rules based on the user theme,
+   so those overrides need matching specificity + !important.
+------------------------------------------------------------------ */
+html:not(.curtains-closed) body:not(.video) div#background > div {
+    background: radial-gradient(135% 120% at 78% -12%, rgba(139, 92, 246, 0.16) 0%, rgba(20, 20, 20, 0.9) 42%, #0a0a0a 100%) !important;
+}
+html:not(.curtains-closed) body:not(.video) div#background {
+    filter: brightness(0.4) saturate(0.8);
+}
+html:not(.curtains-closed) body.omni div#background {
+    filter: none;
+    background: var(--nf-black) !important;
+}
+html:not(.curtains-closed) body.omni div#background > div {
+    background: var(--nf-black) !important;
+}
+#menu .menu-omni {
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.97) -50%, rgba(0, 0, 0, 0.94) 36%, rgba(0, 0, 0, 0.55) 77.5%, transparent 100%);
+}
+body #menu svelte-virtual-grid-contents a span.entry-wrapper {
+    background: linear-gradient(180deg, var(--nf-surface) 0%, var(--nf-surface-2) 100%) !important;
+    border: 1px solid var(--nf-line) !important;
+}
+/* the grid keeps its own scrollbar, which breaks the cinematic look */
+body #menu content svelte-virtual-grid-viewport {
+    scrollbar-width: none;
+}
+body #menu content svelte-virtual-grid-viewport::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+body #menu content a.selected span.entry-wrapper, body #menu nav a.selected .entry-wrapper {
+    border: 1px solid var(--nf-accent) !important;
+}
+body #menu content a.selected span.entry-wrapper {
+    box-shadow: 0 0 0 1px var(--nf-accent-soft), 0 1.2vmax 2.4vmax rgba(0, 0, 0, 0.55);
+}
+#menu content a:not(.selected):hover span.entry-wrapper {
+    border-color: rgba(255, 255, 255, 0.16) !important;
+}
+#menu .menu-omni input, #menu .menu-omni i, #menu .menu-omni input::-webkit-input-placeholder {
+    color: var(--nf-text) !important;
+    text-shadow: none;
+    font-weight: 500;
+}
+#menu .menu-omni.selected > span {
+    background: rgba(255, 255, 255, 0.14) !important;
+    border-color: var(--nf-accent);
+    box-shadow: 0 0 0 2px var(--nf-accent-soft), 0 0 3vmin rgba(0, 0, 0, 0.6);
+}
+#menu .menu-omni.selected > span input, #menu .menu-omni.selected > span i, #menu .menu-omni.selected > span input::-webkit-input-placeholder {
+    color: #ffffff !important;
+}
+#menu .menu-omni input::-webkit-input-placeholder {
+    color: var(--nf-text-dim) !important;
+}
+#menu nav .entry-wrapper {
+    position: relative;
+    padding: 0 calc(var(--padding) * 1.25);
+    justify-content: flex-start !important;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--nf-text-dim) !important;
+    border-radius: var(--nf-radius);
+    transition: background 0.15s ease-out 0s, color 0.15s ease-out 0s, box-shadow 0.15s ease-out 0s;
+}
+body #menu nav a .entry-wrapper {
+    background: rgba(255, 255, 255, 0.035) !important;
+    border: 1px solid transparent !important;
+}
+body #menu nav a:not(.selected):hover .entry-wrapper {
+    background: rgba(255, 255, 255, 0.09) !important;
+}
+body #menu nav a.selected .entry-wrapper {
+    background: linear-gradient(90deg, rgba(139, 92, 246, 0.55) 0%, rgba(139, 92, 246, 0.06) 100%) !important;
+    border: 1px solid rgba(139, 92, 246, 0.7) !important;
+    color: #ffffff !important;
+    box-shadow: inset 3px 0 0 var(--nf-accent-bright), 0 0 2.5vmin rgba(139, 92, 246, 0.24);
+}
+body #menu nav a.selected .entry-wrapper > i, body #menu nav a.selected .entry-wrapper .fa {
+    color: #ffffff !important;
+}
+#menu nav a .entry-wrapper i, #menu nav a .entry-wrapper .fa, #menu nav a .entry-wrapper .fas {
+    width: 1.5em;
+    text-align: center;
+    margin-right: var(--padding-half);
+}
+#menu-playing-close > div {
+    background: rgba(0, 0, 0, 0.55);
+    border-radius: var(--nf-radius);
+    padding: 0 var(--padding);
+}
+#menu-playing-close.selected > div {
+    background: var(--nf-accent);
+}
+#menu-playing-close.selected > div > i {
+    color: #ffffff !important;
+}
+body:not(.portrait) #menu content a span.entry-data-in {
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    box-sizing: border-box;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    text-align: left;
+    padding: 0 calc(var(--padding) * 1.5) calc(var(--padding) * 0.9) calc(var(--padding) * 1.5);
+    background: linear-gradient(to top, rgba(6, 6, 9, 0.95) 0%, rgba(6, 6, 9, 0.8) 16%, rgba(6, 6, 9, 0.4) 38%, rgba(6, 6, 9, 0.08) 58%, rgba(6, 6, 9, 0) 72%);
+}
+body:not(.portrait) #menu content a span.entry-name,
+body:not(.portrait) #menu content a span.entry-details {
+    text-align: left !important;
+    -webkit-box-pack: start !important;
+    width: 100%;
+}
+body:not(.portrait) #menu content a .entry-icon-image {
+    top: 3% !important;
+    bottom: auto !important;
+    left: 8% !important;
+    width: 84% !important;
+    height: 62% !important;
+}
+body:not(.portrait) #menu content a.entry-2x .entry-icon-image {
+    left: 6% !important;
+    width: 88% !important;
+    height: 66% !important;
+}
+body:not(.portrait) #menu content a .entry-icon-image i {
+    font-size: calc(var(--menu-entry-name-font-size) * 3.6) !important;
+}
+body:not(.portrait) #menu content a span.entry-name {
+    font-size: calc(var(--menu-entry-name-font-size) * 1.02);
+}
+#menu content a span.entry-name {
+    font-weight: 600;
+    letter-spacing: 0.015em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+}
+#menu content a span.entry-details {
+    color: var(--nf-text-dim);
+}
+#menu content a.selected span.entry-name {
+    color: #ffffff;
+}
+body:not(.portrait) #menu content a.selected {
+    overflow: visible;
+    z-index: 3;
+}
+body:not(.portrait) #menu content a {
+    transition: transform 0.16s ease-out 0s, opacity 0.22s ease-out 0s;
+}
+body:not(.portrait) #menu content a.selected {
+    transform: scale(var(--nf-focus-scale));
+}
+body:not(.portrait) #menu content a:hover span.entry-icon-image,
+#menu content a.selected span.entry-icon-image {
+    transform: scale(1.03);
+    transition: transform 0.2s ease-out 0s;
+}
+/* Netflix-style row emphasis: only the row that holds the focus stays fully lit */
+body.home:not(.portrait) #menu content a:not(.focus-row) {
+    opacity: 0.82;
+}
+body.home:not(.portrait) #menu content a:not(.focus-row):hover {
+    opacity: 0.85;
+}
+div#arrow > div > * {
+    color: var(--nf-text-dim);
+}
+div#arrow > div > *:hover {
+    color: #ffffff;
+}
+body.omni #nav-toggle,
+body.dialog #nav-toggle {
+    opacity: 0;
+    pointer-events: none;
+}
+#menu .side-menu-out nav {
+    margin-left: 0;
+    padding-left: calc(var(--padding) * 1.25);
+    border-radius: 0;
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+#menu .side-menu-out nav::-webkit-scrollbar {
+    width: 4px;
+}
+#menu .side-menu-out nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+}
+#menu .side-menu-out nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/*------------------------------------------------------------------
+   Billboard (hero) + cinematic band on the home screen.
+   The hero is decorative (aria-hidden) and sits *behind* the grid,
+   so it never takes part in SpatialNavigation. The grid keeps all of
+   its rows fully reachable: the viewport is shortened by exactly two
+   card rows, which are the rows the hero frees up.
+------------------------------------------------------------------ */
+body:not(.portrait):not(.video) #menu content svelte-virtual-grid-viewport {
+    height: calc(var(--menu-height) - 30px) !important;
+}
+/* Shrink the cards just enough for three whole rows to clear the menubar,
+   so the last row of any grid is never cut in half. */
+body:not(.portrait):not(.video) {
+    --menu-entry-height: calc((var(--menu-height) - 30px) / 3);
+}
+body.home:not(.portrait):not(.video) #menu content svelte-virtual-grid-viewport {
+    height: calc(var(--menu-entry-height) * 2) !important;
+    margin-bottom: 30px;
+    align-self: flex-end;
+}
+body.omni #menu-hero,
+body.video #menu-hero,
+body.portrait #menu-hero {
+    opacity: 0;
+    pointer-events: none;
+}
+/* The scroll hints would overlap the omni search field. */
+body.omni div#arrow {
+    opacity: 0;
+}
+/* On the home browse screen the billboard sits above the grid, so the top
+   scroll hint starts right below it instead of floating over the artwork. */
+body.home:not(.portrait):not(.video) div#arrow > div {
+    padding-top: calc(var(--menu-height) - (var(--menu-entry-height) * 2) - (var(--padding-2x) * 3));
+}
+/* With the sidebar expanded the billboard would sit behind it, so it is
+   dropped and the grid gets the full height back (Netflix browse behaviour). */
+body.side-menu #menu-hero {
+    pointer-events: none;
+}
+/* The grid behind the expanded sidebar keeps a readable dim instead of
+   disappearing (Netflix dims the browse area while the menu is open). */
+body.side-menu #menu svelte-virtual-grid-contents a .entry-wrapper span,
+body.side-menu #menu svelte-virtual-grid-contents a .entry-cover-container {
+    opacity: 0.5;
+}
+#menu-hero {
+    --nf-hero-h: calc(var(--menu-height) - (var(--menu-entry-height) * 2));
+    /* The grid sits at the bottom of the content area leaving this gap above the
+       menubar. The hero backdrop may bleed into it, but the hero *content* has to
+       be lifted by the same amount, otherwise the first card row covers (and the
+       mask fades) the billboard artwork and footer. */
+    --nf-hero-inset: 30px;
+    --nf-hero-body-h: calc(var(--nf-hero-h) - var(--nf-hero-inset));
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: var(--nf-hero-h);
+    overflow: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s ease-out 0s;
+    contain: strict;
+    /* Fade the last 28px so the artwork dissolves into the grid instead of
+       ending on a hard line. */
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent 100%);
+}
+#menu-hero .hero-backdrop {
+    position: absolute;
+    inset: -12% -6%;
+    background-position: center 30%;
+    background-size: cover;
+    transform: scale(1.08);
+    filter: blur(1vmax) brightness(0.45) saturate(1.15);
+    opacity: 0.92;
+    animation: nf-hero-in 0.5s ease-out 0s both;
+}
+/* Fallback artwork: the app logo, centred and without the blurred-cover
+   treatment (it would just look like a smear when enlarged). */
+#menu-hero .hero-backdrop.hero-backdrop-default {
+    background-position: center 40%;
+    background-size: 34vmin auto;
+    background-repeat: no-repeat;
+    filter: none;
+    opacity: 0.28;
+}
+#menu-hero .hero-scrim {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(to bottom, rgba(11, 11, 14, 0.92) 0%, rgba(11, 11, 14, 0.32) 22%, rgba(11, 11, 14, 0) 46%),
+        linear-gradient(to top, rgba(11, 11, 14, 1) 0%, rgba(11, 11, 14, 0.86) 26%, rgba(11, 11, 14, 0.34) 68%, rgba(11, 11, 14, 0.12) 100%),
+        linear-gradient(to right, rgba(11, 11, 14, 0.9) 0%, rgba(11, 11, 14, 0.46) 44%, rgba(11, 11, 14, 0.08) 76%);
+}
+#menu-hero .hero-body {
+    position: absolute;
+    left: calc(var(--padding) * 2.4);
+    right: calc(var(--padding) * 2.4);
+    bottom: calc(var(--nf-hero-inset) + (var(--padding) * 1.2));
+    max-height: calc(var(--nf-hero-body-h) - (var(--padding) * 1.5));
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: calc(var(--padding) * 1.5);
+    animation: nf-hero-in 0.4s ease-out 0s both;
+}
+#menu-hero .hero-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: calc(var(--padding) * 0.5);
+    min-width: 0;
+    flex: 1 1 auto;
+    padding-bottom: calc(var(--padding) * 0.15);
+}
+#menu-hero .hero-art {
+    display: flex;
+    align-items: flex-end;
+    height: calc(var(--nf-hero-h) * 0.66);
+    max-width: 22%;
+    min-width: 0;
+    flex: 0 0 auto;
+}
+#menu-hero .hero-art img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: left bottom;
+    filter: drop-shadow(0 0.5vmax 1.4vmax rgba(0, 0, 0, 0.85));
+}
+#menu-hero .hero-title {
+    font-size: calc(var(--menu-entry-name-font-size) * 2.9);
+    line-height: 1.04;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    text-shadow: 0 0.2vmax 1.6vmax rgba(0, 0, 0, 0.85);
+    max-width: 68ch;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+#menu-hero .hero-title * {
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    color: inherit !important;
+}
+#menu-hero .hero-meta {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--padding) * 0.8);
+    font-size: var(--menu-entry-name-font-size);
+    color: #d8d8d8;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+#menu-hero .hero-meta-text:empty {
+    display: none;
+}
+#menu-hero .hero-play {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(var(--menu-entry-name-font-size) * 1.9);
+    height: calc(var(--menu-entry-name-font-size) * 1.9);
+    border-radius: 50%;
+    background: var(--nf-accent);
+    color: #ffffff;
+    font-size: calc(var(--menu-entry-name-font-size) * 0.72);
+    box-shadow: 0 0.4vmax 1.6vmax rgba(0, 0, 0, 0.6);
+    text-shadow: none;
+    flex: 0 0 auto;
+}
+@keyframes nf-hero-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+/* Netflix-style focus: white ring + purple halo + elevation */
+body:not(.portrait) #menu content a.selected > span {
+    transform: none !important;
+}
+body:not(.portrait) #menu content a.selected span.entry-wrapper {
+    border-color: #ffffff !important;
+    box-shadow:
+        0 0 0 2px rgba(255, 255, 255, 0.95),
+        0 1.4vmax 2.8vmax rgba(0, 0, 0, 0.68),
+        0 0 3.4vmax rgba(139, 92, 246, 0.32) !important;
+}
+body:not(.portrait) #menu content a.selected span.entry-name {
+    color: #ffffff !important;
+}
+body #menu nav a, body #menu .menu-omni {
+    transition: transform 0.16s ease-out 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+    body:not(.portrait) #menu content a,
+    body:not(.portrait) #menu content a:hover span.entry-icon-image,
+    #menu content a.selected span.entry-icon-image,
+    #menu-hero,
+    body #menu nav a,
+    body #menu .menu-omni {
+        transition: none !important;
+    }
+    body:not(.portrait) #menu content a.selected {
+        transform: none;
+    }
+    #menu-hero .hero-backdrop, #menu-hero .hero-body {
+        animation: none;
+    }
 }
 </style>

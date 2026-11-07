@@ -82,9 +82,14 @@ $: if (element && !clockCreated) {
 
 <style>
 time {
-    background: var(--background-color);
-    padding: var(--padding-quarter) var(--padding-quarter) var(--padding-quarter) var(--padding);
-    border-top-left-radius: var(--radius);
+    color: var(--nf-text);
+    letter-spacing: 0.02em;
+    padding: var(--padding-quarter) var(--padding) var(--padding-quarter) var(--padding);
+    -webkit-backdrop-filter: blur(8px) saturate(1.15);
+    backdrop-filter: blur(8px) saturate(1.15);
+}
+:global(body.omni) time {
+    opacity: 0;
 }
 </style>
 

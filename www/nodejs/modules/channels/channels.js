@@ -34,7 +34,7 @@ class ChannelsData extends EventEmitter {
         renderer.ready(async () => {
             this.load().catch(err => console.error(err))
             config.on('change', async (keys) => {
-                if (['parental-control', 'parental-control-terms', 'lists', 'public-lists', 'community-mode-lists-amount', 'countries'].some(k => keys.includes(k))) {
+                if (['parental-control', 'parental-control-terms', 'parental-control-age', 'content-profile', 'lists', 'public-lists', 'community-mode-lists-amount', 'countries'].some(k => keys.includes(k))) {
                     await this.load(true);
                 }
             })
@@ -45,16 +45,18 @@ class ChannelsData extends EventEmitter {
     async load(refresh) {
         const publicMode = config.get('public-lists') && !config.get('lists').length && !config.get('community-mode-lists-amount')
         const countries = await lang.getActiveCountries()
-        const includeAdult = !!global.lists?.parentalControl?.lazyAuth?.()
+        const includeAdult = !!global.lists?.contentProfile?.adultAllowed?.()
         const onlyFree = publicMode
         let listChanged = false
+        const profile = global.lists?.contentProfile?.effective?.() || ''
         if (!this.channelList ||
             JSON.stringify(this.channelList.countries) !== JSON.stringify(countries) ||
             this.channelList.onlyFree !== onlyFree ||
-            this.channelList.includeAdult !== includeAdult) {
+            this.channelList.includeAdult !== includeAdult ||
+            this.channelList.profile !== profile) {
             listChanged = true
             this.channelList && this.channelList.destroy()
-            this.channelList = new ChannelsList(countries, { onlyFree, includeAdult })
+            this.channelList = new ChannelsList(countries, { onlyFree, includeAdult, profile })
         }
         const changed = await this.channelList.load(refresh)
         this.loaded = true
@@ -293,24 +295,45 @@ class ChannelsEPG extends ChannelsData {
     }
     async epgChannelsAddLiveNow(entries) {
         if (!global.lists?.epg?.loaded) return entries
+        if (!Array.isArray(entries) || !entries.length) return entries
         let err
         const allowedTypes = ['select', 'action']
-        const cs = entries.filter(e => e.terms || allowedTypes.includes(e.type)).map(e => this.isChannel(e)).filter(e => e)
-        const epg = await this.epgChannelsLiveNow(cs).catch(e => err = e)
-        if (!err && epg) {
-            entries.forEach((e, i) => {
-                const name = e.isChannel ? e.isChannel.name : (e.originalName || e.name)
-                if (typeof (epg[name]) != 'undefined' && epg[name].title) {
-                    if (entries[i].details) {
-                        if (!entries[i].details.includes(epg[name].title)) {
-                            entries[i].details += ' &middot; ' + epg[name].title
-                        }
-                    } else {
-                        entries[i].details = epg[name].title
-                    }
-                    entries[i].programme = epg[name]
+        const isCandidate = e => {
+            return !!(e.terms || allowedTypes.includes(e.type) || (typeof (e.url) == 'string' && mega.isMega(e.url)))
+        }
+        const targets = []
+        for (const entry of entries) {
+            if (!entry || typeof (entry) != 'object' || !isCandidate(entry)) continue
+            const name = entry.originalName || entry.name
+            let descriptor = this.isChannel(entry)
+            if (!descriptor && name && typeof (entry.url) == 'string' && mega.isMega(entry.url)) {
+                // mega:// entries (recommendations, trending, history) don't carry terms,
+                // build the search descriptor straight from the entry itself
+                const terms = this.expandTerms(this.entryTerms(entry, true))
+                if (terms && terms.length) {
+                    descriptor = { name, terms }
                 }
-            })
+            }
+            if (!descriptor || !descriptor.name) continue
+            targets.push({ entry, name: descriptor.name, descriptor })
+        }
+        if (!targets.length) return entries
+        const epg = await this.epgChannelsLiveNow(targets.map(t => t.descriptor)).catch(e => err = e)
+        if (!err && epg) {
+            for (const target of targets) {
+                const info = epg[target.name]
+                if (!info || !info.title) continue
+                const i = entries.indexOf(target.entry)
+                if (i == -1) continue
+                if (entries[i].details) {
+                    if (!entries[i].details.includes(info.title)) {
+                        entries[i].details += ' &middot; ' + info.title
+                    }
+                } else {
+                    entries[i].details = info.title
+                }
+                entries[i].programme = info
+            }
         }
         return entries
     }
@@ -1090,6 +1113,23 @@ class Channels extends ChannelsKids {
         }
         return terms;
     }
+    // Regional stations that retransmit the given channel (and, for a station
+    // itself, its siblings), ready to be played as a live entry
+    async getAffiliates(entry, limit = 250) {
+        if (!entry || !this.channelList) return []
+        let name;
+        try {
+            const ch = this.isChannel(entry)
+            name = (ch && ch.name) || entry.originalName || entry.name || (entry.programme && entry.programme.channel)
+        } catch (err) {
+            console.error('channels.getAffiliates error: ' + err)
+        }
+        if (!name) return []
+        return await this.channelList.getAffiliates(name, limit).catch(err => {
+            console.error('channels.getAffiliates error: ' + err)
+            return []
+        }) || []
+    }
     async get(terms) {
         // Track channels.get() to detect hangs - this is called when opening metaEntry dialog
         return trackPromise((async () => {
@@ -1405,24 +1445,44 @@ class Channels extends ChannelsKids {
             meta.originalName = meta.name
         }
         if (mega.isMega(meta.url)) {
-            let atts = Object.assign({}, mega.parse(meta.url));
+            const urlAtts = mega.parse(meta.url)
+            let atts = Object.assign({}, urlAtts);
             Object.assign(atts, meta);
             if (['all', 'video'].includes(atts.mediaType)) {
+                // terms used to look up the streams of this group; falls back to the
+                // entry name when the mega:// url carries no terms
+                let searchTerms = atts.terms
+                if (typeof (searchTerms) == 'string') {
+                    searchTerms = global.lists.tools.terms(searchTerms)
+                }
+                if (!Array.isArray(searchTerms) || !searchTerms.length) {
+                    searchTerms = urlAtts.name ? global.lists.tools.terms(urlAtts.name) : null
+                }
+                if (!Array.isArray(searchTerms) || !searchTerms.length) {
+                    searchTerms = terms
+                }
+                if (!Array.isArray(searchTerms) || !searchTerms.length) {
+                    searchTerms = global.lists.tools.terms(atts.name)
+                }
                 Object.assign(meta, {
                     type: 'group',
                     class: 'entry-meta-stream',
-                    fa: 'fas fa-play-circle',
+                    fa: meta.fa || 'fas fa-play-circle', // keep the icon chosen by the caller (e.g. search terms use the magnifier)
                     renderer: async () => {
                         try {
-                            return await global.lists.search(tms, {
+                            const entries = await global.lists.search(searchTerms, {
                                 type: atts.mediaType,
                                 group: false,
                                 safe: !global.lists.parentalControl.lazyAuth(),
                                 limit: 1024
                             })
+                            if (!entries || !entries.length) {
+                                return [menu.emptyEntry(lang.NOT_FOUND)]
+                            }
+                            return entries
                         } catch (error) {
                             console.warn('Search failed in toMetaEntry renderer:', error.message);
-                            return []; // Return empty array to prevent hanging
+                            return [menu.emptyEntry(lang.NOT_FOUND)]; // never open a blank page
                         }
                     }
                 });
@@ -1430,7 +1490,7 @@ class Channels extends ChannelsKids {
                 Object.assign(meta, {
                     type: 'select',
                     class: 'entry-meta-stream',
-                    fa: 'fas fa-play-circle',
+                    fa: meta.fa || 'fas fa-play-circle', // keep the icon chosen by the caller (e.g. search terms use the magnifier)
                     renderer: () => this.toMetaEntryRenderer(atts, category, details)
                 });
             }
@@ -1476,57 +1536,131 @@ class Channels extends ChannelsKids {
             }
             list = global.lists.tools.sort(list);
         } else {
-            list = categories.map(category => {
-                category.renderer = async (c, e) => {
-                    const start = Date.now();
-                    console.log('category.renderer', category.name, Date.now() - start);
-                    let chs = category.entries.map(e => this.isChannel(e.name)).filter(e => !!e);
-
-                    // Add timeout to prevent hanging on slow lists.has() calls
-                    let ret = {};
-                    try {
-                        const timeoutPromise = new Promise((_, reject) =>
-                            setTimeout(() => reject(new Error(`lists.has timeout for category ${category.name}`)), 30000)
-                        );
-                        ret = await Promise.race([
-                            global.lists.has(chs, { partial: false }),
-                            timeoutPromise
-                        ]);
-                    } catch (err) {
-                        const isTimeout = err.message && err.message.includes('timeout');
-                        const errorMsg = isTimeout
-                            ? `Timeout checking availability of channels in category "${category.name}". The operation took more than 30 seconds.`
-                            : `Error checking availability of channels in category "${category.name}": ${err.message}`;
-
-                        console.warn(`category.renderer timeout/error for ${category.name}:`, err.message);
-
-                        // Show informative error message to user
-                        global.menu.displayErr(errorMsg);
-
-                        // Return empty result on timeout/error to prevent hanging
-                        ret = {};
-                    }
-
-                    console.log('global.lists.has', category.name, Date.now() - start);
-                    let entries = category.entries.filter(e => ret[e.name]);
-                    console.log('category.entries.filter', category.name, Date.now() - start);
-                    entries = entries.map(e => this.toMetaEntry(e, category));
-                    console.log('toMetaEntry', category.name, Date.now() - start);
-                    entries = this.sortCategoryEntries(entries);
-                    console.log('sortCategoryEntries', category.name, Date.now() - start);
-                    editable && entries.push(this.editCategoryEntry(c));
-                    console.log('editCategoryEntry', category.name, Date.now() - start);
-                    return entries;
-                };
-                return category;
-            });
-            list = global.lists.tools.sort(list);
-            list.push(this.allCategoriesEntry());
+            // A content profile narrows the app to its theme, so the Live page opens
+            // straight on the profile category instead of a list of every category.
+            const focused = await this.focusedProfileEntries()
+            if (focused) {
+                return focused
+            }
+            list = this.categoriesEntries()
         }
         editable && !publicMode && list.push(this.getCategoryEntry())
         publicMode || list.unshift(this.exportImportOption())
         publicMode && paths.ALLOW_ADDING_LISTS && list.unshift(global.lists.manager.noListsEntry())
-        return list;
+        return list
+    }
+    categoriesEntries() { // category groups as shown by default on the Live page
+        const categories = this.channelList.getCategories()
+        let list = categories.map(category => {
+            category.renderer = this.categoryRenderer(category)
+            return category;
+        });
+        list = global.lists.tools.sort(list);
+        list.push(this.allCategoriesEntry());
+        return list
+    }
+    categoryRenderer(category) { // availability check + entry build for one category
+        const editable = config.get('allow-edit-channel-list')
+        return async (c, e) => {
+            const start = Date.now();
+            console.log('category.renderer', category.name, Date.now() - start);
+            let chs = category.entries.map(e => this.isChannel(e.name)).filter(e => !!e);
+
+            // Add timeout to prevent hanging on slow lists.has() calls
+            let ret = {};
+            try {
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error(`lists.has timeout for category ${category.name}`)), 30000)
+                );
+                ret = await Promise.race([
+                    global.lists.has(chs, { partial: false }),
+                    timeoutPromise
+                ]);
+            } catch (err) {
+                const isTimeout = err.message && err.message.includes('timeout');
+                const errorMsg = isTimeout
+                    ? `Timeout checking availability of channels in category "${category.name}". The operation took more than 30 seconds.`
+                    : `Error checking availability of channels in category "${category.name}": ${err.message}`;
+
+                console.warn(`category.renderer timeout/error for ${category.name}:`, err.message);
+
+                // Show informative error message to user
+                global.menu.displayErr(errorMsg);
+
+                // Return empty result on timeout/error to prevent hanging
+                ret = {};
+            }
+
+            console.log('global.lists.has', category.name, Date.now() - start);
+            let entries = category.entries.filter(e => ret[e.name]);
+            console.log('category.entries.filter', category.name, Date.now() - start);
+            entries = entries.map(e => this.toMetaEntry(e, category));
+            console.log('toMetaEntry', category.name, Date.now() - start);
+            entries = this.sortCategoryEntries(entries);
+            console.log('sortCategoryEntries', category.name, Date.now() - start);
+            editable && entries.push(this.editCategoryEntry(c || category));
+            console.log('editCategoryEntry', category.name, Date.now() - start);
+            return entries;
+        }
+    }
+    /**
+     * Category matching the content profile in force, the one the Live page should
+     * open on. When several categories match, the one with the most channels wins.
+     */
+    profileCategory(categories, code) {
+        const profile = global.lists?.contentProfile
+        if (!profile || typeof profile.compiled != 'function' || !code) {
+            return null
+        }
+        const compiled = profile.compiled(code)
+        const wanted = ((compiled && compiled.categories) || []).filter(Boolean)
+        if (!wanted.length) {
+            return null
+        }
+        const normalize = txt => String(txt || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+        const count = category => (Array.isArray(category?.entries) ? category.entries.length : 0)
+        const hits = categories.filter(category => {
+            const name = normalize(category?.name)
+            return !!name && wanted.some(w => name == w || name.startsWith(w) || name.includes(' ' + w))
+        })
+        if (!hits.length) {
+            return null
+        }
+        return hits.sort((a, b) => count(b) - count(a)).shift()
+    }
+    focusedCategoriesEntry() { // way back to every category while a profile is in force
+        return {
+            name: lang.ALL_CATEGORIES || lang.CATEGORIES || lang.ALL_CHANNELS,
+            fa: 'fas fa-th-large',
+            type: 'group',
+            renderer: async () => this.categoriesEntries()
+        }
+    }
+    async focusedProfileEntries() { // Live page opening straight on the profile category
+        const profile = global.lists?.contentProfile
+        if (!profile || typeof profile.effective != 'function') {
+            return null
+        }
+        const code = profile.effective()
+        if (!code) {
+            return null // the general profile keeps every category listed
+        }
+        const focused = this.profileCategory(this.channelList.getCategories(), code)
+        if (!focused) {
+            return null
+        }
+        const entries = await this.categoryRenderer(focused)(null, null).catch(err => {
+            console.error('focusedProfileEntries: failed to render category', focused.name, err)
+            return null
+        })
+        if (!entries || !entries.length) {
+            return null // nothing to show in this category: fall back to the full list
+        }
+        const editable = config.get('allow-edit-channel-list')
+        const list = [this.focusedCategoriesEntry(), ...entries]
+        editable && list.push(this.getCategoryEntry())
+        list.unshift(this.exportImportOption())
+        return list
     }
     allCategoriesEntry() {
         return {
@@ -1800,44 +1934,13 @@ class Channels extends ChannelsKids {
             });
         }
 
+        // Folders that fit the content profile come first, and the folder wall is
+        // capped so a huge community list does not open on hundreds of folders.
+        const ranking = this.rankProfileGroups(groups);
+        groups = ranking.visible;
+
         // Performance optimization: Async group processing with batching
-        const groupToEntry = (group) => {
-            const name = group.name;
-
-            // FIXED: Prevent recursive concatenation in details field
-            let details = '';
-            if (group.group && group.group !== name) {
-                // Split the group path and filter out the current name to avoid recursion
-                const pathParts = group.group.split('/');
-                const filteredParts = pathParts.filter(n => n && n !== name);
-
-                // Remove duplicate consecutive parts to prevent recursive concatenation
-                const uniqueParts = [];
-                let lastPart = '';
-                for (const part of filteredParts) {
-                    if (part !== lastPart) {
-                        uniqueParts.push(part);
-                        lastPart = part;
-                    }
-                }
-
-                details = uniqueParts.join(' &middot; ');
-            }
-
-            return {
-                name,
-                details,
-                type: 'group',
-                icon: isSeries ? group.icon : undefined,
-                safe: true,
-                class: isSeries ? 'entry-cover' : undefined,
-                fa: isSeries ? 'fas fa-play-circle' : undefined,
-                renderer: async () => {
-                    // Performance optimization: Lazy loading with error handling
-                    return this.renderGroupEntries(group, acpolicy, isSeries);
-                }
-            };
-        };
+        const groupToEntry = (group) => this.groupEntry(group, acpolicy, isSeries);
 
         // Performance optimization: Process groups in batches to avoid blocking
         const processGroupsBatch = async (groupsBatch) => {
@@ -1883,7 +1986,94 @@ class Channels extends ChannelsKids {
             }
         }
 
+        // Folders left out of the first page stay reachable through one folder
+        if (ranking.hidden.length) {
+            pentries.push(this.moreGroupsEntry(ranking.hidden, acpolicy, isSeries));
+        }
+
         return pentries;
+    }
+
+    /** Menu entry for a single list folder (group). */
+    groupEntry(group, acpolicy, isSeries) {
+        const name = group.name;
+
+        // FIXED: Prevent recursive concatenation in details field
+        let details = '';
+        if (group.group && group.group !== name) {
+            // Split the group path and filter out the current name to avoid recursion
+            const pathParts = group.group.split('/');
+            const filteredParts = pathParts.filter(n => n && n !== name);
+
+            // Remove duplicate consecutive parts to prevent recursive concatenation
+            const uniqueParts = [];
+            let lastPart = '';
+            for (const part of filteredParts) {
+                if (part !== lastPart) {
+                    uniqueParts.push(part);
+                    lastPart = part;
+                }
+            }
+
+            details = uniqueParts.join(' &middot; ');
+        }
+
+        return {
+            name,
+            details,
+            type: 'group',
+            icon: isSeries ? group.icon : undefined,
+            safe: true,
+            class: isSeries ? 'entry-cover' : undefined,
+            fa: isSeries ? 'fas fa-play-circle' : undefined,
+            renderer: async () => {
+                // Performance optimization: Lazy loading with error handling
+                return this.renderGroupEntries(group, acpolicy, isSeries);
+            }
+        };
+    }
+
+    /** Folder holding the folders that did not fit in the first page. */
+    moreGroupsEntry(groups, acpolicy, isSeries) {
+        return {
+            name: lang.MORE + ' (' + groups.length + ')',
+            details: '',
+            type: 'group',
+            fa: 'fas fa-folder-open',
+            renderer: async () => {
+                const entries = [];
+                for (const group of groups) {
+                    try {
+                        entries.push(this.groupEntry(group, acpolicy, isSeries));
+                    } catch (err) {
+                        console.error('Error processing group:', group.name, err);
+                    }
+                }
+                return entries;
+            }
+        };
+    }
+
+    /**
+     * Order folders by how well they fit the content profile and cap how many
+     * are shown at once. The rest stays reachable through the "More" folder.
+     */
+    rankProfileGroups(groups) {
+        const limit = this.groupsLimit();
+        const profile = global.lists && global.lists.contentProfile;
+        if (!profile || typeof (profile.planGroups) != 'function') {
+            return { visible: groups.slice(0, limit), hidden: groups.slice(limit) };
+        }
+        return profile.planGroups(groups, limit);
+    }
+
+    /** How many folders the "Movies & Series" category shows before "More". */
+    groupsLimit() {
+        const value = parseInt(config.get('category-groups-limit'), 10);
+        if (isNaN(value) || value <= 0) {
+            return 48;
+        }
+        return Math.max(8, Math.min(200, value));
     }
 
     // Performance optimization: Extracted parental filter function

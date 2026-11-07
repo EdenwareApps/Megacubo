@@ -139,12 +139,12 @@
     },
     {
       "name": "Asharq",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Al Alam Al Yawm",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -160,32 +160,32 @@
     },
     {
       "name": "Asharq News",
-      "isFree": true,
+      "isFree": null,
       "keywords": "asharq news -portrait",
       "website": "https://asharq.com/",
       "priority": 5
     },
     {
       "name": "Asharq News Portrait",
-      "isFree": true,
+      "isFree": null,
       "website": "https://asharq.com/",
       "priority": 5
     },
     {
       "name": "Asharq Radio",
-      "isFree": true,
+      "isFree": null,
       "website": "https://asharqbusiness.com/radio/",
       "priority": 5
     },
     {
       "name": "Channel 24 Saudi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://24mediagroup.net/",
       "priority": 5
     },
     {
       "name": "Oyoun Al-Watan",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.oyounalwatan.com/",
       "priority": 5
     }
@@ -193,28 +193,28 @@
   "Kids": [
     {
       "name": "Atfal Wa Mawaheb",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rotana Kids",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Al-Majd Kids",
-      "isFree": true,
+      "isFree": null,
       "website": "https://almajdtv.com/",
       "priority": 5
     },
     {
       "name": "Anime",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Atfal & Mawaheb",
-      "isFree": true,
+      "isFree": null,
       "website": "https://atfal1.com/",
       "priority": 5
     }
@@ -222,35 +222,40 @@
   "Travel": [
     {
       "name": "Jasco Events",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
   "Sports": [
     {
       "name": "KSA Sports",
+      "isFree": true,
       "priority": 10
     },
     {
       "name": "KSA Sports 2",
+      "isFree": true,
       "priority": 10
     },
     {
       "name": "SSC Action Waleed",
+      "isFree": true,
       "keywords": "ssc action waleed -extra",
       "priority": 5
     },
     {
       "name": "SSC Action Waleed Extra",
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "SSC",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Channel 24 Sports",
-      "isFree": true,
+      "isFree": null,
       "website": "https://24mediagroup.net/%d9%82%d9%86%d8%a7%d8%a9-24-%d8%a7%d9%84%d8%b1%d9%8a%d8%a7%d8%b6%d9%8a%d8%a9",
       "priority": 10
     },
@@ -308,19 +313,19 @@
     },
     {
       "name": "Thmanyah",
-      "isFree": true,
+      "isFree": null,
       "website": "https://thmanyah.com/",
       "priority": 5
     },
     {
       "name": "Thmanyah 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://thmanyah.com/",
       "priority": 5
     },
     {
       "name": "Thmanyah 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://thmanyah.com/",
       "priority": 5
     }
@@ -328,35 +333,35 @@
   "Comedy": [
     {
       "name": "Rotana Comedy",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     }
   ],
   "Entertainment": [
     {
       "name": "AL HOKAIR Group",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Al Khalij",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.al-khalij.tv/",
       "priority": 5
     },
     {
       "name": "Al Saudiya",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rotana Drama",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Rotana+",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -366,139 +371,139 @@
     },
     {
       "name": "22 Arab",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "7lim BIGOTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://7lim.com/",
       "priority": 5
     },
     {
       "name": "Al Amaken",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Alkhuzama Radio",
-      "isFree": true,
+      "isFree": null,
       "website": "https://radioplus.sba.sa/en/live/7",
       "priority": 5
     },
     {
       "name": "Al-Majd Al Tabeeaiyah",
-      "isFree": true,
+      "isFree": null,
       "website": "https://almajdtv.com/",
       "priority": 5
     },
     {
       "name": "Al-Majd Public",
-      "isFree": true,
+      "isFree": null,
       "website": "https://almajdtv.com/",
       "priority": 5
     },
     {
       "name": "Al Mergab",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Al Riyadh Radio",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.aloula.sa/en/live/riyadhradio",
       "priority": 5
     },
     {
       "name": "Al Saudiya Alaan",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.aloula.sa/live/ksa-now",
       "priority": 5
     },
     {
       "name": "Alwesam",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ART America",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artonline.tv/",
       "priority": 5
     },
     {
       "name": "Ayat",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Bedaya",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.bedaya.tv/",
       "priority": 5
     },
     {
       "name": "Beity",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Besma",
-      "isFree": true,
+      "isFree": null,
       "website": "https://almajdtv.com/",
       "priority": 5
     },
     {
       "name": "Big Time Plus",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Bin Othaimeen",
-      "isFree": true,
+      "isFree": null,
       "website": "http://binothaimeen.net/channel/",
       "priority": 5
     },
     {
       "name": "Dahk wa Bass",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Duhk Wa Bas",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "EN",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Khaliji Comedy",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "LBC",
-      "isFree": true,
+      "isFree": null,
       "website": "http://rotana.net/vod-channels/lbc/",
       "priority": 5
     },
     {
       "name": "Masah",
-      "isFree": true,
+      "isFree": null,
       "website": "https://almajdtv.com/",
       "priority": 5
     },
     {
       "name": "MBC Gaming",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Qur'an Hidayah English",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.quran-hidayah.com/main/en/",
       "priority": 5
     },
@@ -509,232 +514,236 @@
     },
     {
       "name": "Ramez",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rawdah",
-      "isFree": true,
+      "isFree": null,
       "website": "https://almajdtv.com/",
       "priority": 5
     },
     {
       "name": "Romance",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rotana Aflam+",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rotana.net/",
       "priority": 5
     },
     {
       "name": "Rotana America",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rotana.net/",
       "priority": 5
     },
     {
       "name": "Rotana Clip",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rotana.net/",
       "priority": 5
     },
     {
       "name": "Rotana D 7",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rotana.net/ar/channels#/live/rotana_D7kwbs",
       "priority": 5
     },
     {
       "name": "Rotana Sydtelshasha",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rotana.net/ar/channels#/live/rotana_Sydtelshasha",
       "priority": 5
     },
     {
       "name": "Saudia Radio",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sayedat Alshasha",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Shareeyah",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sunna",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Waqie",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
   "Music Videos": [
     {
       "name": "Rotana Khalijia",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Abdulmajeed Abdullah",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ART Tarab",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artonline.tv/",
       "priority": 5
     },
     {
       "name": "Fairuz",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Jeddah Radio",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Majid Al Mohandis",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MBC Loud",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mbcloud.fm",
       "priority": 5
     },
     {
       "name": "Mohammed Abdo",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "M+",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rotana.net/",
       "priority": 5
     },
     {
       "name": "Nidae AlIslam Radio",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.aloula.sa/en/live/nidaalislam",
       "priority": 5
     },
     {
       "name": "Rabeh Saqer",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rashid AlMajed",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rotana FM KSA",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rotanaradios.com/",
       "priority": 5
     },
     {
       "name": "Rotana Music",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rotana.net/",
       "priority": 5
     },
     {
       "name": "Tarab",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
   "Movies & Series": [
     {
       "name": "Rotana Cinema",
+      "isFree": false,
       "keywords": "rotana cinema -ksa",
       "priority": 5
     },
     {
       "name": "Rotana Cinema KSA",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Rotana Classic",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Thikrayat",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Aflam",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ART Aflam",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artonline.tv/",
       "priority": 5
     },
     {
       "name": "ART Aflam 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artonline.tv/",
       "priority": 5
     },
     {
       "name": "Art Cima",
-      "isFree": true,
+      "isFree": null,
       "website": "https://my.dish.com/station/ARTCM",
       "priority": 5
     },
     {
       "name": "ART Cinema",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artonline.tv/",
       "priority": 5
     },
     {
       "name": "ART Hekayat",
-      "isFree": true,
+      "isFree": null,
       "keywords": "art hekayat -2",
       "website": "https://www.artonline.tv/",
       "priority": 5
     },
     {
       "name": "ART Hekayat 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.artonline.tv/",
       "priority": 5
     },
     {
       "name": "Bab Al Hara",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Drama Badawia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Maraya",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -757,17 +766,17 @@
     },
     {
       "name": "Movies Action",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Movies Thriller",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Spooky Nights",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
@@ -792,7 +801,7 @@
     },
     {
       "name": "Asharq Discovery",
-      "isFree": true,
+      "isFree": false,
       "website": "https://asharqdiscovery.com",
       "priority": 7
     },

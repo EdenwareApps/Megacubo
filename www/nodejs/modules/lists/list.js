@@ -259,17 +259,9 @@ class List extends EventEmitter {
             console.error('no parent keywords', keywords);
             values.relevantKeywords = 0;
         } else {
-            // Filter out coverage groups that don't have at least one term
-            const validChannelsIndex = keywords.filter(group => 
-                Array.isArray(group.terms) && group.terms.length > 0
-            );
-            if (!validChannelsIndex || !validChannelsIndex.length) {
-                console.warn('no valid keywords after filtering', keywords);
-                values.relevantKeywords = 0;
-            } else {
-                const coverage = await this.indexer.db.coverage('nameTerms', validChannelsIndex, {mediaType: ['live']});
-                values.relevantKeywords = coverage; // Scale to 0-100 range for consistence
-            }
+            // Keywords may come as plain coverage groups (legacy) or as weighted
+            // tiers (user / profile / defaults) which have to be averaged by weight.
+            values.relevantKeywords = await this.keywordsCoverage(keywords);
         }
         const rangeSize = 30 * (24 * 3600), now = (Date.now() / 1000), deadline = now - rangeSize;
         if (!index.lastmtime || index.lastmtime < deadline) {
@@ -301,6 +293,29 @@ class List extends EventEmitter {
         this.relevance = values;
         this.verified = true
         return values;
+    }
+    async keywordsCoverage(keywords) {
+        if (!Array.isArray(keywords) || !keywords.length) {
+            return 0;
+        }
+        const tiered = keywords.some(tier => tier && Array.isArray(tier.groups))
+        if (!tiered) {
+            const groups = keywords.filter(group => Array.isArray(group?.terms) && group.terms.length > 0)
+            if (!groups.length) {
+                return 0;
+            }
+            return await this.indexer.db.coverage('nameTerms', groups, { mediaType: ['live'] });
+        }
+        let sum = 0, weights = 0;
+        for (const tier of keywords) {
+            const groups = (tier?.groups || []).filter(group => Array.isArray(group?.terms) && group.terms.length > 0)
+            if (!groups.length) continue;
+            const weight = Number(tier.weight) > 0 ? Number(tier.weight) : 1;
+            const coverage = Number(await this.indexer.db.coverage('nameTerms', groups, { mediaType: ['live'] })) || 0;
+            sum += coverage * weight;
+            weights += weight;
+        }
+        return weights ? (sum / weights) : 0;
     }
     async fetchAll() {
         await this.ready();

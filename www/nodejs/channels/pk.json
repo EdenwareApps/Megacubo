@@ -443,6 +443,7 @@
   "Sports": [
     {
       "name": "One Golf",
+      "isFree": true,
       "priority": 5
     },
     {
@@ -453,13 +454,13 @@
     },
     {
       "name": "Geo Super",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.geosuper.tv/",
       "priority": 5
     },
     {
       "name": "Ten Sports Pakistan",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     }
   ],
@@ -920,7 +921,7 @@
     },
     {
       "name": "Cartoon Network",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cartoonnetwork.com.pk/",
       "priority": 5
     },
@@ -937,7 +938,7 @@
     },
     {
       "name": "Nickelodeon",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nickpakistan.tv/",
       "priority": 5
     }
@@ -1032,6 +1033,7 @@
   "Added": [
     {
       "name": "Geo",
+      "isFree": true,
       "priority": 5
     }
   ]

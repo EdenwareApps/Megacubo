@@ -2,46 +2,56 @@
   "Sports": [
     {
       "name": "Abu Dhabi Sports",
+      "isFree": true,
       "shortName": "ADS",
       "priority": 10
     },
     {
       "name": "Abu Dhabi Sports 2",
+      "isFree": true,
       "shortName": "ADS 2",
       "priority": 10
     },
     {
       "name": "Abu Dhabi Sports 3",
+      "isFree": true,
       "shortName": "ADS 3",
       "priority": 10
     },
     {
       "name": "Abu Dhabi Sports 4",
+      "isFree": true,
       "shortName": "ADS 4",
       "priority": 10
     },
     {
       "name": "Dubai Racing 3",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Dubai Sports",
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "Dubai Sports 2",
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "Dubai Sports 3",
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "National Geographic Abu Dhabi",
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Yas",
+      "isFree": null,
       "website": "https://adtv.ae/ar/live/YAS%20Sports%20Channel",
       "priority": 5
     },
@@ -78,12 +88,12 @@
     },
     {
       "name": "Al Yaum",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Alaraby",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -103,7 +113,7 @@
     },
     {
       "name": "RT Arabic",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -124,43 +134,43 @@
     },
     {
       "name": "Alarabiya Portrait",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.alarabiya.net",
       "priority": 5
     },
     {
       "name": "Al Mashhad",
-      "isFree": true,
+      "isFree": null,
       "website": "https://almashhad.com",
       "priority": 5
     },
     {
       "name": "Al Safwa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://alfatv.com/tv/",
       "priority": 5
     },
     {
       "name": "CNBC Arabiya",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cnbcarabia.com/",
       "priority": 5
     },
     {
       "name": "CNN Arabic",
-      "isFree": true,
+      "isFree": null,
       "website": "https://arabic.cnn.com/",
       "priority": 5
     },
     {
       "name": "Media Office",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mediaoffice.ae/",
       "priority": 5
     },
     {
       "name": "OSN News",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/ons/osn-news",
       "priority": 5
     },
@@ -172,7 +182,7 @@
     },
     {
       "name": "Al Aan",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.alaan.tv/",
       "priority": 5
     }
@@ -195,18 +205,18 @@
     },
     {
       "name": "Ajman",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ajmantv.com/",
       "priority": 5
     },
     {
       "name": "Al Dafrah",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Al Qamar",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -216,17 +226,17 @@
     },
     {
       "name": "Al Wousta",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Alhiwar",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Bee Theater",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -236,28 +246,28 @@
     },
     {
       "name": "Dubai Racing",
-      "isFree": true,
+      "isFree": null,
       "keywords": "dubai racing -2 -3",
       "priority": 5
     },
     {
       "name": "Dubai Racing 2",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Dubai",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "EXPO 2020",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Hawas",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -297,7 +307,7 @@
     },
     {
       "name": "Minbij",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -312,32 +322,32 @@
     },
     {
       "name": "Weyyak Action",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Weyyak Mix",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Weyyak Nawaem",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Zee Aflam",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Zee Alwan",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "3eesh Al Aan",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.alaan.tv/program/3eesh-alaan",
       "priority": 5
     },
@@ -356,31 +366,31 @@
     },
     {
       "name": "Alfa Series",
-      "isFree": true,
+      "isFree": null,
       "website": "https://alfatv.com/tv/",
       "priority": 5
     },
     {
       "name": "Al Shallal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.alshallalchannel.com/",
       "priority": 5
     },
     {
       "name": "Al Yawm",
-      "isFree": true,
+      "isFree": null,
       "website": "https://alfatv.com/tv/",
       "priority": 5
     },
     {
       "name": "Butterfly HDTV",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.butterflyhdtv.com/",
       "priority": 5
     },
     {
       "name": "DMAX MENA",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -391,48 +401,48 @@
     },
     {
       "name": "DXB One",
-      "isFree": true,
+      "isFree": null,
       "website": "http://royalcitizenvip.tv/",
       "priority": 5
     },
     {
       "name": "Ellay.com",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Fann",
-      "isFree": true,
+      "isFree": null,
       "website": "https://alfatv.com/tv/",
       "priority": 5
     },
     {
       "name": "Fatafeat",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.fatafeat.com/",
       "priority": 5
     },
     {
       "name": "FOX Arabia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://foxarabia.tv//",
       "priority": 5
     },
     {
       "name": "Fujairah",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fujairahtv.ae/",
       "priority": 5
     },
     {
       "name": "Just Vogue",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.justvoguetv.com/",
       "priority": 5
     },
     {
       "name": "MBC",
-      "isFree": true,
+      "isFree": null,
       "keywords": "mbc 1 -ksa -usa",
       "website": "http://www.mbc.net/mbc1",
       "priority": 5
@@ -458,85 +468,85 @@
     },
     {
       "name": "MBC+ Power",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mbc.net/",
       "priority": 5
     },
     {
       "name": "MBC+ Variety",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mbc.net/",
       "priority": 5
     },
     {
       "name": "Narayana",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.guruvisiontv.in/",
       "priority": 5
     },
     {
       "name": "NTV",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.ntvuae.tv/",
       "priority": 5
     },
     {
       "name": "OSN Comedy",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/oco/osn-comedy",
       "priority": 5
     },
     {
       "name": "OSN Family",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/ofm/osn-family",
       "priority": 5
     },
     {
       "name": "OSN Living",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/olh/osn-living",
       "priority": 5
     },
     {
       "name": "OSN Pop Up",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/pop/osn-lego-popup",
       "priority": 5
     },
     {
       "name": "OSN Showcase",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/ofh/osn-showcase",
       "priority": 5
     },
     {
       "name": "OSN W",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/osw/osn-w",
       "priority": 5
     },
     {
       "name": "OSN Yahala",
-      "isFree": true,
+      "isFree": false,
       "keywords": "osn yahala -aflam -bil -arabi",
       "website": "https://www.osn.com/en-ae/explore/channels/oyh/osn-yahala",
       "priority": 5
     },
     {
       "name": "OSN Yahala Bil Arabi",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/oya/osn-yahala-bil-arabi",
       "priority": 5
     },
     {
       "name": "Pulse95 Radio",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RBC",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.rbctv.ae/",
       "priority": 5
     },
@@ -548,47 +558,47 @@
     },
     {
       "name": "Sony Max UAE",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sonymax.tv/ar_AE/",
       "priority": 5
     },
     {
       "name": "Star World Middle East",
-      "isFree": true,
+      "isFree": null,
       "website": "http://foxarabia.tv/",
       "priority": 5
     },
     {
       "name": "UBL",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ubllive.com/live-tv",
       "priority": 5
     },
     {
       "name": "Urdu 1 Middle East",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.urdu1.tv/",
       "priority": 5
     },
     {
       "name": "Watar Radio",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Weyyak Smashi",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Zee TV Middle East",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.zeetvme.com/",
       "priority": 5
     },
     {
       "name": "Zorins",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.zorins.tv/",
       "priority": 5
     }
@@ -596,7 +606,7 @@
   "Kids": [
     {
       "name": "Cartoon Network Arabic",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -617,66 +627,66 @@
     },
     {
       "name": "SAT-7 KIDS",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DKids",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Majid",
-      "isFree": true,
+      "isFree": null,
       "keywords": "majid",
       "website": "https://adtv.ae/ar/kids/majid-tv",
       "priority": 5
     },
     {
       "name": "Nickelodeon Arabia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nickelodeonarabia.com/",
       "priority": 5
     },
     {
       "name": "Nick Jr. Arabia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nickelodeonarabia.com/",
       "priority": 5
     },
     {
       "name": "Nicktoons Arabia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nickelodeonarabia.com/",
       "priority": 5
     },
     {
       "name": "OSN Kids",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/omk/osn-kids",
       "priority": 5
     },
     {
       "name": "OSN Kidzone",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/kdz/osn-kidzone",
       "priority": 5
     },
     {
       "name": "Spacetoon Arabic",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.spacetoon.com/",
       "priority": 5
     },
     {
       "name": "TeenNick Arabia",
-      "isFree": true,
+      "isFree": null,
       "website": "http://nickelodeonarabia.com/",
       "priority": 5
     },
     {
       "name": "U Toon",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
@@ -752,7 +762,7 @@
     },
     {
       "name": "National Geographic Wild Asia",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
     },
     {
@@ -781,7 +791,7 @@
     },
     {
       "name": "OSN Mezze",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/omz/osn-mezze",
       "priority": 5
     }
@@ -789,108 +799,117 @@
   "Movies & Series": [
     {
       "name": "AXN East Asia",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Bee Movies",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Dubai Zaman",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "FOX Movies Asia",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MBC Action",
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "MBC Max",
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "MBC Plus Drama",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MBC Plus Variety",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Weyyak Drama",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "B4U Aflam",
-      "isFree": true,
+      "isFree": null,
       "website": "http://b4uaflam.b4utv.com/",
       "priority": 5
     },
     {
       "name": "Cinema",
-      "isFree": true,
+      "isFree": null,
       "website": "https://alfatv.com/tv/",
       "priority": 5
     },
     {
       "name": "Cinema 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://alfatv.com/tv/",
       "priority": 5
     },
     {
       "name": "Damac Persian",
-      "isFree": true,
+      "isFree": null,
       "website": "https://damactv.tv/",
       "priority": 5
     },
     {
       "name": "FOX Life Middle East",
-      "isFree": true,
+      "isFree": false,
       "website": "http://foxarabia.tv/",
       "priority": 5
     },
     {
       "name": "OSN Movies Action",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/ahd/osn-action",
       "priority": 5
     },
     {
       "name": "OSN Movies Hollywood",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/opr/osn-movies",
       "priority": 5
     },
     {
       "name": "OSN Movies Premiere",
-      "isFree": null,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/ahd/osn-action",
       "priority": 5
     },
     {
       "name": "OSN Series Prime",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/obg/osn-series-prime",
       "priority": 6
     },
     {
       "name": "OSN Yahala Aflam",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.osn.com/en-ae/explore/channels/oyc/osn-yahala-aflam",
       "priority": 5
     },
     {
       "name": "Paramount Network MENA",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Star Movies Middle East",
-      "isFree": true,
+      "isFree": false,
       "website": "http://foxarabia.tv/",
       "priority": 5
     }
@@ -898,7 +917,7 @@
   "Music Videos": [
     {
       "name": "Wanasah",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -909,26 +928,26 @@
     },
     {
       "name": "Music Now",
-      "isFree": true,
+      "isFree": null,
       "website": "https://alfatv.com/tv/",
       "priority": 5
     },
     {
       "name": "Nojoum",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nojoumtv.com/",
       "priority": 5
     },
     {
       "name": "PMC",
-      "isFree": true,
+      "isFree": null,
       "keywords": "pmc -royale",
       "website": "https://www.pmc.tv/",
       "priority": 5
     },
     {
       "name": "PMC Royale",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.pmc.tv/",
       "priority": 5
     }

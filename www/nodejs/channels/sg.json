@@ -2,19 +2,74 @@
   "News": [
     {
       "name": "CNA",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "CNA International",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.channelnewsasia.com/international",
       "priority": 5
     },
     {
       "name": "CNBC Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cnbc.com/id/15838789",
+      "priority": 5
+    },
+    {
+      "name": "France 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DW",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NHK World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CGTN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CCTV-4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABC Australia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNBC",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Euronews",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV5 Monde",
+      "isFree": true,
       "priority": 5
     }
   ],
@@ -26,101 +81,101 @@
     },
     {
       "name": "Channel 8",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Suria",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Vasantham",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Asian Food Network",
-      "isFree": true,
+      "isFree": false,
       "website": "https://asianfoodnetwork.com/",
       "priority": 5
     },
     {
       "name": "Astro Sensasi",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.starhub.com/entertainment/channel/sensasi.html",
       "priority": 5
     },
     {
       "name": "Channel U",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tv.mewatch.sg/zh/channelu",
       "priority": 5
     },
     {
       "name": "Crime + Investigation Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.citvasia.com/",
       "priority": 5
     },
     {
       "name": "Discovery Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryseasia.com/discovery-asia",
       "priority": 7
     },
     {
       "name": "Discovery Channel Southeast Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://discoverychannelasia.com/",
       "priority": 7
     },
     {
       "name": "Discovery Science Southeast Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryseasia.com/science",
       "priority": 7
     },
     {
       "name": "DMAX Southeast Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryseasia.com/dmax",
       "priority": 5
     },
     {
       "name": "Food Network Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.foodnetworkasia.com/",
       "priority": 5
     },
     {
       "name": "GEM",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.gemtvasia.com/",
       "priority": 5
     },
     {
       "name": "Global Trekker",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.globaltrekker.org/",
       "priority": 5
     },
     {
       "name": "HBO Family Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.hboasia.com/family/",
       "priority": 6
     },
     {
       "name": "HITS",
-      "isFree": true,
+      "isFree": null,
       "keywords": "hits -movies -now",
       "website": "http://www.hitstv.com/",
       "priority": 5
     },
     {
       "name": "Hub E City",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -131,13 +186,13 @@
     },
     {
       "name": "K-Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.kplus-asia.com/",
       "priority": 5
     },
     {
       "name": "meWATCH LIVE",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mewatch.sg/channels/live-1/97073",
       "priority": 5,
       "_altWebsites": [
@@ -146,103 +201,178 @@
     },
     {
       "name": "meWATCH LIVE 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mewatch.sg/channels/live-2/97078",
       "priority": 5
     },
     {
       "name": "meWATCH LIVE 5",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mewatch.sg/channels/live-5/98202",
       "priority": 5
     },
     {
       "name": "MTV Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.mtvasia.com/",
       "priority": 5
     },
     {
       "name": "Oh!K",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "oktolidays",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mewatch.sg/channels/oktolidays/186574",
       "priority": 5
     },
     {
       "name": "ONE",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.onetvasia.com/",
       "priority": 5
     },
     {
       "name": "Preview",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.starhubtvplus.com/",
       "priority": 5
     },
     {
       "name": "ROCK Action",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rockentertainment.com/our-brands/rock-action",
       "priority": 5
     },
     {
       "name": "ROCK Entertainment",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rockentertainment.com/our-brands/rock-entertainment",
       "priority": 5
     },
     {
       "name": "ROCK Extreme",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rockentertainment.com/our-brands/rock-extreme",
       "priority": 5
     },
     {
       "name": "Sony Max Singapore",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sonymax.tv/en_SG/",
       "priority": 5
     },
     {
       "name": "StarHub",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TechStorm",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.techstorm.tv/",
       "priority": 5
     },
     {
       "name": "TLC Southeast Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryseasia.com/tlc",
       "priority": 5
     },
     {
       "name": "Travel Channel Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryseasia.com/travel-channel",
       "priority": 5
     },
     {
       "name": "Zee TV Asia Pacific",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.zeetelevisionasia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Arirang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KBS World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AXN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "tvN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "BBC Earth",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "History",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Channel",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Food Network",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "HGTV",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Lifetime",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Crime & Investigation",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "BBC News",
+      "isFree": true,
       "priority": 5
     }
   ],
   "Education & Culture": [
     {
       "name": "Animal Planet Southeast Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryseasia.com/animal-planet",
       "priority": 5
     },
@@ -260,14 +390,14 @@
     },
     {
       "name": "National Geographic",
-      "isFree": true,
+      "isFree": false,
       "keywords": "national geographic -wild",
       "website": "http://natgeotv.com/asia",
       "priority": 7
     },
     {
       "name": "National Geographic Wild",
-      "isFree": true,
+      "isFree": false,
       "website": "http://natgeotv.com/asia",
       "priority": 7
     }
@@ -275,142 +405,157 @@
   "Kids": [
     {
       "name": "Animax Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.animax-asia.com/",
       "priority": 5
     },
     {
       "name": "Aniplus Asia",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.aniplus-asia.com/",
       "priority": 5
     },
     {
       "name": "Boomerang Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cartoonnetworkasia.com/minisite/boomerang/",
       "priority": 5
     },
     {
       "name": "Cartoonito Asia",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Cartoon Network Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cartoonnetworkasia.com/",
       "priority": 5
     },
     {
       "name": "Disney Channel Southeast Asia",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Nickelodeon Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nick.tv/",
       "priority": 5
     },
     {
       "name": "Nick Jr. Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nickjr.tv/",
       "priority": 5
     },
     {
       "name": "ZooMoo",
-      "isFree": true,
+      "isFree": null,
       "keywords": "zoomoo -kids",
       "website": "https://www.zoomoo.tv/",
       "priority": 5
     },
     {
       "name": "ZooMoo Kids",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CBeebies",
       "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Baby TV",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Disney Channel",
+      "isFree": false,
       "priority": 5
     }
   ],
   "Movies & Series": [
     {
       "name": "AXN Asia",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "AXN Beyond",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Celestial Classic Movies",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cmclassic.tv/index.php?location/SG",
       "priority": 5
     },
     {
       "name": "Celestial Movies Singapore",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.celestialmovies.com/schedule.php?location/SG",
       "priority": 5
     },
     {
       "name": "Cinemax Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cinemaxasia.com/",
       "priority": 5
     },
     {
       "name": "HBO Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://hboasia.com/HBO/",
       "priority": 6
     },
     {
       "name": "HBO Hits Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.hboasia.com/hits",
       "priority": 6
     },
     {
       "name": "HBO Signature Asia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.hboasia.com/signature",
       "priority": 6
     },
     {
       "name": "HITS Movies",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.hitstv.com/movies/",
       "priority": 5
     },
     {
       "name": "HITS NOW",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.hitsnow.tv/",
       "priority": 5
     },
     {
       "name": "Hub VV Drama",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Paramount Network",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.paramountnetwork.com/",
       "priority": 5
     },
     {
       "name": "Universal Channel Asia",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.universalchannel.asia/",
       "priority": 5
     },
     {
       "name": "Vannathirai",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
@@ -425,140 +570,150 @@
   "Sports": [
     {
       "name": "Hub Premier",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.starhubtvplus.com/",
       "priority": 5
     },
     {
       "name": "Hub Premier 10",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.starhubtvplus.com/",
       "priority": 5
     },
     {
       "name": "Hub Premier 11",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.starhubtvplus.com/",
       "priority": 5
     },
     {
       "name": "Hub Premier 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.starhubtvplus.com/",
       "priority": 5
     },
     {
       "name": "Hub Premier 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.starhubtvplus.com/",
       "priority": 5
     },
     {
       "name": "Hub Premier 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.starhubtvplus.com/",
       "priority": 5
     },
     {
       "name": "Hub Premier 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.starhubtvplus.com/",
       "priority": 5
     },
     {
       "name": "Hub Premier 6",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.starhubtvplus.com/",
       "priority": 5
     },
     {
       "name": "Hub Premier 7",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.starhubtvplus.com/",
       "priority": 5
     },
     {
       "name": "Hub Premier 8",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.starhubtvplus.com/",
       "priority": 5
     },
     {
       "name": "Hub Premier 9",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.starhubtvplus.com/",
       "priority": 5
     },
     {
       "name": "Hub Sports",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.starhubtvplus.com/",
       "priority": 10
     },
     {
       "name": "Hub Sports 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.starhubtvplus.com/",
       "priority": 10
     },
     {
       "name": "Hub Sports 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.starhubtvplus.com/",
       "priority": 10
     },
     {
       "name": "Hub Sports 4",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.starhubtvplus.com/",
       "priority": 10
     },
     {
       "name": "mio Stadium 102",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.singtel.com/personal/i/apps-tv/tv",
       "priority": 5
     },
     {
       "name": "mio Stadium 103",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.singtel.com/personal/i/apps-tv/tv",
       "priority": 5
     },
     {
       "name": "mio Stadium 104",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.singtel.com/personal/i/apps-tv/tv",
       "priority": 5
     },
     {
       "name": "mio Stadium 105",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.singtel.com/personal/i/apps-tv/tv",
       "priority": 5
     },
     {
       "name": "mio Stadium 106",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.singtel.com/personal/i/apps-tv/tv",
       "priority": 5
     },
     {
       "name": "mio Stadium 107",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.singtel.com/personal/i/apps-tv/tv",
       "priority": 5
     },
     {
       "name": "mio Stadium 108",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.singtel.com/personal/i/apps-tv/tv",
       "priority": 5
     },
     {
       "name": "SPL CH 01",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mewatch.sg/channels/SPL-CH01-98200",
+      "priority": 5
+    },
+    {
+      "name": "beIN Sports",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "SPOTV",
+      "isFree": false,
       "priority": 5
     }
   ]

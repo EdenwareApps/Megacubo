@@ -51,7 +51,6 @@ export default async function channelEpgPosFilter(entries, path) {
         } catch (err) {
             console.error('Menu pos filter (EPG) pending task failed:', err)
         }
-        return entries
     }
 
     const task = (async () => {

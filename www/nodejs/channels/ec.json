@@ -915,7 +915,7 @@
     },
     {
       "name": "TVN Canal",
-      "isFree": true,
+      "isFree": false,
       "website": "https://tvncanalhd.com.ec/",
       "priority": 5
     },
@@ -1201,7 +1201,7 @@
   "Sports": [
     {
       "name": "El Canal del Futbol",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.elcanaldelfutbol.com/",
       "priority": 5
     },

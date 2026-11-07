@@ -2,18 +2,18 @@
   "News": [
     {
       "name": "N1 SLOVENSKA",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ePosavje",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.eposavje.com/oznake/eposavje-tv",
       "priority": 5
     },
     {
       "name": "Nova24TV",
-      "isFree": true,
+      "isFree": null,
       "keywords": "nova24tv -2",
       "website": "https://nova24tv.si/",
       "priority": 5
@@ -27,17 +27,17 @@
     },
     {
       "name": "MMC",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RTV MMC",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RTV SLO",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -52,47 +52,47 @@
     },
     {
       "name": "RTV TV Koper Capodistria",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RTV TV Maribor",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Koper-Capodistria",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV MARIBOR",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV SLOVENIJA",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV SLOVENIJA 2",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV SLOVENIJA 3",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TVDX",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Veseljak",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -103,17 +103,17 @@
     },
     {
       "name": "ATM",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BK",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Bled",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bled.tv/",
       "priority": 5
     },
@@ -131,12 +131,12 @@
     },
     {
       "name": "Boom",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BRIO",
-      "isFree": true,
+      "isFree": null,
       "website": "https://pro-plus.si/",
       "priority": 5
     },
@@ -148,13 +148,13 @@
     },
     {
       "name": "CBS Reality",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cbsreality.tv/eu/",
       "priority": 5
     },
     {
       "name": "Crime + Investigation",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -165,12 +165,12 @@
     },
     {
       "name": "Discovery",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "DTX",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv2go.t-2.net/tv/epg/1000506",
       "priority": 5
     },
@@ -188,7 +188,7 @@
     },
     {
       "name": "FOX",
-      "isFree": true,
+      "isFree": null,
       "keywords": "fox -life -movies",
       "website": "https://www.foxtv.si/",
       "priority": 5
@@ -201,7 +201,7 @@
     },
     {
       "name": "Gea",
-      "isFree": true,
+      "isFree": null,
       "website": "http://gea-tv.si/",
       "priority": 5
     },
@@ -213,7 +213,7 @@
     },
     {
       "name": "GOLD",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.goldtv.si/",
       "priority": 5
     },
@@ -225,18 +225,18 @@
     },
     {
       "name": "Kanal A",
-      "isFree": true,
+      "isFree": null,
       "website": "https://pro-plus.si/",
       "priority": 5
     },
     {
       "name": "Kanal K3 Beltinci",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Koroska",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -253,12 +253,12 @@
     },
     {
       "name": "Ljubljana",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Megafon",
-      "isFree": true,
+      "isFree": null,
       "website": "https://megafon.si/",
       "priority": 5
     },
@@ -276,30 +276,30 @@
     },
     {
       "name": "Net",
-      "isFree": true,
+      "isFree": null,
       "website": "https://net-tv.si/",
       "priority": 5
     },
     {
       "name": "Nova24TV 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nova24tv.si/",
       "priority": 5
     },
     {
       "name": "PeTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.petv.tv/",
       "priority": 5
     },
     {
       "name": "Planet Eva",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Planet",
-      "isFree": true,
+      "isFree": null,
       "keywords": "planet tv -2",
       "website": "https://siol.net/planet-tv",
       "priority": 5
@@ -318,13 +318,13 @@
     },
     {
       "name": "POP",
-      "isFree": true,
+      "isFree": null,
       "website": "https://pro-plus.si/",
       "priority": 5
     },
     {
       "name": "R kanal +",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rkanal.si/",
       "priority": 5
     },
@@ -335,50 +335,50 @@
     },
     {
       "name": "Savinjska",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "SIP",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "S-TV Skledar",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "T-2 Info",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.t-2.net/",
       "priority": 5
     },
     {
       "name": "Televizija Urslja",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.urslja.tv/",
       "priority": 5
     },
     {
       "name": "TLC",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tlc.com/",
       "priority": 5
     },
     {
       "name": "Top",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Trzic",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv3m.si/",
       "priority": 5
     },
@@ -389,97 +389,97 @@
     },
     {
       "name": "TV Arena",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tvarena.si/",
       "priority": 5
     },
     {
       "name": "TV AS",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Celje",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Galeja",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV IDEA",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvidea.si/",
       "priority": 5
     },
     {
       "name": "TV Kocevje",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvkocevje.si/",
       "priority": 5
     },
     {
       "name": "TV Komenda",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Medvode",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tv-m.si/",
       "priority": 5
     },
     {
       "name": "TV Miklavz",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV SLO",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rtvslo.si/tv",
       "priority": 5
     },
     {
       "name": "TV SLO 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rtvslo.si/tv",
       "priority": 5
     },
     {
       "name": "TV SLO 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rtvslo.si/tv",
       "priority": 5
     },
     {
       "name": "TV SRK- 11",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvradgona.si/",
       "priority": 5
     },
     {
       "name": "TV Veseljak Golica",
-      "isFree": true,
+      "isFree": null,
       "website": "https://veseljak.svet24.si/",
       "priority": 5
     },
     {
       "name": "Vascom",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.vascom.si/",
       "priority": 5
     },
     {
       "name": "Vas kanal",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Vitel",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -489,12 +489,12 @@
     },
     {
       "name": "vZIVO.si",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Zdrava",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
@@ -519,7 +519,7 @@
     },
     {
       "name": "History",
-      "isFree": true,
+      "isFree": false,
       "website": "https://tv2go.t-2.net/tv/epg/1000048",
       "priority": 7
     },
@@ -537,14 +537,14 @@
     },
     {
       "name": "National Geographic",
-      "isFree": true,
+      "isFree": false,
       "keywords": "national geographic -wild",
       "website": "https://www.nationalgeographic.si/",
       "priority": 7
     },
     {
       "name": "National Geographic Wild",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.natgeotv.com/si",
       "priority": 7
     },
@@ -556,19 +556,19 @@
     },
     {
       "name": "Viasat Explore",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viasatexplore.si/",
       "priority": 5
     },
     {
       "name": "Viasat History",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viasathistory.si/",
       "priority": 7
     },
     {
       "name": "Viasat Nature",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viasatnature.si/",
       "priority": 5
     }
@@ -576,62 +576,62 @@
   "Sports": [
     {
       "name": "Arena Esport",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv2go.t-2.net/tv/epg/1000683",
       "priority": 10
     },
     {
       "name": "Arena Fight",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv2go.t-2.net/tv/epg/1000777",
       "priority": 5
     },
     {
       "name": "Arena Sport",
-      "isFree": true,
+      "isFree": false,
       "keywords": "arena sport 1 -premium",
       "website": "https://www.tvarenasport.si/",
       "priority": 10
     },
     {
       "name": "Arena Sport 1 Premium",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tvarenasport.si/",
       "priority": 10
     },
     {
       "name": "Arena Sport 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tvarenasport.si/",
       "priority": 10
     },
     {
       "name": "Arena Sport 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tvarenasport.si/",
       "priority": 10
     },
     {
       "name": "Arena Sport 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tvarenasport.si/",
       "priority": 10
     },
     {
       "name": "Sport TV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sport-tv.si/",
       "priority": 10
     },
     {
       "name": "Sport TV 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sport-tv.si/",
       "priority": 10
     },
     {
       "name": "Sport TV 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sport-tv.si/",
       "priority": 10
     }
@@ -639,55 +639,55 @@
   "Movies & Series": [
     {
       "name": "CineStar TV",
-      "isFree": true,
+      "isFree": false,
       "website": "https://cinestartvchannels.si/kanal/cinestartv-1/",
       "priority": 5
     },
     {
       "name": "CineStar TV 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://cinestartvchannels.si/kanal/cinestartv-2/",
       "priority": 5
     },
     {
       "name": "CineStar TV Action",
-      "isFree": true,
+      "isFree": false,
       "website": "https://cinestartvchannels.si/kanal/cinestartv-action/",
       "priority": 5
     },
     {
       "name": "CineStar TV Comedy",
-      "isFree": true,
+      "isFree": false,
       "website": "https://cinestartvchannels.si/kanal/cinestar-tv-comedy-family/",
       "priority": 5
     },
     {
       "name": "CineStar TV Fantasy",
-      "isFree": true,
+      "isFree": false,
       "website": "https://cinestartvchannels.si/kanal/cinestartv-fantasy/",
       "priority": 5
     },
     {
       "name": "CineStar TV Premiere",
-      "isFree": true,
+      "isFree": false,
       "website": "https://cinestartvchannels.si/kanal/cinestartv-premiere-1/",
       "priority": 5
     },
     {
       "name": "CineStar TV Premiere 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://cinestartvchannels.si/kanal/cinestartv-premiere-2/",
       "priority": 5
     },
     {
       "name": "FOX Life",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtv.si/",
       "priority": 5
     },
     {
       "name": "FOX Movies",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.foxchannels.si/",
       "priority": 5
     },
@@ -699,25 +699,25 @@
     },
     {
       "name": "Star",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.starchannel-si.com/",
       "priority": 5
     },
     {
       "name": "Star Crime",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.starchannel-si.com/",
       "priority": 5
     },
     {
       "name": "Star Life",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.starchannel-si.com/",
       "priority": 5
     },
     {
       "name": "Star Movies",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.starchannel-si.com/",
       "priority": 5
     }
@@ -733,30 +733,30 @@
   "Music Videos": [
     {
       "name": "Folx Slovenija",
-      "isFree": true,
+      "isFree": null,
       "website": "https://folx.network/folx-slovenija-music-television/",
       "priority": 5
     },
     {
       "name": "Golica",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.golica.si/",
       "priority": 5
     },
     {
       "name": "Radio Aktual",
-      "isFree": true,
+      "isFree": null,
       "website": "https://radioaktual.svet24.si/",
       "priority": 5
     },
     {
       "name": "TV Sehara",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Zlati Zvoki",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
@@ -777,25 +777,25 @@
   "Kids": [
     {
       "name": "Minimax",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.minimaxtv.si/",
       "priority": 5
     },
     {
       "name": "Nickelodeon",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nick.tv/",
       "priority": 5
     },
     {
       "name": "Nick Jr.",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nick.tv/",
       "priority": 5
     },
     {
       "name": "OTO",
-      "isFree": true,
+      "isFree": null,
       "website": "https://pro-plus.si/",
       "priority": 5
     }

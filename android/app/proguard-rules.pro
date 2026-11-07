@@ -7,6 +7,9 @@
 # Keep the MainActivity class and its members
 -keep class tv.megacubo.app.MainActivity { *; }
 
+# Keep the in-app updater plugin reachable through reflection
+-keep class tv.megacubo.app.AppUpdaterPlugin { *; }
+
 # Keep the Runnable interface and its implementations
 -keep class java.lang.Runnable { *; }
 

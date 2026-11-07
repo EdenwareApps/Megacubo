@@ -436,6 +436,7 @@ class ManagerFetch extends ManagerEPG {
         if (entries.length) {
             const size = entries.length
             entries = master.parentalControl.filter(entries, true);
+            entries = master.contentProfile.filter(entries, url);
             entries = master.prepareEntries(entries);
             if (!opts.flat) {
                 entries = await master.tools.deepify(entries, { source: url });
@@ -446,10 +447,26 @@ class ManagerFetch extends ManagerEPG {
                         time: now,
                         size
                     }
+                    this.pruneFetchCache()
                 }
             }
         }
         return entries 
+    }
+    clearFetchCache(url) {
+        if (url) {
+            delete this.fetchCache[url]
+        } else {
+            this.fetchCache = {}
+        }
+        return this.fetchCache
+    }
+    pruneFetchCache(max = 4) {
+        const urls = Object.keys(this.fetchCache)
+        const excess = urls.length - max
+        if (excess < 1) return
+        urls.sort((a, b) => (this.fetchCache[a]?.time || 0) - (this.fetchCache[b]?.time || 0))
+        urls.slice(0, excess).forEach(u => delete this.fetchCache[u])
     }
 }
 
@@ -478,6 +495,7 @@ class Manager extends ManagerFetch {
         this.communityAutoRetryInFlight = false;
 
         this.updateProgressLimiter = new Limiter(this.updateProgress.bind(this), { intervalMs: 1000 })
+        this.master.on('list-loaded', url => this.clearFetchCache(url))
         this.master.on('state', info => this.updateProgressLimiter.call(info))
         this.master.on('satisfied', () => {
             // Reset loading dialog flag and force close when lists become satisfied
@@ -602,17 +620,19 @@ class Manager extends ManagerFetch {
 
         this.publicRetryPromptOpen = true;
         try {
-            const choice = await menu.dialog([
-                { template: 'question', text: lang.LOADING_PUBLIC, fa: 'fas fa-globe' },
+            // public mode has no fallback, so there is nothing useful to do without a list:
+            // retrying is the only way out and the dialog is not dismissable
+            await menu.dialog([
+                { template: 'question', text: lang.PUBLIC_LISTS || lang.LOADING_PUBLIC, fa: 'fas fa-globe' },
                 { template: 'message', text: lang.NO_PUBLIC_LISTS_FOUND || lang.NO_COMMUNITY_LISTS_FOUND },
-                { template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle' },
                 { template: 'option', text: lang.RETRY, id: 'retry', fa: 'fas fa-sync-alt' }
             ], 'retry');
 
-            if (choice === 'retry') {
-                osd.show(lang.LOADING_PUBLIC, 'fa-mega busy-x', 'public-retry', 'persistent');
-                await this.master.loader.reset();
-            }
+            osd.show(lang.LOADING_PUBLIC, 'fa-mega busy-x', 'public-retry', 'persistent');
+            // nothing came back, so the cached discovery is probably stale or was built
+            // for the wrong countries: rediscover before reloading the lists
+            await this.master.discovery.reset(true).catch(err => console.error(err));
+            await this.master.loader.reset();
         } catch (err) {
             console.error('public idle dialog failed:', err);
         } finally {
@@ -870,6 +890,7 @@ class Manager extends ManagerFetch {
             return item !== undefined;
         });
         config.set(this.key, lists);
+        this.clearFetchCache(url);
         return lists;
     }
     urls() {
@@ -971,9 +992,9 @@ class Manager extends ManagerFetch {
 
         this.loadingDialogShown = true;
 
-        // Use the same dialogId as wizard to avoid collisions
         renderer.ready(() => {
             if (global.wizardPending || (global.wizard && global.wizard.active)) {
+                this.loadingDialogShown = false; // released, the wizard owns the screen
                 return;
             }
             const mode = this.master.communityListsAmount > 0 ? 'community' : 'public';
@@ -990,14 +1011,12 @@ class Manager extends ManagerFetch {
     }
 
     hideLoadingDialog() {
-        const wasShown = this.loadingDialogShown;
         this.loadingDialogShown = false;
         renderer.ready(() => {
-            renderer.ui.emit('dialog-close', 'lists-loading');
-            if (menu?.dialogs?.end) {
-                // Close the loading dialog from queue or active dialog by ID without forcing unrelated dialogs.
-                const closed = menu.dialogs.end(false, 'lists-loading', false);
-                console.info('[lists.manager] hideLoadingDialog end result', { closed, dialogId: 'lists-loading' });
+            // the wizard shows the same "Preparing broadcasts" dialog while setup runs, and its
+            // close request may be lost when another dialog is on top, so both ids are closed here
+            for (const dialogId of ['lists-loading', 'wizard-loading']) {
+                renderer.ui.emit('dialog-close', dialogId);
             }
         })
     }
@@ -1618,6 +1637,7 @@ class Manager extends ManagerFetch {
     }
     async refreshList(data) {
         let updateErr
+        this.clearFetchCache(data.url)
         await this.master.loader.reload(data.url).catch(e => updateErr = e)
         if (updateErr) {
             if (updateErr == 'empty list' || updateErr == 'empty index') {

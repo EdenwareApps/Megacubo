@@ -52,6 +52,12 @@ class Wizard extends EventEmitter {
         // SCREEN 4: Configure initial state (firestarter!)
         await this.configureInitialState(mode);
 
+        // SCREEN 4.1: community mode is when lists start flowing in, so ask the
+        // content profile if the installer didn't pin one (queued after the alert)
+        if (mode === 'community') {
+            await this.askContentProfile();
+        }
+
         // SCREEN 5: Loading / preparation
         await this.showLoadingScreen(mode);
 
@@ -94,14 +100,14 @@ class Wizard extends EventEmitter {
     async showModeSelection() {
         const opts = [
             { template: 'question', text: lang.MODE_SELECTION_TITLE, fa: 'fas fa-question-circle' },
-            // Option 1: Community lists (featured)
-            { template: 'option', text: lang.COMMUNITY_MODE_TITLE, details: lang.COMMUNITY_MODE_DESC, id: 'community', fa: 'fas fa-users' },
-            // Option 2: Own list (encouraged)
+            // Option 1: Own list (encouraged)
             { template: 'option', text: lang.OWN_LIST_MODE_TITLE, details: lang.OWN_LIST_MODE_DESC, id: 'own-list', fa: 'fas fa-plus-square' },
+            // Option 2: Community lists
+            { template: 'option', text: lang.COMMUNITY_MODE_TITLE, details: lang.COMMUNITY_MODE_DESC, id: 'community', fa: 'fas fa-users' },
             // Option 3: Public lists (less prominent)
             { template: 'option', text: lang.PUBLIC_MODE_TITLE, details: lang.PUBLIC_MODE_DESC, id: 'public', fa: 'fas fa-globe' }
         ];
-        const choice = await menu.dialog(opts, 'community', true);
+        const choice = await menu.dialog(opts, 'own-list', true);
         return choice;
     }
 
@@ -202,6 +208,53 @@ class Wizard extends EventEmitter {
         // Do not mark setup complete here. finish state is set after loading screen based on actual loaded lists.
         // This avoids prematurely marking setup complete if user closes app before completing wizard.
         config.set('setup-completed', false);
+    }
+
+    /**
+     * Asks which content profile the user wants. Only runs when the installer
+     * didn't pin one (`content-profile` in configure.json / adult edition) and
+     * the user hasn't chosen yet. Choosing adult also releases +18, always with
+     * an explicit confirmation.
+     */
+    async askContentProfile(depth = 0) {
+        const profile = lists.contentProfile;
+        if (!profile) {
+            return;
+        }
+        await profile.ready().catch(err => console.error('Content profile check failed:', err.message || err));
+        if (profile.installerDefined() || config.userSet('content-profile')) {
+            return;
+        }
+        const opts = [
+            { template: 'question', text: lang.CONTENT_PROFILE_ASK || lang.CONTENT_PROFILE, fa: 'fas fa-user-tag' },
+            { template: 'message', text: lang.CONTENT_PROFILE_ASK_HINT || lang.CONTENT_PROFILE_HINT }
+        ];
+        for (const code of profile.codes()) {
+            opts.push({
+                template: 'option',
+                text: profile.label(code),
+                id: code || 'general',
+                fa: options.contentProfileIcon(code)
+            });
+        }
+        const choice = await menu.dialog(opts, 'general', false);
+        if (!choice) {
+            return;
+        }
+        const code = choice == 'general' ? '' : choice;
+        if (code == 'adult' && !profile.adultAllowed()) {
+            if (!(await options.confirmAdultProfile())) {
+                // Adult content is never released by the profile alone
+                return depth < 1 ? this.askContentProfile(depth + 1) : undefined;
+            }
+        }
+        if (code == 'adult' && !await lists.parentalControl.confirmAuth()) {
+            return;
+        }
+        if (code == 'adult' && !profile.adultAllowed()) {
+            profile.setMaxAge(18);
+        }
+        profile.setProfile(code);
     }
 
     async waitForAutoRetry() {

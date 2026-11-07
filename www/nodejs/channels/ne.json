@@ -3,7 +3,8 @@
     {
       "name": "Télé Sahel",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "http://www.ortn.ne/"
     },
     {
       "name": "Annour",
@@ -44,12 +45,6 @@
     {
       "name": "Tauraruwa",
       "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "Tele Sahel",
-      "isFree": true,
-      "website": "http://www.ortn.ne/",
       "priority": 5
     },
     {

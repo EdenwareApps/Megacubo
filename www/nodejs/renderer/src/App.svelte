@@ -83,6 +83,26 @@
     --controls-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 20%, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0.9) 50.5%, rgba(0, 0, 0, 0.3) 100%);
     --seekbar-height: calc(var(--padding) * 3);
     --solid-text-shadow: 1px 1px 0 black, -1px -1px 0 black, -1px 1px 0 black, 1px -1px 0 black, 2px 2px 0 black;
+    /* Streaming (Netflix-inspired) surface palette */
+    --nf-black: #0b0b0e;
+    --nf-bg: #141414;
+    --nf-surface: #232323;
+    --nf-surface-2: #181818;
+    --nf-line: rgba(255, 255, 255, 0.08);
+    --nf-text: #ffffff;
+    --nf-text-dim: #b3b3b3;
+    --nf-accent: #8b5cf6;
+    --nf-accent-bright: #a78bfa;
+    --nf-accent-soft: rgba(139, 92, 246, 0.42);
+    --nf-accent-dim: #6d28d9;
+    --nf-accent-wash: rgba(139, 92, 246, 0.16);
+    --nf-danger: #cc0849;
+    --nf-radius: 6px;
+    --nf-focus-scale: 1.02;
+    --nf-shadow-deep: 0 1.6vmax 3vmax rgba(0, 0, 0, 0.6);
+    /* the theme derives some overlays from the configured background color;
+       keep them neutral so no tinted band shows behind the billboard */
+    --alpha-background-color: rgba(0, 0, 0, 0.85) !important;
 }
 ::-webkit-scrollbar {
     height: var(--menu-scrollbar-width);
@@ -116,12 +136,11 @@ html {
     max-width: 100vw;
     max-height: 100vh;
     touch-action: manipulation;
-    background-color: transparent;
     width: 100vw;
     height: 100vh;
     margin: 0;
     padding: 0;
-    background-color: #160630;
+    background-color: var(--nf-black);
 }
 body {
     position: fixed; /* prevents scroll bug */
@@ -132,6 +151,8 @@ body {
     margin: 0;
     overflow: hidden;
     background-color: transparent;
+    font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Noto Sans", "DejaVu Sans", sans-serif;
+    -webkit-font-smoothing: antialiased;
     overscroll-behavior-y: none; /* prevents scroll snap bug */
 }
 app {

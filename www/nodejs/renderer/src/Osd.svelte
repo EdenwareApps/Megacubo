@@ -101,6 +101,21 @@ body.portrait #osd-root > div {
   border-bottom-left-radius: 0;
 }
 
+/* Netflix-like toast: dark glass instead of the light pill */
+#osd-root > div {
+  color: var(--nf-text);
+  background: rgba(15, 15, 19, 0.94);
+  border: 1px solid var(--nf-line);
+  border-radius: var(--nf-radius);
+  text-shadow: none;
+  box-shadow: 0 1vmin 3vmin rgba(0, 0, 0, 0.55);
+}
+
+body.video #osd-root > div {
+  color: var(--nf-text);
+  background: rgba(15, 15, 19, 0.92) !important;
+}
+
 .osd-icon img,
 .osd-icon i {
   width: auto;

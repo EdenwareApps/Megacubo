@@ -103,7 +103,7 @@
     },
     {
       "name": "HGTV Uganda",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -177,7 +177,7 @@
     },
     {
       "name": "TBS",
-      "isFree": true,
+      "isFree": false,
       "website": "http://tbsmedia.org/",
       "priority": 4
     },
@@ -431,7 +431,7 @@
     },
     {
       "name": "Sky Television",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {

@@ -107,14 +107,26 @@ class BridgeClient extends EventEmitter {
 		this.channel = new ElectronChannel()
 	}
 	channelGetLangCallback(){
-		const lng = window.navigator.userLanguage || window.navigator.language
-		// prevent "Intl is not defined"
+		const nav = window.navigator || {}
+		const hints = []
+		const push = lng => {
+			if (typeof lng != 'string') return
+			lng = lng.trim()
+			if (lng && !hints.includes(lng)) hints.push(lng)
+		}
+		// ordered by user preference: the system/OS list first, then the effective UI language
+		if (Array.isArray(nav.languages)) nav.languages.forEach(push)
+		push(nav.language)
+		push(nav.userLanguage || nav.browserLanguage)
+		const timezone = { name: 'UTC', minutes: (new Date()).getTimezoneOffset() * -1 }
+		try {
+			timezone.name = window.Intl.DateTimeFormat().resolvedOptions().timeZone || timezone.name
+			// resolvedOptions() reports the Intl default locale, which can differ from navigator.language
+			push(window.Intl.DateTimeFormat().resolvedOptions().locale)
+		} catch (e) {}
 		this.emit('get-lang-callback', 
-			lng, 
-			{
-				name: window.Intl.DateTimeFormat().resolvedOptions().timeZone,
-				minutes: (new Date()).getTimezoneOffset() * -1
-			},
+			hints.join(', '), 
+			timezone,
 			window.navigator.userAgent
 		)
 	}

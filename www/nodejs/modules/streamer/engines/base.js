@@ -64,7 +64,9 @@ class StreamerBaseIntent extends EventEmitter {
     getTranscodingCodecs() {
         const opts = { audioCodec: 'aac', videoCodec: 'libx264' };
         if (this.codecData) {
-            if (this.codecData.video && this.codecData.video.includes('h264')) {
+            // forceVideoReencode is set when the source has no usable keyframes for MSE,
+            // so copying the video stream would keep the problem (ffmpeg only fixes it re-encoding)
+            if (!this.opts.forceVideoReencode && this.codecData.video && this.codecData.video.includes('h264')) {
                 opts.videoCodec = 'copy';
             }
             if (this.codecData.audio && this.codecData.audio.includes('aac')) {
@@ -78,7 +80,8 @@ class StreamerBaseIntent extends EventEmitter {
             workDir: this.opts.workDir,
             authURL: this.data.authURL || this.data.source,
             debug: this.opts.debug,
-            isLive: this.mediaType == 'live'
+            isLive: this.mediaType == 'live',
+            forceVideoReencode: this.opts.forceVideoReencode
         }, this.getTranscodingCodecs());
     }
     setOpts(opts) {
@@ -339,8 +342,11 @@ class StreamerBaseIntent extends EventEmitter {
     }
     destroy() {
         if (!this.destroyed) {
-            this.destroyAdapters();
+            // flag it first: adapters destroyed below may still emit 'fail' and that
+            // must not resurrect a failure on an engine that is already gone
             this.destroyed = true;
+            this.clearTimeout();
+            this.destroyAdapters();
             if (this.serverStopper) {
                 this.serverStopper.stop();
                 this.serverStopper = null;

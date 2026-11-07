@@ -49,7 +49,7 @@
     },
     {
       "name": "Viva Canal 33",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     }
   ],
@@ -62,7 +62,7 @@
     },
     {
       "name": "TVN",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {

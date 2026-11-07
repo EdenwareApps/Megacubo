@@ -9,7 +9,7 @@
     },
     {
       "name": "ABC Entertains",
-      "isFree": true,
+      "isFree": null,
       "website": "https://iview.abc.net.au/channel/abc2",
       "priority": 5
     },
@@ -21,13 +21,13 @@
     },
     {
       "name": "Boomerang",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.boomerangtv.com.au/",
       "priority": 5
     },
     {
       "name": "Cartoon Network",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cartoonnetwork.com.au/",
       "priority": 5
     },
@@ -39,35 +39,45 @@
     },
     {
       "name": "Discovery Kids",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "DreamWorks",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Foxtel Movies Kids",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/Foxtel-Movies-Kids/MO9/",
       "priority": 5
     },
     {
       "name": "Nickelodeon",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nick.com.au/",
       "priority": 5
     },
     {
       "name": "Nick Jr.",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nickjr.com.au/",
       "priority": 5
     },
     {
       "name": "PBS Kids Australia",
       "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Baby TV",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Disney Channel",
+      "isFree": false,
       "priority": 5
     }
   ],
@@ -88,7 +98,7 @@
     },
     {
       "name": "Australia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -110,11 +120,12 @@
     },
     {
       "name": "FOX Sports News",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Sky News Australia",
+      "isFree": true,
       "keywords": "sky news australia -extra -1 -2 -3",
       "shortName": "Sky News AU",
       "website": "https://www.skynews.com.au",
@@ -155,54 +166,55 @@
     },
     {
       "name": "ausbiz",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "10HD",
-      "isFree": true,
+      "isFree": null,
+      "keywords": "10 sydney | 10 melbourne | 10 brisbane | 10 adelaide | 10 perth | 10 hobart",
       "website": "http://10play.com.au/",
       "priority": 5
     },
     {
       "name": "2GB",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.2gb.com/",
       "priority": 5
     },
     {
       "name": "4BC",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.4bc.com.au/",
       "priority": 5
     },
     {
       "name": "6PR",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.6pr.com.au/",
       "priority": 5
     },
     {
       "name": "ADH",
-      "isFree": true,
+      "isFree": null,
       "website": "https://adh.tv",
       "priority": 5
     },
     {
       "name": "Business",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.firstnationsbroadcasting.org/television",
       "priority": 5
     },
     {
       "name": "CNBC Australia",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cnbc.com/australia-and-new-zealand-television/",
       "priority": 5
     },
     {
       "name": "Dedebit",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -225,14 +237,69 @@
     },
     {
       "name": "ticker News",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tickernews.co/where-to-watch/",
       "priority": 5
     },
     {
       "name": "WeatherSpy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.weatherspy.tv/",
+      "priority": 5
+    },
+    {
+      "name": "France 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DW",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NHK World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CGTN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CCTV-4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNBC",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "TV5 Monde",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MS NOW",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "GB News",
+      "isFree": true,
       "priority": 5
     }
   ],
@@ -290,143 +357,144 @@
   "Sports": [
     {
       "name": "Snowy Mountains Television",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Cricket Gold",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cricket.com.au/cricket-gold",
       "priority": 5
     },
     {
       "name": "ESPN",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.espn.com.au/",
       "priority": 10
     },
     {
       "name": "ESPN 2",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.espn.com.au/",
       "priority": 10
     },
     {
       "name": "FOX Cricket",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/FOX-CRICKET/FS1/",
       "priority": 5
     },
     {
       "name": "FOX Footy",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/Fox-Footy/FAF/",
       "priority": 5
     },
     {
       "name": "FOX Sports 503",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/FOX-SPORTS-503/FS3/",
       "priority": 10
     },
     {
       "name": "FOX Sports 505",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/FOX-SPORTS-505/FSP/",
       "priority": 10
     },
     {
       "name": "FOX Sports 506",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/FOX-SPORTS-506/SPS/",
       "priority": 10
     },
     {
       "name": "FOX Sports More+",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/FOX-SPORTS-MORE-HD/FSM/",
       "priority": 10
     },
     {
       "name": "Main Event",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mainevent.com.au/",
       "priority": 5
     },
     {
       "name": "Optus Sport",
-      "isFree": true,
+      "isFree": false,
       "website": "http://sport.optus.com.au/",
       "priority": 10
     },
     {
       "name": "Optus Sport 10",
-      "isFree": true,
+      "isFree": false,
       "website": "http://sport.optus.com.au/",
       "priority": 10
     },
     {
       "name": "Optus Sport 11",
-      "isFree": true,
+      "isFree": false,
       "website": "http://sport.optus.com.au/",
       "priority": 10
     },
     {
       "name": "Optus Sport 12",
-      "isFree": true,
+      "isFree": false,
       "website": "http://sport.optus.com.au/",
       "priority": 10
     },
     {
       "name": "Optus Sport 2",
-      "isFree": true,
+      "isFree": false,
       "website": "http://sport.optus.com.au/",
       "priority": 10
     },
     {
       "name": "Optus Sport 3",
-      "isFree": true,
+      "isFree": false,
       "website": "http://sport.optus.com.au/",
       "priority": 10
     },
     {
       "name": "Optus Sport 4",
-      "isFree": true,
+      "isFree": false,
       "website": "http://sport.optus.com.au/",
       "priority": 10
     },
     {
       "name": "Optus Sport 5",
-      "isFree": true,
+      "isFree": false,
       "website": "http://sport.optus.com.au/",
       "priority": 10
     },
     {
       "name": "Optus Sport 6",
-      "isFree": true,
+      "isFree": false,
       "website": "http://sport.optus.com.au/",
       "priority": 10
     },
     {
       "name": "Optus Sport 7",
-      "isFree": true,
+      "isFree": false,
       "website": "http://sport.optus.com.au/",
       "priority": 10
     },
     {
       "name": "Optus Sport 8",
-      "isFree": true,
+      "isFree": false,
       "website": "http://sport.optus.com.au/",
       "priority": 10
     },
     {
       "name": "Optus Sport 9",
-      "isFree": true,
+      "isFree": false,
       "website": "http://sport.optus.com.au/",
       "priority": 10
     },
     {
       "name": "SKI",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.skitv.tv/",
       "priority": 5
     },
@@ -434,96 +502,116 @@
       "name": "WWE",
       "isFree": true,
       "priority": 5
+    },
+    {
+      "name": "beIN Sports",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "SPOTV",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "beIN Sports 1",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "beIN Sports 2",
+      "isFree": false,
+      "priority": 5
     }
   ],
   "Entertainment": [
     {
       "name": "10 Bold",
-      "isFree": true,
+      "isFree": null,
       "website": "https://10play.com.au",
       "priority": 5
     },
     {
       "name": "10 Peach",
-      "isFree": true,
+      "isFree": null,
       "website": "https://10play.com.au",
       "priority": 5
     },
     {
       "name": "10 Shake",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "3AW",
-      "isFree": true,
+      "isFree": null,
       "keywords": "3aw -melburne",
       "priority": 5
     },
     {
       "name": "3AW Melburne",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "7flix",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "7mate",
-      "isFree": true,
+      "isFree": null,
       "website": "https://7plus.com.au",
       "priority": 5
     },
     {
       "name": "7two",
-      "isFree": true,
+      "isFree": null,
       "website": "https://7plus.com.au",
       "priority": 5
     },
     {
       "name": "9Gem",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.9now.com.au",
       "priority": 5
     },
     {
       "name": "9Go!",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.9now.com.au",
       "priority": 5
     },
     {
       "name": "9Life",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.9now.com.au",
       "priority": 5
     },
     {
       "name": "9Rush",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ABC Adelaide",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ABC Comedy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.abc.net.au/abc-comedy",
       "priority": 5
     },
     {
       "name": "ABC Darwin",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ABC Hobart",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -541,22 +629,22 @@
     },
     {
       "name": "ABC Melbourne",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ABC Perth",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ABC Sydney",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ABC",
-      "isFree": true,
+      "isFree": null,
       "keywords": "abc tv -plus",
       "priority": 5
     },
@@ -567,113 +655,113 @@
     },
     {
       "name": "ACCTV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Aflam Mohtrama",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Aus Biz",
-      "isFree": true,
+      "isFree": null,
       "keywords": "aus biz tv | ausbiz tv",
       "priority": 5
     },
     {
       "name": "Aus Tamil",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Bounty Plus",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "C31 Melbourne",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Channel 44",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DUST",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Dry Bar Comedy",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Filmstream",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Fuel",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Gusto",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Horse and Country",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Insight",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Introuble",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Inwild",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Inwonder",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "JonmoBhumi",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Juice",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "M4TV Malayalam",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MAVTV Motor Sports",
-      "isFree": true,
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "MIS Televizija",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -683,52 +771,52 @@
     },
     {
       "name": "Nine",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Outdoor",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Pulse",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "QUEST TV Classical",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "QUEST TV Jazz and Beyond",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "QUEST TV MIX",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Racing.com",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Real Stories",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rialto",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ryan and Friends",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -738,91 +826,93 @@
     },
     {
       "name": "Seven",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sky Racing",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Racing 2",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky Thoroughbred Central",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Smithsonian",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Snowy Mountains",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TVSN",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Time Line Australia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Toon Goggles",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Travel XP",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "VENN",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Zoo Moo",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "13th Street",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.13thstreet.com.au/",
       "priority": 5
     },
     {
       "name": "3 Tamil",
-      "isFree": true,
+      "isFree": null,
       "website": "https://threetamil.tv/",
       "priority": 5
     },
     {
       "name": "7bravo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://7plus.com.au/",
       "priority": 5
     },
     {
       "name": "7HD",
-      "isFree": true,
+      "isFree": null,
+      "keywords": "7 sydney | 7 melbourne | 7 brisbane | 7 adelaide | 7 perth",
       "website": "https://7plus.com.au/",
       "priority": 5
     },
     {
       "name": "9HD",
-      "isFree": true,
+      "isFree": null,
+      "keywords": "9 sydney | 9 melbourne | 9 brisbane | 9 adelaide | 9 perth",
       "website": "https://www.nine.com.au/",
       "priority": 5
     },
@@ -834,32 +924,32 @@
     },
     {
       "name": "A&E",
+      "isFree": false,
       "keywords": "a e | a&e | aee | arts entertainment",
-      "isFree": true,
       "website": "https://www.foxtel.com.au/tv-guide/channel/AE/AES/",
       "priority": 5
     },
     {
       "name": "Arena",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.arenatv.com.au/",
       "priority": 5
     },
     {
       "name": "Aurora",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.aurora.tv/",
       "priority": 5
     },
     {
       "name": "BBC UKTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bbcstudios.co.nz/channels",
       "priority": 5
     },
     {
       "name": "BoxSets",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.boxsetschannel.com.au/",
       "priority": 5
     },
@@ -877,93 +967,93 @@
     },
     {
       "name": "Comedy",
-      "isFree": true,
+      "isFree": null,
       "keywords": "comedy -central",
       "website": "https://www.foxtel.com.au/tv-guide/channel/FOX-Comedy/HIT/",
       "priority": 5
     },
     {
       "name": "Comedy Central",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.comedycentral.com.au/",
       "priority": 5
     },
     {
       "name": "Crime + Investigation",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.citv.com.au/",
       "priority": 5
     },
     {
       "name": "CTB Perth",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ctb perth -movies -channel",
       "website": "https://ctbperth.net.au/",
       "priority": 5
     },
     {
       "name": "Darwin",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.firstnationsbroadcasting.org/television",
       "priority": 5
     },
     {
       "name": "Discovery",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.yourdiscovery.com/au/",
       "priority": 7
     },
     {
       "name": "Discovery Turbo",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.discoverychannel.com.au/",
       "priority": 7
     },
     {
       "name": "E!",
-      "isFree": true,
+      "isFree": false,
       "website": "http://au.eonline.com/",
       "priority": 5
     },
     {
       "name": "ETVN",
-      "isFree": true,
+      "isFree": null,
       "website": "https://entrepreneursnetwork.tv/",
       "priority": 5
     },
     {
       "name": "FOX 8",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.foxtel.com.au/tv-guide/channel/FOX8/FOX",
       "priority": 5
     },
     {
       "name": "FOX Funny",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.foxtel.com.au/tv-guide/channel/FOX-Funny/FFS/",
       "priority": 5
     },
     {
       "name": "FOX League",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/FOX-LEAGUE/SP2/",
       "priority": 5
     },
     {
       "name": "Foxtel Movies Comedy",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/Foxtel-Movies-Comedy/SHY/",
       "priority": 5
     },
     {
       "name": "Foxtel Movies Family",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/Foxtel-Movies-Family/SHF/",
       "priority": 5
     },
     {
       "name": "Foxtel One",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.foxtel.com.au/tv-guide/channel/FOX-One/F1S/",
       "priority": 5
     },
@@ -975,7 +1065,7 @@
     },
     {
       "name": "HGTV",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.hgtv.com/",
       "priority": 5
     },
@@ -987,220 +1077,292 @@
     },
     {
       "name": "Indo Oz",
-      "isFree": true,
+      "isFree": null,
       "website": "https://indoozaustralia.com.au/web-channel/",
       "priority": 5
     },
     {
       "name": "LifeStyle",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.foxtel.com.au/watch/lifestyle.html",
       "priority": 5
     },
     {
       "name": "Lifestyle Food",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.foxtel.com.au/watch/lifestyle/food.html",
       "priority": 5
     },
     {
       "name": "Lifestyle Home",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.foxtel.com.au/watch/lifestyle/home.html",
       "priority": 5
     },
     {
       "name": "Love Destination",
-      "isFree": true,
+      "isFree": null,
       "website": "https://lovedestination.com/",
       "priority": 5
     },
     {
       "name": "M4TV English",
-      "isFree": true,
+      "isFree": null,
       "website": "https://m4tv.com.au/",
       "priority": 5
     },
     {
       "name": "MTV",
-      "isFree": true,
+      "isFree": false,
       "keywords": "mtv -classic -hits",
       "website": "https://www.mtv.com.au/tv-schedule/mtv-australia",
       "priority": 5
     },
     {
       "name": "My Nepal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mntvonline.com/",
       "priority": 5
     },
     {
       "name": "PacificAus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.pacificaustv.com/",
       "priority": 5
     },
     {
       "name": "ParlView",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.aph.gov.au/News_and_Events/Watch_Read_Listen/ParlView/",
       "priority": 5
     },
     {
       "name": "Real Families",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Real Life",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RTV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "SBS",
-      "isFree": true,
+      "isFree": null,
       "keywords": "sbs -food -viceland -world -movies -worldwatch",
       "website": "https://www.sbs.com.au/guide/channel/SBS",
       "priority": 5
     },
     {
       "name": "Sci-Fi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.foxtel.com.au/tv-guide/channel/FOX-Sci-Fi/FIS/",
       "priority": 5
     },
     {
       "name": "Showcase",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.foxshowcase.com.au/",
       "priority": 5
     },
     {
       "name": "Sleuth",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.foxtel.com.au/tv-guide/channel/FOX-Sleuth/FSU/",
       "priority": 5
     },
     {
       "name": "Spree",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TLC",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tlcchannel.com.au/",
       "priority": 5
     },
     {
       "name": "Tourism",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.firstnationsbroadcasting.org/television",
       "priority": 5
     },
     {
       "name": "Travel",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.travelchanneltv.eu/",
       "priority": 5
     },
     {
       "name": "Universal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://universaltv.com.au/",
+      "priority": 5
+    },
+    {
+      "name": "Arirang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KBS World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AXN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "tvN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "BBC Earth",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Channel",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Food Network",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Lifetime",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "UKTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RAI Italia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Antenna Pacific",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CMC",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DocPlay",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BoxSet",
+      "isFree": null,
       "priority": 5
     }
   ],
   "Movies & Series": [
     {
       "name": "Action Hollywood Movies",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "SBS World Movies",
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Classics",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.foxclassics.com.au/",
       "priority": 5
     },
     {
       "name": "Crime",
-      "isFree": true,
+      "isFree": null,
       "keywords": "crime -plus -investigation",
       "website": "https://www.foxtel.com.au/tv-guide/channel/FOX-Crime/IOI/",
       "priority": 5
     },
     {
       "name": "CTB Perth Movies",
-      "isFree": true,
+      "isFree": null,
       "website": "https://movies.ctbperth.net.au/",
       "priority": 5
     },
     {
       "name": "FOX Crime",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.foxtel.com.au/tv-guide/channel/FOX-Crime-2/IO2/",
       "priority": 5
     },
     {
       "name": "Foxtel Movies Action",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/Foxtel-Movies-Action/SHA/",
       "priority": 5
     },
     {
       "name": "Foxtel Movies Drama",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/Foxtel-Movies-Drama/MO6/",
       "priority": 5
     },
     {
       "name": "Foxtel Movies Greats",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/Foxtel-Movies-Greats/GRR/",
       "priority": 5
     },
     {
       "name": "Foxtel Movies Hits",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/Foxtel-Movies-Hits/MVS/",
       "priority": 5
     },
     {
       "name": "Foxtel Movies Premiere",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/Foxtel-Movies-Premiere/SHO/",
       "priority": 5
     },
     {
       "name": "Foxtel Movies Romance",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/Foxtel-Movies-Romance/SHD/",
       "priority": 5
     },
     {
       "name": "Foxtel Movies Thriller",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/Foxtel-Movies-Thriller/SHH/",
       "priority": 5
     },
     {
       "name": "Foxtel Movies Ultra",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.foxtel.com.au/tv-guide/channel/Foxtel-Movies-Ultra-HD/K02/",
       "priority": 5
     },
     {
       "name": "LMN",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.foxtel.com.au/tv-guide/channel/Lifetime-Movie-Network-HD/LMH/",
       "priority": 5
     }
@@ -1214,7 +1376,7 @@
     },
     {
       "name": "Animal Planet",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.animalplanet.com/",
       "priority": 5
     },
@@ -1238,7 +1400,7 @@
     },
     {
       "name": "History",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.historychannel.com.au/",
       "priority": 7
     },
@@ -1250,26 +1412,26 @@
     },
     {
       "name": "Investigation Discovery",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.investigationdiscovery.com/",
       "priority": 7
     },
     {
       "name": "Nat Geo People",
-      "isFree": true,
+      "isFree": false,
       "website": "http://natgeotv.com.au/",
       "priority": 5
     },
     {
       "name": "National Geographic",
-      "isFree": true,
+      "isFree": false,
       "keywords": "national geographic -wild",
       "website": "http://natgeotv.com.au/",
       "priority": 7
     },
     {
       "name": "National Geographic Wild",
-      "isFree": true,
+      "isFree": false,
       "website": "http://natgeotv.com.au/",
       "priority": 7
     },
@@ -1289,48 +1451,48 @@
   "Music Videos": [
     {
       "name": "Club MTV",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mtv.com.au/tv-schedule/club-mtv-australia",
       "priority": 5
     },
     {
       "name": "CMT",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mtv.com.au/tv-schedule/cmt",
       "priority": 5
     },
     {
       "name": "Folk Klub",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Foxtel Smooth",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.smooth.com.au/smooth/tv",
       "priority": 5
     },
     {
       "name": "INTV Australia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://intvaustralia.com/",
       "priority": 5
     },
     {
       "name": "MTV Classic",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mtv.com.au/tv-schedule/mtv-classic-australia",
       "priority": 5
     },
     {
       "name": "MTV Hits",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mtv.com.au/tv-schedule/mtv-hits-australia",
       "priority": 5
     },
     {
       "name": "NickMusic",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.nick.com.au/",
       "priority": 5
     }
@@ -1381,6 +1543,7 @@
   "Added": [
     {
       "name": "Ten",
+      "isFree": null,
       "priority": 5
     }
   ]

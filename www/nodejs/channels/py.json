@@ -539,63 +539,63 @@
     },
     {
       "name": "Personal Sports",
-      "isFree": null,
+      "isFree": true,
       "priority": 10
     },
     {
       "name": "Tigo SAT Network",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Tigo",
-      "isFree": null,
+      "isFree": true,
       "keywords": "tigo -cinema -series -ppv -max -teledeportes -paraguay -s -a -movies -music -sat -network -sports -sportsplus",
       "priority": 5
     },
     {
       "name": "One Sports",
-      "isFree": null,
+      "isFree": true,
       "priority": 10
     },
     {
       "name": "One Max",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Tigo Movies",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Tigo Cinema & Series PPV",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Tigo Music",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "RPC",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "TV Pública Paraguay",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Tigo Max (Teledeportes Paraguay S",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Tigo Max",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     }
   ],

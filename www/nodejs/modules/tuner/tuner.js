@@ -81,6 +81,14 @@ class TunerTask extends TunerUtils {
             console.error('Tuner err', err, i);
             throw err;
         } else {
+            if (info.placeholder) {
+                // the stream is live and playable but its video is a single frozen frame
+                // (usually an "expired list, pay for a subscription" card), so ignore it
+                const err = 'Tuner placeholder stream (' + info.placeholder.reason + '): ' + e.url;
+                console.warn(err, info.placeholder);
+                this.states[i] = -1;
+                throw err;
+            }
             if (!Array.isArray(this.opts.allowedTypes) || this.opts.allowedTypes.includes(info.type)) {
                 this.states[i] = 2;
                 return info;

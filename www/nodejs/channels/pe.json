@@ -223,7 +223,7 @@
     },
     {
       "name": "MTV Más",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -566,7 +566,8 @@
     {
       "name": "TV Perú Noticias",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://www.tvperu.gob.pe/"
     },
     {
       "name": "Visión Noticias Perú",
@@ -660,12 +661,6 @@
       "priority": 5
     },
     {
-      "name": "TV Peru Noticias",
-      "isFree": true,
-      "website": "https://www.tvperu.gob.pe/",
-      "priority": 5
-    },
-    {
       "name": "VNP",
       "isFree": true,
       "website": "https://vnp.pe",
@@ -675,25 +670,24 @@
   "Sports": [
     {
       "name": "Best Cable Sports Perú",
-      "priority": 10
+      "isFree": true,
+      "priority": 10,
+      "website": "https://bestcableperu.com.pe/tv6.html"
     },
     {
       "name": "Contacto Deportivo",
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Monterrico",
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Ovacion",
-      "priority": 5
-    },
-    {
-      "name": "Best Cable Sports Peru",
       "isFree": true,
-      "website": "https://bestcableperu.com.pe/tv6.html",
-      "priority": 10
+      "priority": 5
     },
     {
       "name": "Gol Peru",
@@ -716,7 +710,7 @@
     },
     {
       "name": "Movistar Deportes",
-      "isFree": true,
+      "isFree": false,
       "website": "http://movistardeportes.pe/",
       "priority": 5
     },
@@ -840,7 +834,8 @@
     {
       "name": "Best Cable Perú",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://bestcableperu.com.pe/tv3.html"
     },
     {
       "name": "CANAL IPE",
@@ -890,8 +885,9 @@
     {
       "name": "TV Perú",
       "isFree": true,
-      "keywords": "tv peru -noticias",
-      "priority": 5
+      "keywords": "tv peru -noticias | tv peru -internacional -noticias",
+      "priority": 5,
+      "website": "https://www.tvperu.gob.pe/"
     },
     {
       "name": "Tvfaces Online",
@@ -1074,12 +1070,6 @@
       "name": "Belmont Television",
       "isFree": true,
       "website": "https://belmonttelevision.com/",
-      "priority": 5
-    },
-    {
-      "name": "Best Cable Peru",
-      "isFree": true,
-      "website": "https://bestcableperu.com.pe/tv3.html",
       "priority": 5
     },
     {
@@ -1554,13 +1544,13 @@
     },
     {
       "name": "Movistar Plus",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.movistarplus.pe/",
       "priority": 5
     },
     {
       "name": "MTV Mas Ancash",
-      "isFree": true,
+      "isFree": false,
       "website": "https://mtvnoticiasancash.com/",
       "priority": 5
     },
@@ -2062,13 +2052,6 @@
       "priority": 5
     },
     {
-      "name": "TV Peru",
-      "isFree": true,
-      "keywords": "tv peru -internacional -noticias",
-      "website": "https://www.tvperu.gob.pe/",
-      "priority": 5
-    },
-    {
       "name": "TV Peru Internacional",
       "isFree": true,
       "website": "https://www.tvperu.gob.pe/internacional",
@@ -2139,7 +2122,7 @@
     },
     {
       "name": "Viva TV Yurimaguas",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.vivatvonline.com/",
       "priority": 5
     },
@@ -2197,7 +2180,8 @@
     {
       "name": "Best Cable Más Cumbia",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://bestcableperu.com.pe/tv98.html"
     },
     {
       "name": "CVM TV Digital",
@@ -2217,7 +2201,8 @@
     {
       "name": "Galáctica",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "http://www.galacticatv.com/"
     },
     {
       "name": "Hatun",
@@ -2227,7 +2212,8 @@
     {
       "name": "Karibeña",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://lakaribena.com.pe/tv/vivo"
     },
     {
       "name": "Metropolitana del Cuzco",
@@ -2252,7 +2238,8 @@
     {
       "name": "TV Peruanísima",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "http://tvperuanisima.com/"
     },
     {
       "name": "Top Latino",
@@ -2262,7 +2249,8 @@
     {
       "name": "Visión TV Musica",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://www.cablevisionperu.pe/?page_id=2205"
     },
     {
       "name": "Alto Nivel Radio",
@@ -2294,12 +2282,6 @@
       "priority": 5
     },
     {
-      "name": "Best Cable Mas Cumbia",
-      "isFree": true,
-      "website": "https://bestcableperu.com.pe/tv98.html",
-      "priority": 5
-    },
-    {
       "name": "Cumbia",
       "isFree": true,
       "website": "http://www.cablenetword.com/canal1.html",
@@ -2325,20 +2307,8 @@
       "priority": 5
     },
     {
-      "name": "Galactica",
-      "isFree": true,
-      "website": "http://www.galacticatv.com/",
-      "priority": 5
-    },
-    {
       "name": "GHAM-TV",
       "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "Karibena",
-      "isFree": true,
-      "website": "https://lakaribena.com.pe/tv/vivo",
       "priority": 5
     },
     {
@@ -2420,12 +2390,6 @@
       "priority": 5
     },
     {
-      "name": "TV Peruanisima",
-      "isFree": true,
-      "website": "http://tvperuanisima.com/",
-      "priority": 5
-    },
-    {
       "name": "TVUNO",
       "isFree": true,
       "website": "https://wa.me/message/GKPBK7JQ55EGC1?src=qr",
@@ -2435,12 +2399,6 @@
       "name": "Vinilos",
       "isFree": true,
       "website": "https://playmax.tv/",
-      "priority": 5
-    },
-    {
-      "name": "Vision TV Musica",
-      "isFree": true,
-      "website": "https://www.cablevisionperu.pe/?page_id=2205",
       "priority": 5
     },
     {
@@ -2469,7 +2427,8 @@
     {
       "name": "Salgalú",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://www.salgalu.tv/"
     },
     {
       "name": "USMPTV",
@@ -2486,12 +2445,6 @@
       "name": "Diaspora",
       "isFree": true,
       "website": "https://dtv.pe/",
-      "priority": 5
-    },
-    {
-      "name": "Salgalu",
-      "isFree": true,
-      "website": "https://www.salgalu.tv/",
       "priority": 5
     },
     {
@@ -2515,6 +2468,7 @@
   "Movies & Series": [
     {
       "name": "TelSatel Cine",
+      "isFree": true,
       "priority": 5
     },
     {

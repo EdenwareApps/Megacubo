@@ -10,13 +10,16 @@ export const EPG_CONFIG = {
   network: {
     timeout: 120, // 120 seconds (2 minutes) for EPG downloads - increased to handle large EPG files
     retries: 2,
-    errorCountLimit: 128
+    errorCountLimit: 128,
+    epgFlushTimeout: 120000 // max wait for gunzip to flush before forcing the parser to end
   },
   update: {
     autoUpdateIntervalSecs: 1800,
     maxSuggestedEPGs: 5, // Increased to allow more fallback attempts
     maxManualEPGs: Infinity,
-    minProgrammesToLoad: 8192 // Minimum total programmes across all suggested EPGs (instead of fixed EPG count)
+    minProgrammesToLoad: 8192, // Minimum total programmes across all suggested EPGs (instead of fixed EPG count)
+    programmeConcurrency: 24, // Max concurrent programme ingestion operations
+    programmeDrainTimeoutMs: 180000 // Max wait for pending programmes before finalizing an update
   },
   memory: {
     maxHeapSize: 512 * 1024 * 1024, // 512MB limit

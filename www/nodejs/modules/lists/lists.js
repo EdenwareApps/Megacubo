@@ -133,7 +133,7 @@ class ListsEPGTools extends Index {
                 return
             }
             
-            const urls = await this.searchEPGs()
+            const urls = await this.searchEPGs(24, null, {cloudOnly: true})
             console.log('EPGS urls - EPG (reload)', urls)
             if (urls.length > 0) {
                 await this.epg.suggest(urls)
@@ -178,7 +178,7 @@ class ListsEPGTools extends Index {
             
             try {
                 console.log(`🔔 Attempting to load additional EPGs (attempt ${this.additionalEPGsAttempts}/${this.maxAdditionalEPGsAttempts})...`)
-                const urls = await this.searchEPGs()
+                const urls = await this.searchEPGs(24, null, {cloudOnly: true})
                 console.log('🔔 EPGS urls for additional load:', urls)
                 if (urls.length > 0) {
                     const loadedCount = await this.epg.suggest(urls)
@@ -261,10 +261,9 @@ class ListsEPGTools extends Index {
     async epgSuggest() {
         const activeEPG = config.get('epg-' + lang.locale)
         if (activeEPG === 'disabled' || config.get('epg-suggestions') === false) return
-        const suggest = !activeEPG || activeEPG === 'auto' || (Array.isArray(activeEPG) && activeEPG.length > 0)
-        console.log('shouldSuggest', suggest, activeEPG)
-        if (!suggest) return
-        const urls = await this.searchEPGs()
+        // An empty array (e.g. left behind after removing a list) means "no manual
+        // EPG chosen", which is the same as auto: cloud EPGs get suggested.
+        const urls = await this.searchEPGs(24, null, {cloudOnly: true})
         console.log('EPGS urls - EPG', urls)
         urls.length && await this.epg.suggest(urls)
     }
@@ -444,44 +443,57 @@ class ListsEPGTools extends Index {
             })
         }
     }
-    async searchEPGs(limit = 24, mandatories) {
+    async searchEPGs(limit = 24, mandatories, opts = {}) {
         if(!Array.isArray(this.activeCountries)) {
             await this.resetEPGScoreCache()
         }
 
         const activeCountries = this.activeCountries || await lang.getActiveCountries()
-        let epgs = Object.keys(this.epgs)
-        if (this.epg.loaded) {
-            epgs.push(...this.epg.loaded.filter(u => !epgs.includes(u)))
-        }
-
-        const c = config.get('epg-'+ lang.locale)
-        if (Array.isArray(c) && c.length) {
-            epgs.push(...c.filter(e => e.active && !epgs.includes(e.url)).map(e => e.url))
-        }
-
         const o = await cloud.get('configure', {shadow: false}).catch(() => null)
+
+        // EPGs advertised by the cloud configuration ("epg" key) for the active
+        // countries. These are the only ones eligible for automatic suggestion;
+        // every other detected EPG stays available for manual selection only.
+        const cloudEPGs = []
         if(o?.epg) {
             for(const code of activeCountries) {
-                if (o.epg[code] && !epgs.includes(o.epg[code])) {
-                    epgs.push(o.epg[code])
+                if (o.epg[code] && !cloudEPGs.includes(o.epg[code])) {
+                    cloudEPGs.push(o.epg[code])
                 }
             }
         }
-        if (o?.epgs) {
-            for(const code of activeCountries) {
-                if (o.epgs[code]) {
-                    epgs.push(...o.epgs[code].filter(u => !epgs.includes(u)))
+
+        let epgs
+        if (opts.cloudOnly) {
+            epgs = [...cloudEPGs]
+        } else {
+            epgs = Object.keys(this.epgs)
+            if (this.epg.loaded) {
+                epgs.push(...this.epg.loaded.filter(u => !epgs.includes(u)))
+            }
+
+            const c = config.get('epg-'+ lang.locale)
+            if (Array.isArray(c) && c.length) {
+                epgs.push(...c.filter(e => e.active && !epgs.includes(e.url)).map(e => e.url))
+            }
+
+            epgs.push(...cloudEPGs.filter(u => !epgs.includes(u)))
+
+            if (o?.epgs) {
+                for(const code of activeCountries) {
+                    if (o.epgs[code]) {
+                        epgs.push(...o.epgs[code].filter(u => !epgs.includes(u)))
+                    }
                 }
             }
-        }
-        
-        if(Array.isArray(global?.channels?.trending.currentRawEntries)) {
-            global.channels.trending.currentRawEntries.forEach(e => {
-                if(e.epg) {
-                    epgs.push(...parseCommaDelimitedURIs(e.epg).filter(u => !epgs.includes(u)))
-                }
-            })
+
+            if(Array.isArray(global?.channels?.trending.currentRawEntries)) {
+                global.channels.trending.currentRawEntries.forEach(e => {
+                    if(e.epg) {
+                        epgs.push(...parseCommaDelimitedURIs(e.epg).filter(u => !epgs.includes(u)))
+                    }
+                })
+            }
         }
 
         if (!epgs.length) return epgs
@@ -558,6 +570,9 @@ class Lists extends ListsEPGTools {
         this.discovery = new Discovery(this)
         this.loader = new Loader(this)
         this.manager = new Manager(this)
+        // The profile is applied when entries are read, never to the databases,
+        // so switching profile/age only needs the read caches to be dropped.
+        this.contentProfile.on('changed', state => this.handleContentProfileChange(state))
         this.communityRetryDismissed = false
         this.loader.on('community-idle', info => {
             if (this.manager && typeof this.manager.onCommunityIdle === 'function') {
@@ -665,6 +680,18 @@ class Lists extends ListsEPGTools {
         // This ensures manual additions are processed even if not cached
         if (newLists.length > 0) {
             this.loader.enqueue(newLists, 1).catch(err => console.error('Error enqueueing new lists:', err));
+        }
+    }
+    handleContentProfileChange(state) {
+        if (this.manager) {
+            this.manager.clearFetchCache()
+        }
+        this.dropStaleProfileLists()
+        this._relevantKeywords = null
+        this.applyChannelTermsIndex()
+        this.emit('content-profile-changed', state)
+        if (global.channels && typeof global.channels.emit == 'function') {
+            global.channels.emit('content-profile-changed', state)
         }
     }
     handleCommunityListsAmountChange(data, force) {
@@ -886,8 +913,95 @@ class Lists extends ListsEPGTools {
         }
         return this.isUpdaterFinished;
     }
+    /**
+     * Splits a tag ("music video", "US: CNN") into the same terms the list indexer
+     * stores on `nameTerms`, so a tag can be matched against a list database.
+     */
+    keywordTerms(tag) {
+        let terms = []
+        try {
+            terms = this.tools?.terms ? this.tools.terms(tag) : String(tag || '').toLowerCase().split(/\s+/)
+        } catch (err) {
+            terms = String(tag || '').toLowerCase().split(/\s+/)
+        }
+        return (terms || []).filter(t => typeof t == 'string' && t.length > 2 && t != '|' && !t.startsWith('-'))
+    }
+    /** Turns a tag collection ({tag: weight} or [tag]) into indexer coverage groups. */
+    keywordGroups(tags) {
+        const groups = [], seen = new Set()
+        const list = Array.isArray(tags) ? tags : Object.keys(tags || {})
+        for (const tag of list) {
+            const terms = this.keywordTerms(tag)
+            if (!terms.length) continue
+            const key = terms.join(' ')
+            if (seen.has(key)) continue
+            seen.add(key)
+            groups.push({ terms })
+        }
+        return groups
+    }
+    relevantKeywordsSignature(tags, profile) {
+        const keys = obj => Object.keys(obj || {}).sort().join(',')
+        const suggestions = tags?.searchSuggestionEntries
+        return [
+            typeof profile?.effective == 'function' ? profile.effective() : '',
+            typeof profile?.maxAge == 'function' ? profile.maxAge() : '',
+            lang.locale || '',
+            keys(tags?.manualTags),
+            keys(tags?.caching?.programmes),
+            keys(tags?.caching?.trending),
+            Array.isArray(suggestions) ? suggestions.length : 0
+        ].join('|')
+    }
+    /**
+     * Vocabulary used to rank community lists, in three tiers of decreasing
+     * authority: what the viewer asked for (interests + watch history), what the
+     * content profile stands for, and the generic defaults coming from the lists
+     * and trends. Weights are applied by List.checkRelevance(), so a list strong
+     * on the viewer's own vocabulary outranks one that only matches the defaults.
+     */
     async relevantKeywords() {
-        return global.channels?.channelList?.getKeywords?.() || [];
+        const tags = global.recommendations?.tags
+        const profile = this.contentProfile
+        const signature = this.relevantKeywordsSignature(tags, profile)
+        if (this._relevantKeywords && this._relevantKeywordsSig === signature) {
+            return this._relevantKeywords
+        }
+        const userTags = { ...(tags?.manualTags || {}), ...(tags?.caching?.programmes || {}) }
+        const profileTags = { ...(profile?.seedTags?.() || {}) }
+        const profileDef = typeof profile?.definition == 'function' ? (profile.definition(profile.effective()) || {}) : {}
+        ;(profileDef.terms || []).forEach(term => {
+            profileTags[term] = Math.max(profileTags[term] || 0, 1)
+        })
+        const filterTags = typeof profile?.filterDefaultTags == 'function' ? profile.filterDefaultTags.bind(profile) : (t => t)
+        const suggestions = Array.isArray(tags?.searchSuggestionEntries) ? tags.searchSuggestionEntries : []
+        const searchTags = {}
+        suggestions.slice(0, 48).forEach(e => {
+            const term = typeof e == 'string' ? e : ((e && (e.term || e.name || e.query)) || '')
+            if (term) searchTags[term] = 1
+        })
+        // Trending and most-searched vocabulary is global, so it may carry words
+        // the profile forbids (adult words under kids/religious, for instance).
+        const trendingTags = filterTags({ ...(tags?.caching?.trending || {}) })
+        const searchedTags = filterTags(searchTags)
+        let channelsKeywords = []
+        try {
+            channelsKeywords = await (global.channels?.channelList?.getKeywords?.() || [])
+        } catch (err) {
+            console.error('relevantKeywords: channel keywords unavailable', err?.message || err)
+        }
+        const channelsGroups = (Array.isArray(channelsKeywords) ? channelsKeywords : []).filter(g => Array.isArray(g?.terms) && g.terms.length)
+        const defaultGroups = this.keywordGroups(searchedTags).slice(0, 24)
+            .concat(this.keywordGroups(trendingTags).slice(0, 24))
+            .concat(channelsGroups.slice(0, 24))
+        const ret = [
+            { weight: 0.6, groups: this.keywordGroups(userTags).slice(0, 32) },
+            { weight: 0.3, groups: this.keywordGroups(profileTags).slice(0, 24) },
+            { weight: 0.1, groups: defaultGroups.slice(0, 64) }
+        ].filter(tier => tier.groups.length)
+        this._relevantKeywords = ret
+        this._relevantKeywordsSig = this.relevantKeywordsSignature(tags, profile)
+        return ret
     }
     async loadCachedLists(lists, alreadyFiltered = false) {
         let hits = 0;
@@ -1585,10 +1699,50 @@ class Lists extends ListsEPGTools {
         });
         return ret;
     }
+    isProfileList(url) { // lists bundled by the content profile in force (e.g. the adult list)
+        const profile = this.contentProfile
+        if (!profile || typeof profile.listsForDiscovery != 'function') {
+            return false
+        }
+        return profile.listsForDiscovery().includes(url)
+    }
+    dropStaleProfileLists() { // profile lists left behind by a previously selected content profile
+        const profile = this.contentProfile
+        if (!profile || typeof profile.allProfileListUrls != 'function') {
+            return []
+        }
+        // Keep the lists of the profile in force even when it is temporarily
+        // suspended by the parental age, so lifting the restriction does not
+        // force a new download of them.
+        const code = typeof profile.profile == 'function' ? profile.profile() : null
+        const keep = (code && typeof profile.listsForProfile == 'function')
+            ? profile.listsForProfile(code)
+            : (typeof profile.listsForDiscovery == 'function' ? profile.listsForDiscovery() : [])
+        const stale = profile.allProfileListUrls().filter(u => !keep.includes(u))
+        const myLists = Array.isArray(this.myLists) ? this.myLists : []
+        const removed = []
+        for (const url of stale) {
+            if (myLists.includes(url) || !this.lists[url]) {
+                continue // never drop a list the user added by hand
+            }
+            this.requesting[url] = 'destroyed on content profile change'
+            this.remove(url)
+            removed.push(url)
+        }
+        return removed
+    }
     sortCommunityLists() { // return community lists urls by relevance not including my lists
+        const profileLists = Object.keys(this.lists).filter(u => this.isProfileList(u))
         return Object.keys(this.lists).filter(u => {
             return this.lists[u]?.origin == 'community'
         }).sort((a, b) => {
+            // Lists of the content profile in force come first, so trimming the
+            // excess never drops the only content the profile has of its own.
+            const profileA = profileLists.includes(a) ? 1 : 0
+            const profileB = profileLists.includes(b) ? 1 : 0
+            if (profileA != profileB) {
+                return profileB - profileA
+            }
             if(this.lists[b].isConnectableResult != this.lists[a].isConnectableResult) {
                 return this.lists[b].isConnectableResult - this.lists[a].isConnectableResult
             }
@@ -1596,6 +1750,7 @@ class Lists extends ListsEPGTools {
         }).map(u => this.lists[u].url)
     }
     trim() {
+        this.dropStaleProfileLists()
         const publicListsActive = config.get('public-lists');
         const communityListsAmount = this.communityListsAmount;
         const communityListsQuota = Math.max(communityListsAmount - this.myLists.length, 0);
@@ -1639,6 +1794,9 @@ class Lists extends ListsEPGTools {
             // Clear per-list cache when list is removed
             if (this.index && typeof this.index.clearListCache === 'function') {
                 this.index.clearListCache(u);
+            }
+            if (this.manager) {
+                this.manager.clearFetchCache(u);
             }
             
             list.destroy();

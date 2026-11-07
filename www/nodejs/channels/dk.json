@@ -39,28 +39,28 @@
     },
     {
       "name": "TV 2/Bornholm",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tv 2 bornholm | tv2 bornholm",
       "shortName": "TV 2/Bornholm",
       "priority": 5
     },
     {
       "name": "TV 2/Lorry",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tv 2 lorry | tv2 lorry",
       "shortName": "TV 2/Lorry",
       "priority": 5
     },
     {
       "name": "TV 2/Østjylland",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tv 2 østjylland | tv2 østjylland",
       "shortName": "TV 2/Østjylland",
       "priority": 5
     },
     {
       "name": "0-TV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://0-tv.dk/",
       "priority": 5
     },
@@ -72,55 +72,55 @@
     },
     {
       "name": "Canal6000",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canal6000.dk/",
       "priority": 5
     },
     {
       "name": "Canal 9",
-      "isFree": true,
+      "isFree": null,
       "website": "http://canal9.dk/",
       "priority": 5
     },
     {
       "name": "Christiania",
-      "isFree": true,
+      "isFree": null,
       "website": "https://christiania.tv/",
       "priority": 5
     },
     {
       "name": "DanmarkC",
-      "isFree": true,
+      "isFree": null,
       "website": "https://danmarkc.tv/",
       "priority": 5
     },
     {
       "name": "Deaf",
-      "isFree": true,
+      "isFree": null,
       "website": "https://deaftv.dk/",
       "priority": 5
     },
     {
       "name": "Discovery",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryplus.dk/kanaler/discovery/",
       "priority": 7
     },
     {
       "name": "Dit lokal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ditlokaltv.dk/",
       "priority": 5
     },
     {
       "name": "dk 4",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.dk4.dk/",
       "priority": 5
     },
     {
       "name": "DR",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.dr.dk/dr1/",
       "priority": 5
     },
@@ -132,25 +132,25 @@
     },
     {
       "name": "DRTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dr.dk/drtv/",
       "priority": 5
     },
     {
       "name": "Frederiksberg Lokal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://frederiksberglokaltv.dk/",
       "priority": 5
     },
     {
       "name": "Fynbo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://fynbotv.dk/",
       "priority": 5
     },
     {
       "name": "HAS",
-      "isFree": true,
+      "isFree": null,
       "website": "https://hastv.dk/",
       "priority": 5
     },
@@ -174,7 +174,7 @@
     },
     {
       "name": "Kanalvest",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kanalvest.dk/",
       "priority": 5
     },
@@ -186,55 +186,55 @@
     },
     {
       "name": "Koge.tv",
-      "isFree": true,
+      "isFree": null,
       "website": "https://koege.tv/",
       "priority": 5
     },
     {
       "name": "KulturKanalen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kultur-kanalen.dk",
       "priority": 5
     },
     {
       "name": "Middelfart Lokal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://middelfart.tv/",
       "priority": 5
     },
     {
       "name": "MTV Denmark",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.mtv.dk/",
       "priority": 5
     },
     {
       "name": "Provins",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.provinstv.dk/",
       "priority": 5
     },
     {
       "name": "Roskilde",
-      "isFree": true,
+      "isFree": null,
       "website": "https://roskildetv.dk/",
       "priority": 5
     },
     {
       "name": "Sydfyn",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sydfyntv.dk/",
       "priority": 5
     },
     {
       "name": "TLC",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tlcdanmark.dk/",
       "priority": 5
     },
     {
       "name": "TV 2",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tv 2 -charlie -fri -fyn -kosmopol -news -nord -salto -sport -x -zulu",
       "website": "https://tv2.dk/",
       "priority": 5
@@ -265,13 +265,13 @@
     },
     {
       "name": "TV 2 Zulu",
-      "isFree": true,
+      "isFree": null,
       "website": "http://zulu.tv2.dk/",
       "priority": 5
     },
     {
       "name": "TV 3",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tv3 -max -puls -sport",
       "website": "https://www.viafree.dk/kanal/tv3",
       "priority": 5
@@ -296,103 +296,103 @@
     },
     {
       "name": "TV Avisen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dr.dk/drtv/kanal/drtv_192099",
       "priority": 5
     },
     {
       "name": "TV Fano",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvfano.dk/",
       "priority": 5
     },
     {
       "name": "TV Fionia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvfionia.dk/",
       "priority": 5
     },
     {
       "name": "TV from the Danish Parliament",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ft.dk/da/aktuelt/tv-fra-folketinget",
       "priority": 5
     },
     {
       "name": "TV Glad",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tv-glad.dk/",
       "priority": 5
     },
     {
       "name": "TV Kant",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvkant.dk/",
       "priority": 5
     },
     {
       "name": "TV Kobenhavn",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvkobenhavn.dk/",
       "priority": 5
     },
     {
       "name": "TV Kronjylland",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tv-kronjylland.dk/",
       "priority": 5
     },
     {
       "name": "TVMarineret",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tvmarineret.org/",
       "priority": 5
     },
     {
       "name": "TV Midtvest",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvmidtvest.dk/",
       "priority": 5
     },
     {
       "name": "TV Nordkysten",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvnordkysten.dk/",
       "priority": 5
     },
     {
       "name": "TV Storbyen",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.kanalnordvest.dk/",
       "priority": 5
     },
     {
       "name": "TV SYD",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvsyd.dk/",
       "priority": 5
     },
     {
       "name": "TV Vestjylland",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvvestjylland.dk/",
       "priority": 5
     },
     {
       "name": "TV Vestsjaelland",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvvestsjaelland.dk/",
       "priority": 5
     },
     {
       "name": "Vesterbro Lokal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vesterbrolokaltv.dk/",
       "priority": 5
     },
     {
       "name": "Xee",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -407,7 +407,7 @@
     },
     {
       "name": "TV 2 Sport",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
@@ -417,7 +417,7 @@
     },
     {
       "name": "TV 2/Nord",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -437,12 +437,12 @@
     },
     {
       "name": "V Sport Golf",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "V Sport",
-      "isFree": null,
+      "isFree": false,
       "keywords": "v sport -golf",
       "priority": 10
     },
@@ -453,58 +453,58 @@
     },
     {
       "name": "Viasat Film",
-      "isFree": null,
+      "isFree": false,
       "keywords": "viasat film -classic -comedy -drama -nordic",
       "priority": 5
     },
     {
       "name": "Viasat Film Classic",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Viasat Film Comedy",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Viasat Film Drama",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Viasat Film Nordic",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "TV3 Sport 2",
-      "isFree": null,
+      "isFree": true,
       "priority": 10
     },
     {
       "name": "MTV",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Nickelodeon Global",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Nick Jr.",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Nicktoons",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Paramount Network",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -514,37 +514,37 @@
     },
     {
       "name": "VH1 Classic",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Club MTV",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Hits",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Live",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV 80s",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV 90s",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV 00s",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -574,32 +574,32 @@
     },
     {
       "name": "C More Sport",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "C More Action",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "C More Emotion",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "C More Film",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Aitio",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "C More Kids",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -609,42 +609,42 @@
     },
     {
       "name": "MTV Viihde",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "C More Tennis",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Investigation Discovery Europe",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Eurosport",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Eurosport 2",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Discovery Channel Denmark",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Discovery Science",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Cartoonito",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -654,7 +654,7 @@
     },
     {
       "name": "Travel Channel International",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -664,47 +664,47 @@
     },
     {
       "name": "Discovery World",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Boomerang Europe#Nordics",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Disney",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Disney Junior",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Disney XD",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "National Geographic",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "National Geographic Wild",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Nat Geo People",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "BBC News",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -719,7 +719,7 @@
     },
     {
       "name": "BBC Earth",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -734,22 +734,22 @@
     },
     {
       "name": "Al Jazeera English",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Bloomberg Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "DW-TV",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Euronews",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -759,17 +759,17 @@
     },
     {
       "name": "France 24",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Mezzo",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "History",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
@@ -779,27 +779,27 @@
     },
     {
       "name": "Viasat Explore",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Viasat History",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "E!",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "CNBC Europe",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky News",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -829,12 +829,12 @@
     },
     {
       "name": "Kanal København",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "KTV Kolding",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -892,13 +892,13 @@
     },
     {
       "name": "DR Ultra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dr.dk/ultra",
       "priority": 5
     },
     {
       "name": "Nickelodeon",
-      "isFree": true,
+      "isFree": false,
       "website": "http://nickelodeon.dk/",
       "priority": 5
     }
@@ -920,13 +920,13 @@
   "News": [
     {
       "name": "KobenhavnLIV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kobenhavnliv.dk/",
       "priority": 5
     },
     {
       "name": "TV 2 News",
-      "isFree": true,
+      "isFree": null,
       "website": "http://news.tv2.dk/",
       "priority": 5
     }
@@ -935,13 +935,13 @@
   "Sports": [
     {
       "name": "Sport Live",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sport-live.dk/",
       "priority": 10
     },
     {
       "name": "TV 2 Sport X",
-      "isFree": true,
+      "isFree": false,
       "website": "https://sport.tv2.dk/sportx",
       "priority": 10
     },
@@ -955,19 +955,19 @@
   "Music Videos": [
     {
       "name": "Uptown Classic",
-      "isFree": true,
+      "isFree": null,
       "website": "https://uptown.tv/",
       "priority": 5
     },
     {
       "name": "Uptown Dansk Musik",
-      "isFree": true,
+      "isFree": null,
       "website": "https://uptown.tv/",
       "priority": 5
     },
     {
       "name": "Uptown Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://uptown.tv/",
       "priority": 5
     }

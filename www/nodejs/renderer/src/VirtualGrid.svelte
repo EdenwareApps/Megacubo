@@ -173,6 +173,9 @@
 		}
 		
 		const { rows, y_positions } = getItemsDimensionsMatrix();
+		if (!rows.length) {
+			return false;
+		}
 
 		let index_row = 0;
 		while (index_row < rows.length) {
@@ -190,15 +193,15 @@
 		}
 		
 		if(top < scrollTop || top > (scrollTop + viewport_height)) {
+			// The mandatory scroll-snap must stay off until the rows around the target position
+			// are rendered, otherwise it pulls the viewport back to the nearest rendered row.
+			viewport.style.scrollSnapType = 'none';
 			let element;
-			while (!element) {
-				element = document.querySelector('[tabindex="'+ index +'"]')
-				if (viewport) {
-					viewport.style.scrollSnapType = 'none'
-					viewport.scrollTop = scrollTop = top
-				}
+			for (let i = 0; i < 30 && !element; i++) {
+				viewport.scrollTop = scrollTop = top;
 				await tick();
 				await refresh();
+				element = document.querySelector('[tabindex="'+ index +'"]');
 			}
 			setTimeout(() => {
 				if (viewport) {
@@ -207,6 +210,7 @@
 			}, 100);
 			return true;
 		}
+		return false;
 	}
 
 	async function handle_scroll() {

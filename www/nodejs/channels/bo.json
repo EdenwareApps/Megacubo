@@ -865,7 +865,7 @@
     },
     {
       "name": "TV OFF",
-      "isFree": true,
+      "isFree": false,
       "website": "https://tvoff.tv/",
       "priority": 5
     },

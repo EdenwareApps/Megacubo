@@ -87,236 +87,236 @@
     },
     {
       "name": "Mass media in Bangladesh",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Telecommunications in Bangladesh",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Bangladesh Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "BTV News",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Sangsad Bangladesh Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "BTV Khulna",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "BTV Mymensingh",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "BTV Rajshahi",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "BTV Rangpur",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "BTV Sylhet",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Channel i",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Ekushey Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "NTV",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "RTV",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Banglavision",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "My",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Mohona Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Maasranga Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Channel 9",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "GTV",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Global Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Green",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Channel S",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Somoy",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Independent Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Ekattor",
-      "isFree": null,
+      "isFree": true,
       "keywords": "ekattor",
       "priority": 5,
       "website": "https://ekattor.tv/"
     },
     {
       "name": "Jamuna Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Star News",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Nexus Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Ekhon",
-      "isFree": null,
+      "isFree": true,
       "keywords": "ekhon",
       "website": "https://www.ekhon.tv/",
       "priority": 5
     },
     {
       "name": "Gaan Bangla",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "STV-US",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Channel",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "CSB News",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Islamic",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Diganta Television",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Channel 16",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Amar",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Cambrian",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Channel 21",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Channel 52",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Khela",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Live",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Next",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Prime",
-      "isFree": null,
+      "isFree": true,
       "priority": 6
     },
     {
       "name": "TV Today",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     }
   ],

@@ -1,0 +1,55 @@
+diff --git a/node_modules/youtubei.js/dist/src/parser/classes/comments/CommentView.js b/node_modules/youtubei.js/dist/src/parser/classes/comments/CommentView.js
+index 6d35da7..98c7383 100644
+--- a/node_modules/youtubei.js/dist/src/parser/classes/comments/CommentView.js
++++ b/node_modules/youtubei.js/dist/src/parser/classes/comments/CommentView.js
+@@ -7,6 +7,17 @@ import CommentReplyDialog from './CommentReplyDialog.js';
+ import VoiceReplyContainerView from './VoiceReplyContainerView.js';
+ import { encodeCommentActionParams } from '../../../utils/ProtoUtils.js';
+ import { InnertubeError } from '../../../utils/Utils.js';
++// Pattern built from a string so that runtimes lacking Unicode property escapes (V8 bundled with
++// nodejs-mobile on Android / Node 18) fall back to an explicit symbol filter instead of throwing a
++// SyntaxError while loading this module.
++const UNSUPPORTED_CHARS_RE = (() => {
++    try {
++        return new RegExp('[^\\p{L}\\p{N}\\p{P}\\p{Z}]', 'gu');
++    }
++    catch {
++        return /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202f\u2060-\u206f\u2600-\u27bf\u{1f000}-\u{1faff}\ufe0e\ufe0f\u{e0020}-\u{e007f}]/gu;
++    }
++})();
+ export default class CommentView extends YTNode {
+     static type = 'CommentView';
+     #actions;
+@@ -204,7 +215,7 @@ export default class CommentView extends YTNode {
+         if (!this.content)
+             throw new InnertubeError('Comment content not found.', { comment_id: this.comment_id });
+         // Emojis must be removed otherwise InnerTube throws a 400 status code at us.
+-        const text = this.content.toString().replace(/[^\p{L}\p{N}\p{P}\p{Z}]/gu, '');
++        const text = this.content.toString().replace(UNSUPPORTED_CHARS_RE, '');
+         const payload = { text, target_language };
+         const action = encodeCommentActionParams(22, payload);
+         const response = await this.#actions.execute('comment/perform_comment_action', { action });
+diff --git a/node_modules/youtubei.js/dist/src/parser/classes/misc/Text.js b/node_modules/youtubei.js/dist/src/parser/classes/misc/Text.js
+index 54f783d..a9a304e 100644
+--- a/node_modules/youtubei.js/dist/src/parser/classes/misc/Text.js
++++ b/node_modules/youtubei.js/dist/src/parser/classes/misc/Text.js
+@@ -11,6 +11,10 @@ export function escape(text) {
+         .replace(/"/g, '&quot;')
+         .replace(/'/g, '&#039;');
+ }
++// Explicit code point ranges instead of `\p{Emoji}`: the binary Unicode property escape is not
++// supported by the V8 bundled with nodejs-mobile on Android (Node 18), which made the whole bundle
++// fail to compile at load time.
++const EMOJI_ONLY_RE = /^[\u200d\ufe0e\ufe0f\u00a9\u00ae\u203c\u2049\u2122\u2139\u2190-\u21ff\u2300-\u23ff\u25a0-\u25ff\u2600-\u27bf\u2900-\u297f\u2b00-\u2bff\u3030\u303d\u3297\u3299\u{1f000}-\u{1faff}\u{1f1e6}-\u{1f1ff}\u{e0020}-\u{e007f}]+$/u;
+ const TAG = 'Text';
+ /**
+  * Represents text content that may include formatting, emojis, and navigation endpoints.
+@@ -180,7 +184,7 @@ export default class Text {
+                 const offset_start_index = attachment_run.startIndex - matching_run.startIndex;
+                 const text = matching_run.text.substring(offset_start_index, offset_start_index + attachment_run.length);
+                 const is_custom_emoji = (/^:[^:]+:$/).test(text);
+-                if (attachment_run.element?.type?.imageType?.image && (is_custom_emoji || (/^(?:\p{Emoji}|\u200d)+$/u).test(text))) {
++                if (attachment_run.element?.type?.imageType?.image && (is_custom_emoji || EMOJI_ONLY_RE.test(text))) {
+                     const emoji = {
+                         image: attachment_run.element.type.imageType.image,
+                         isCustomEmoji: is_custom_emoji,

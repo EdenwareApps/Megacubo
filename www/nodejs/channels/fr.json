@@ -2,12 +2,12 @@
   "Entertainment": [
     {
       "name": "A2i Music",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "A2i",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -16,22 +16,22 @@
       "retransmits": "Arte",
       "shortName": "Arte",
       "website": "https://www.arte.tv",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "Alpe d'Huez",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.alpe.tv/a-propos",
       "priority": 5
     },
     {
       "name": "Amuse Animation",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Antenne Reunion",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -47,31 +47,31 @@
       "retransmits": "Arte",
       "shortName": "Arte",
       "website": "https://www.arte.tv",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "Atelier des chefs",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BIP",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Big Names",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Bob l'éponge",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "CATFISH",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -81,69 +81,69 @@
     },
     {
       "name": "C Star",
-      "isFree": true,
+      "isFree": null,
       "keywords": "c star -hits -france | cstar",
       "priority": 5
     },
     {
       "name": "Caillou",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Central",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Classical Harmony",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Clubbing",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "D5TV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DBM",
-      "isFree": true,
+      "isFree": null,
       "keywords": "dbm",
       "priority": 5
     },
     {
       "name": "Dieu",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Dora",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Dossiers FBI",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "EMCI",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "FailArmy",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Femmes De Loi",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -180,42 +180,42 @@
     },
     {
       "name": "Francophonie",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Francophonie 24",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Fuel",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Gaming",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Generations",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Humanity",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "IGN",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ILTV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -225,194 +225,189 @@
     },
     {
       "name": "LEEEKO",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "La Chaine Normande",
-      "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "La Chaîne normande",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Les Cordier",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Les Nouveaux Detectives",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Louis La Brocante",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Luxe",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
-      "name": "M 6",
-      "isFree": true,
-      "keywords": "m6 -international",
-      "website": "https://www.6play.fr",
-      "priority": 5,
       "_alt_origName": [
         "M6 (TV channel)"
-      ]
+      ],
+      "name": "M 6",
+      "isFree": null,
+      "keywords": "m6 -international",
+      "website": "https://www.6play.fr",
+      "priority": 5
     },
     {
       "name": "M6 International",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MADE",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MDL",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MTV CLASSICS",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Moods",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "My Surf",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MyComedy",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Nancy Web",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ONE GOLF",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Obosso",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "P2M",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Passion Fiction",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "People are Awesome",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Plus Belle La Vie",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Qwest Classical",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Qwest Jazz and Beyond",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Qwest TV MIX",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "RMC",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sofy",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sport en France",
-      "isFree": true,
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "Spotlight",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Stormcast Novelas",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Supertoons",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TF",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tf1 -series -films",
       "website": "https://www.tf1.fr",
       "priority": 5
     },
     {
       "name": "TF1 Series Films",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TFX",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TMA",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TMC",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TROLL",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -433,27 +428,27 @@
     },
     {
       "name": "TVPI",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "The Pet Collective",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Tortues Ninja",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Trace Urban",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "W 9",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -463,57 +458,58 @@
     },
     {
       "name": "iCarly",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "viaMirabelle",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "viàMATÉLÉ",
-      "isFree": true,
-      "priority": 5
+      "isFree": null,
+      "priority": 5,
+      "website": "https://viamatele.tv/"
     },
     {
       "name": "13eme Rue",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.13emerue.fr/",
       "priority": 5
     },
     {
       "name": "20 Minutes",
-      "isFree": true,
+      "isFree": null,
       "website": "https://20minutes.tv",
       "priority": 5
     },
     {
       "name": "4 Afghanistan",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "4 Turk",
-      "isFree": true,
+      "isFree": null,
       "website": "https://4turk.persiana.live/",
       "priority": 5
     },
     {
       "name": "6ter",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.6play.fr/6ter",
       "priority": 5
     },
     {
       "name": "AB",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.ab1.tv/",
       "priority": 5
     },
     {
       "name": "Adult Swim",
-      "isFree": null,
+      "isFree": false,
       "website": "https://www.warnertvnext.fr/",
       "priority": 5
     },
@@ -525,48 +521,48 @@
     },
     {
       "name": "Al Faydatou Tidjania",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Angers Tele",
-      "isFree": true,
+      "isFree": null,
       "website": "https://angerstele.fr/",
       "priority": 5
     },
     {
       "name": "AraBel",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.arabel.fm/",
       "priority": 5
     },
     {
       "name": "Assemblee Nationale",
-      "isFree": true,
+      "isFree": null,
       "website": "http://videos.assemblee-nationale.fr/",
       "priority": 5
     },
     {
       "name": "Astrocenter",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mon.astrocenter.fr/tv/en-direct",
       "priority": 5
     },
     {
       "name": "ASTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tele-astv.fr/",
       "priority": 5
     },
     {
       "name": "Automoto la chaine",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.automoto-lachaine.fr/",
       "priority": 5
     },
     {
       "name": "Beffroi Vision",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.beffroi-vision.fr/",
       "priority": 5
     },
@@ -578,162 +574,163 @@
     },
     {
       "name": "BET",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.betchannel.fr/",
       "priority": 5
     },
     {
       "name": "Beur",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BFM Alsace",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bfmtv.com/alsace/",
       "priority": 5
     },
     {
       "name": "Brionnais",
-      "isFree": true,
+      "isFree": null,
       "website": "https://brionnais.tv/",
       "priority": 5
     },
     {
       "name": "B Smart",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bsmart.fr/",
       "priority": 5
     },
     {
       "name": "C 8",
-      "isFree": true,
+      "isFree": null,
       "website": "http://c8.fr/",
       "priority": 5
     },
     {
       "name": "Canal 32",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canal32.fr/",
       "priority": 5
     },
     {
       "name": "Canal Gambsheim",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canalgambsheim.fr/",
       "priority": 5
     },
     {
       "name": "Canal Local Grosblie",
-      "isFree": true,
+      "isFree": null,
       "website": "https://canallocalgrosblie.tv/",
       "priority": 5
     },
     {
       "name": "Canal+",
+      "isFree": false,
       "keywords": "canalplus -action -centre -myanmar -ouest -box -office -caraibes -cinema -reunion -cinemas -decale -docs -elles -family -foot -formula -1 -grand -ecran -ha -kids -motogp -pop -premier -league -premiere -series -sport -2 -3 -360 -4 -5 -sports -top -14",
       "website": "https://www.canalplus.com",
       "priority": 5
     },
     {
       "name": "Canal+ Caraibes",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.canalplus-caraibes.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Decale",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Elles Centre",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Elles Ouest",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Family",
-      "isFree": true,
+      "isFree": false,
       "keywords": "canalplus family -centre -ouest",
       "website": "https://www.canalplus.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Family Centre",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Family Ouest",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Ha Ha!",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ MotoGP",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Premiere Centre",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.canalplus-afrique.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Premiere Ouest",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.canalplus-afrique.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Premier League",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.canalplus.fr",
       "priority": 5
     },
     {
       "name": "Canal+ Top 14",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.canalplus.fr",
       "priority": 5
     },
     {
       "name": "Canal Schilick",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ville-schiltigheim.fr/canal-schilick/",
       "priority": 5
     },
     {
       "name": "Cannes Lerins",
-      "isFree": true,
+      "isFree": null,
       "website": "https://lerins-radio.fr/",
       "priority": 5
     },
     {
       "name": "Chasse & Peche",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.chasseetpechetv.fr/",
       "priority": 5
     },
     {
       "name": "Clique",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.clique.tv/",
       "priority": 5
     },
@@ -745,30 +742,30 @@
     },
     {
       "name": "Comedie+",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.comedieplus.fr/",
       "priority": 5
     },
     {
       "name": "Comedy Central",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.comedycentral.fr/",
       "priority": 5
     },
     {
       "name": "Cuisines",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Demain",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.demain.fr/",
       "priority": 5
     },
     {
       "name": "Discovery",
-      "isFree": true,
+      "isFree": false,
       "website": "https://discoveryfrance.fr/discoverychannel",
       "priority": 7,
       "_alt_origName": [
@@ -777,54 +774,54 @@
     },
     {
       "name": "Dreamsee Television",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dreamsee.tv",
       "priority": 5
     },
     {
       "name": "E!",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.eonline.com/",
       "priority": 5
     },
     {
       "name": "EDAN",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "FashionTV Asia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
     {
       "name": "FashionTV Czech&Slovak",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tvfashion.eu/",
       "priority": 5
     },
     {
       "name": "FashionTV Europe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
     {
       "name": "FashionTV F Men",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
     {
       "name": "FashionTV Johannesburg",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
     {
       "name": "FashionTV L'Original",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
@@ -836,56 +833,56 @@
     },
     {
       "name": "FashionTV New York",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
     {
       "name": "FashionTV Paris",
-      "isFree": true,
+      "isFree": null,
       "keywords": "fashiontv paris -l -original",
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
     {
       "name": "FashionTV Paris L'Original",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
     {
       "name": "FashionTV PG 13",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
     {
       "name": "FashionTV PG 16",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
     {
       "name": "FashionTV Secrets",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
     {
       "name": "FashionTV Singapore",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
     {
       "name": "FashionTV Tokyo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
     {
       "name": "FashionTV UHD",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
@@ -897,63 +894,63 @@
     },
     {
       "name": "FX",
-      "isFree": true,
+      "isFree": false,
       "website": "https://fxtv.wns.live/",
       "priority": 5
     },
     {
       "name": "FX 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://toonix.wns.live/",
       "priority": 5
     },
     {
       "name": "Game One Music",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Grand Geneve",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "HANDICAP",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.handicaptv.tv/",
       "priority": 5
     },
     {
       "name": "HLIVE",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Hotbird 4K",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.eutelsat.com/en/services/broadcast/ultra-hd/hotbird-4k1.html",
       "priority": 5
     },
     {
       "name": "ici Elsass",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.francebleu.fr/elsass",
       "priority": 5
     },
     {
       "name": "IMEARTH",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.imearth.tv/",
       "priority": 5
     },
     {
       "name": "Iran Nama",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ivoire TV 5",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ivoiretv5.com/",
       "priority": 5
     },
@@ -965,7 +962,7 @@
     },
     {
       "name": "La Chaine 32",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ville-coudekerque-branche.fr/",
       "priority": 5
     },
@@ -977,156 +974,156 @@
     },
     {
       "name": "Le Figaro TV Ile de France",
-      "isFree": true,
+      "isFree": null,
       "website": "https://video.lefigaro.fr/",
       "priority": 5
     },
     {
       "name": "L'intelligent",
-      "isFree": true,
+      "isFree": null,
       "website": "https://lintelligent.tv/",
       "priority": 5
     },
     {
       "name": "Loupe",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Maison & Travaux",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.maison-travaux.fr/",
       "priority": 5
     },
     {
       "name": "Mandarin",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mandarintv.fr/",
       "priority": 5
     },
     {
       "name": "Maritima",
-      "isFree": true,
+      "isFree": null,
       "website": "https://maritima.fr/",
       "priority": 5
     },
     {
       "name": "Marmiton",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.marmiton.org/",
       "priority": 5
     },
     {
       "name": "Maurienne",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.maurienne.tv/",
       "priority": 5
     },
     {
       "name": "Men's UP",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mensup.fr/",
       "priority": 5
     },
     {
       "name": "Mistral",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mistraltv.fr/",
       "priority": 5
     },
     {
       "name": "Monte Carlo Digital Television",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Mosaik Cristal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mosaik-cristal.tv/",
       "priority": 5
     },
     {
       "name": "Moselle",
-      "isFree": true,
+      "isFree": null,
       "website": "https://moselle.tv/",
       "priority": 5
     },
     {
       "name": "MTV",
-      "isFree": true,
+      "isFree": false,
       "keywords": "mtv -classics -hits",
       "website": "http://www.mtv.fr/",
       "priority": 5
     },
     {
       "name": "MyZen Nature",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.myzen.tv/",
       "priority": 5
     },
     {
       "name": "My Zen",
-      "isFree": true,
+      "isFree": null,
       "keywords": "my zen tv | myzen tv -4k",
       "website": "https://www.myzen.tv/",
       "priority": 5
     },
     {
       "name": "MyZen TV 4K",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.myzen.tv/",
       "priority": 5
     },
     {
       "name": "Nathan",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "NA",
-      "isFree": true,
+      "isFree": null,
       "website": "https://natv.fr/",
       "priority": 5
     },
     {
       "name": "Nina TV English",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.nina-tv.com/en",
       "priority": 5
     },
     {
       "name": "Nina TV French",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.nina-tv.com/",
       "priority": 5
     },
     {
       "name": "Nolife",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nolife-tv.com",
       "priority": 5
     },
     {
       "name": "Nollywood TV Epic",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nollywoodtv.fr/",
       "priority": 5
     },
     {
       "name": "Non Stop People",
-      "isFree": true,
+      "isFree": null,
       "website": "http://non-stop-tv.fr/",
       "priority": 5
     },
     {
       "name": "Novo 19",
-      "isFree": true,
+      "isFree": null,
       "keywords": "novo 19 | novo19",
       "priority": 5
     },
     {
       "name": "Novocomedy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://novocomedy.com/channel/",
       "priority": 5
     },
@@ -1138,13 +1135,13 @@
     },
     {
       "name": "OCS",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ocs -choc -city -generation -hbo -geants -happy -max -novo -pulp",
       "priority": 5
     },
     {
       "name": "OCS City generation HBO",
-      "isFree": true,
+      "isFree": false,
       "priority": 6
     },
     {
@@ -1155,91 +1152,91 @@
     },
     {
       "name": "OCtele",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.octele.com/",
       "priority": 5
     },
     {
       "name": "Olympia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canalplus.com/chaines/olympia-tv/",
       "priority": 5
     },
     {
       "name": "Paris Premiere",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.6play.fr/pp",
       "priority": 5
     },
     {
       "name": "Persiana Comedy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Game & Tech",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Reality",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Science",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.persianagroup.tv/live/persiana-science",
       "priority": 5
     },
     {
       "name": "Persiana Turkiye",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.persianagroup.tv/live/persiana-turkiye",
       "priority": 5
     },
     {
       "name": "Persiana Two",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.persianagroup.tv/live/persiana-two",
       "priority": 5
     },
     {
       "name": "Piwi+",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.piwi.tv/",
       "priority": 5
     },
     {
       "name": "Planete+",
-      "isFree": true,
+      "isFree": null,
       "keywords": "planeteplus -aventure -crime -thalassa",
       "website": "http://planeteplus.com/",
       "priority": 5
     },
     {
       "name": "Planete+ Aventure",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canalplus.com/chaines/les-chaines-planete",
       "priority": 5
     },
     {
       "name": "Planete+ Thalassa",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.planeteplus.com/",
       "priority": 5
     },
     {
       "name": "Polar+",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Proximus TV RegInfo",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.pickx.be/",
       "priority": 5
     },
@@ -1251,25 +1248,25 @@
     },
     {
       "name": "Puissance",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.puissancetelevision.fr/play/direct",
       "priority": 5
     },
     {
       "name": "Radio Frontieres",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.frontieresmedia.fr/",
       "priority": 5
     },
     {
       "name": "Radio Mont Blanc",
-      "isFree": true,
+      "isFree": null,
       "website": "https://radiomontblanc.fr/",
       "priority": 5
     },
     {
       "name": "RFM",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.rfm.fr/videos/RFMTV",
       "priority": 5
     },
@@ -1281,7 +1278,7 @@
     },
     {
       "name": "RMC Life",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rmcbfmplay.com/chaine/rmc-life",
       "priority": 5
     },
@@ -1293,170 +1290,170 @@
     },
     {
       "name": "Science & Vie",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.science-et-vie.tv/",
       "priority": 5
     },
     {
       "name": "Seasons",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Senat Direct",
-      "isFree": true,
+      "isFree": null,
       "website": "https://videos.senat.fr/direct",
       "priority": 5
     },
     {
       "name": "Serie Club",
-      "isFree": true,
+      "isFree": null,
       "website": "https://pro.m6.fr/serieclub/",
       "priority": 5
     },
     {
       "name": "Sikka",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Studiocanal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.studiocanal.com/",
       "priority": 5
     },
     {
       "name": "Sud1ere",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sud Radio",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sudradio.fr/",
       "priority": 5
     },
     {
       "name": "Syfy",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.syfy.fr/",
       "priority": 5
     },
     {
       "name": "Tebeo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tebeo.bzh/",
       "priority": 5
     },
     {
       "name": "TebeSud",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TeleAntilles",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.teleantilles.com/",
       "priority": 5
     },
     {
       "name": "Tele Bocal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://telebocal.org/",
       "priority": 5
     },
     {
       "name": "TeleGohelle",
-      "isFree": true,
+      "isFree": null,
       "website": "https://telegohelle.agglo-lenslievin.fr/",
       "priority": 5
     },
     {
       "name": "TeleGrenoble",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.telegrenoble.net/",
       "priority": 5
     },
     {
       "name": "Telenantes",
-      "isFree": true,
+      "isFree": null,
       "website": "https://telenantes.ouest-france.fr/",
       "priority": 5
     },
     {
       "name": "Telesud",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.telesud.com/",
       "priority": 5
     },
     {
       "name": "Television Locale du Choletais",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tlc-cholet.fr/",
       "priority": 5
     },
     {
       "name": "Teva",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.6play.fr/teva",
       "priority": 5
     },
     {
       "name": "TiVi5 Monde",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TL 7",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tl7.fr/",
       "priority": 5
     },
     {
       "name": "TLC",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.hbomax.com/",
       "priority": 5
     },
     {
       "name": "TLVA",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tlva.fr/",
       "priority": 5
     },
     {
       "name": "Top Sante",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.topsante.com/",
       "priority": 5
     },
     {
       "name": "Toute l'Histoire",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.toutelhistoire.com/",
       "priority": 5
     },
     {
       "name": "Trek",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.trekhd.tv/",
       "priority": 5
     },
     {
       "name": "TTN",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.ttn.tv",
       "priority": 5
     },
     {
       "name": "TV2COM",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tv2com.fr/",
       "priority": 5
     },
     {
       "name": "TV3V",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tv3v.fr/",
       "priority": 5
     },
@@ -1517,7 +1514,7 @@
     },
     {
       "name": "TV7 Bordeaux",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -1528,89 +1525,84 @@
     },
     {
       "name": "TV Breizh",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvbreizh.fr/",
       "priority": 5
     },
     {
       "name": "TV Erstein",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tverstein.fr/",
       "priority": 5
     },
     {
       "name": "TV Pitchoun",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tv pitchoun -kids -music",
       "priority": 5
     },
     {
       "name": "TV Pitchoun Kids Music",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Sud Provence",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tvsudprovence.fr/",
       "priority": 5
     },
     {
       "name": "TV Tarn",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvtarn.fr/",
       "priority": 5
     },
     {
       "name": "TV Tours",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvtours.fr/",
       "priority": 5
     },
     {
       "name": "TV Vendee",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvvendee.fr/",
       "priority": 5
     },
     {
       "name": "Unearth",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Ushuaia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ushuaiatv.fr/",
-      "priority": 5
+      "priority": 5,
+      "keywords": "ushuaia tv -for -change"
     },
     {
       "name": "Via 93",
-      "isFree": true,
+      "isFree": null,
       "website": "https://via93.tv/",
       "priority": 5
     },
     {
       "name": "ViaGuadeloupe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://viaatv.tv/",
       "priority": 5
     },
     {
       "name": "ViaGuyane",
-      "isFree": true,
+      "isFree": null,
       "website": "https://viaatv.tv/",
       "priority": 5
     },
     {
-      "name": "ViaMatele",
-      "isFree": true,
-      "website": "https://viamatele.tv/",
-      "priority": 5
-    },
-    {
       "name": "Via Occitanie",
-      "isFree": true,
+      "isFree": null,
       "keywords": "via occitanie | viaoccitanie -montpellier -pays -catalan -gardois -toulouse",
       "website": "https://viaoccitanie.tv/",
       "priority": 5
@@ -1641,42 +1633,42 @@
     },
     {
       "name": "viaTelePaese",
-      "isFree": true,
+      "isFree": null,
       "website": "https://viatelepaese.tv/",
       "priority": 5
     },
     {
       "name": "VL Media",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vl-media.fr/",
       "priority": 5
     },
     {
       "name": "Voir +",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Vosges",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.viavosges.tv/",
       "priority": 5
     },
     {
       "name": "Wataaa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.wataaatv.com/",
       "priority": 5
     },
     {
       "name": "WatsUp",
-      "isFree": true,
+      "isFree": null,
       "website": "https://watsup.tv/",
       "priority": 5
     },
     {
       "name": "Weo",
-      "isFree": true,
+      "isFree": null,
       "keywords": "weo -picardie",
       "website": "https://www.weo.fr/",
       "priority": 5
@@ -1685,11 +1677,6 @@
       "name": "Weo Picardie",
       "isFree": true,
       "website": "https://www.weo.fr/",
-      "priority": 5
-    },
-    {
-      "name": "Automoto La chaîne",
-      "isFree": null,
       "priority": 5
     },
     {
@@ -1712,7 +1699,7 @@
     },
     {
       "name": "beIN Sports",
-      "isFree": null,
+      "isFree": false,
       "_alt_origName": [
         "beIN Sports (France)"
       ],
@@ -1730,22 +1717,17 @@
     },
     {
       "name": "France 3 Via Stella",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "France Info",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Golf Channel France",
-      "isFree": null,
-      "priority": 5
-    },
-    {
-      "name": "TF1 Séries Films",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -1767,13 +1749,8 @@
       "priority": 5
     },
     {
-      "name": "RMC Découverte",
-      "isFree": null,
-      "priority": 5
-    },
-    {
       "name": "RTL 9",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -1793,37 +1770,37 @@
     },
     {
       "name": "Al Jazeera English",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Boomerang",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Cinéma",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Foot",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Sport",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Canal+ Sport 360",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Cartoon Network",
-      "isFree": null,
+      "isFree": false,
       "_alt_origName": [
         "Cartoon Network (France)"
       ],
@@ -1831,7 +1808,7 @@
     },
     {
       "name": "Cartoonito",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -1841,7 +1818,7 @@
     },
     {
       "name": "CNBC Europe",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -1850,18 +1827,13 @@
       "priority": 5
     },
     {
-      "name": "Comédie+",
-      "isFree": null,
-      "priority": 5
-    },
-    {
       "name": "DAZN",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Discovery Channel France",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
@@ -1893,12 +1865,12 @@
     },
     {
       "name": "Investigation Discovery",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "I24news",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -1918,42 +1890,32 @@
     },
     {
       "name": "MTV Hits",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "National Geographic",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Nickelodeon",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "NRJ Hits",
-      "isFree": null,
-      "priority": 5
-    },
-    {
-      "name": "Paris Première",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Public Sénat",
-      "isFree": null,
-      "priority": 5
-    },
-    {
-      "name": "Série Club",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Turner Classic Movies",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -1968,12 +1930,6 @@
       "priority": 5
     },
     {
-      "name": "Ushuaïa",
-      "isFree": null,
-      "keywords": "ushuaia tv -for -change",
-      "priority": 5
-    },
-    {
       "name": "Baby",
       "isFree": null,
       "priority": 5
@@ -1985,7 +1941,7 @@
     },
     {
       "name": "Canal+ Kids",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2000,11 +1956,6 @@
     },
     {
       "name": "MCM",
-      "isFree": null,
-      "priority": 5
-    },
-    {
-      "name": "Planète+ Aventure",
       "isFree": null,
       "priority": 5
     },
@@ -2025,17 +1976,17 @@
     },
     {
       "name": "Canal+ Séries",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Club MTV",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "NickToons",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2065,7 +2016,7 @@
     },
     {
       "name": "Canal+ S.A",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2075,7 +2026,7 @@
     },
     {
       "name": "Boing",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2115,7 +2066,7 @@
     },
     {
       "name": "HGTV",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2130,7 +2081,7 @@
     },
     {
       "name": "Nat Geo Music",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2160,7 +2111,7 @@
     },
     {
       "name": "France Ô",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2180,12 +2131,12 @@
     },
     {
       "name": "Discovery Real Time France",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Discovery Family",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
@@ -2215,22 +2166,17 @@
     },
     {
       "name": "MTV Pulse",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Base",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Idol",
-      "isFree": null,
-      "priority": 5
-    },
-    {
-      "name": "Planète+ Thalassa",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2255,7 +2201,7 @@
     },
     {
       "name": "TV 6",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2285,7 +2231,7 @@
     },
     {
       "name": "Canal+ 3D",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2321,7 +2267,7 @@
     },
     {
       "name": "Sundance",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2336,7 +2282,7 @@
     },
     {
       "name": "Ciné FX",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2382,22 +2328,22 @@
     },
     {
       "name": "Discovery Science",
-      "isFree": null,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Disney XD",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Disney Jr",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Nat Geo Wild",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2412,17 +2358,17 @@
     },
     {
       "name": "Paramount Network",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Wéo Nord Pas de Calais",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "FOX Life",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2442,16 +2388,6 @@
     },
     {
       "name": "BFM Nice Côte d'Azur",
-      "isFree": null,
-      "priority": 5
-    },
-    {
-      "name": "Tébéo",
-      "isFree": null,
-      "priority": 5
-    },
-    {
-      "name": "Télénantes",
       "isFree": null,
       "priority": 5
     },
@@ -2476,16 +2412,6 @@
       "priority": 5
     },
     {
-      "name": "TébéSud",
-      "isFree": null,
-      "priority": 5
-    },
-    {
-      "name": "Télévision locale du Choletais",
-      "isFree": null,
-      "priority": 5
-    },
-    {
       "name": "TV 7",
       "isFree": null,
       "priority": 5
@@ -2496,13 +2422,8 @@
       "priority": 5
     },
     {
-      "name": "TV Vendée",
-      "isFree": null,
-      "priority": 5
-    },
-    {
       "name": "Berry Issoudun Première",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2547,7 +2468,7 @@
     },
     {
       "name": "CNews Prime",
-      "isFree": null,
+      "isFree": true,
       "priority": 6
     },
     {
@@ -2557,7 +2478,7 @@
     },
     {
       "name": "Eurosport 360",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
@@ -2644,7 +2565,7 @@
     },
     {
       "name": "Eurochannel",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2854,17 +2775,17 @@
     },
     {
       "name": "France TV Docs",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "France TV Roland Garros",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "France TV Séries",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2974,7 +2895,7 @@
     },
     {
       "name": "Bravo",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -2989,7 +2910,7 @@
     },
     {
       "name": "Canal 15",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2999,7 +2920,7 @@
     },
     {
       "name": "Canal Bis",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -3069,7 +2990,7 @@
     },
     {
       "name": "KZTV",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -3109,7 +3030,7 @@
     },
     {
       "name": "NRJ Paris",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
@@ -3219,7 +3140,7 @@
     },
     {
       "name": "Canal+ A la demande",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -3244,7 +3165,7 @@
     },
     {
       "name": "SFR Sport",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
@@ -3319,7 +3240,7 @@
     },
     {
       "name": "Planète+ A&E",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -3379,17 +3300,17 @@
     },
     {
       "name": "RMC Sport News",
-      "isFree": null,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "France TV Paris 2024",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Canal+ Ligue",
-      "isFree": null,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -3424,22 +3345,197 @@
     },
     {
       "name": "Mezzo",
-      "isFree": true,
+      "isFree": false,
       "keywords": "mezzo -live",
       "website": "https://www.mezzo.tv/",
       "priority": 5
     },
     {
       "name": "Fashion",
-      "isFree": true,
+      "isFree": null,
       "keywords": "fashion tv -new -york -paris -mumbai -pg13 -pg16 -singapore -tokyo -uhd",
       "website": "https://www.fashiontv.com/",
       "priority": 5
     },
     {
       "name": "Mezzo Live",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mezzo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Arirang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KBS World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AXN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "tvN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "BBC Earth",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "History",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Channel",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Food Network",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Lifetime",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Crime & Investigation",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "TF1",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "france.tv slash",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Une",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Trois",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tipik",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTS 1",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTS 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SRF 1",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SRF zwei",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ZDF",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Das Erste",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VOX",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La 1",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RAI 1",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RAI 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RAI 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rai Storia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ORTM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "2STV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CRTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vox Africa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "2M Maroc",
+      "isFree": null,
       "priority": 5
     }
   ],
@@ -3508,17 +3604,32 @@
       "name": "viàVosges",
       "isFree": true,
       "priority": 5
+    },
+    {
+      "name": "Polynesie 1ere",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Guyane 1ere",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nouvelle-Caledonie 1ere",
+      "isFree": true,
+      "priority": 5
     }
   ],
   "News": [
     {
       "name": "BFM Business",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BFM",
-      "isFree": true,
+      "isFree": null,
       "keywords": "bfm tv -vertical | bfmtv",
       "priority": 5
     },
@@ -3574,12 +3685,12 @@
     },
     {
       "name": "RT France",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "AFP",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.afp.com/fr/afp-tv",
       "priority": 5
     },
@@ -3616,31 +3727,31 @@
     },
     {
       "name": "BFM Cote d'Azur",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bfmtv.com/cote-d-azur/",
       "priority": 5
     },
     {
       "name": "BFM DICI Alpes du Sud",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bfmtv.com/bfm-dici/alpes-du-sud/",
       "priority": 5
     },
     {
       "name": "BFM DICI Haute Provence",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bfmtv.com/bfm-dici/haute-provence/",
       "priority": 5
     },
     {
       "name": "BFM Marseille",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bfmtv.com/marseille/",
       "priority": 5
     },
     {
       "name": "BFM Normandie",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bfmtv.com/normandie/",
       "priority": 5
     },
@@ -3652,7 +3763,7 @@
     },
     {
       "name": "BFM Tech & Co",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bfmtv.com/tech/",
       "priority": 5
     },
@@ -3664,13 +3775,13 @@
     },
     {
       "name": "BFM Var",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bfmtv.com/var/",
       "priority": 5
     },
     {
       "name": "Euromed",
-      "isFree": true,
+      "isFree": null,
       "website": "https://euromedtv.net/",
       "priority": 5
     },
@@ -3730,67 +3841,112 @@
     },
     {
       "name": "Geneve Region Television",
-      "isFree": true,
+      "isFree": null,
       "website": "https://grtv.news/",
       "priority": 5
     },
     {
       "name": "Kanal Turan",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.kanalturan.com/",
       "priority": 5
     },
     {
       "name": "La Chaine Meteo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.lachainemeteo.com/",
       "priority": 5
     },
     {
       "name": "Le Figaro Live",
-      "isFree": true,
+      "isFree": null,
       "website": "https://video.lefigaro.fr/",
       "priority": 5
     },
     {
       "name": "Le Media",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.lemediatv.fr/",
       "priority": 5
     },
     {
       "name": "Lyon Capitale",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.lyoncapitale.fr/lyon-capitale-tv-en-direct",
       "priority": 5
     },
     {
       "name": "NCA",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nca-tv.com/",
       "priority": 5
     },
     {
       "name": "Tele Toulouse",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Finance",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvfmedia.fr/",
       "priority": 5
     },
     {
       "name": "TVLibertes",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvl.fr",
       "priority": 5
     },
     {
       "name": "Ubiznews",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ubiznewstv.com/",
+      "priority": 5
+    },
+    {
+      "name": "DW",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NHK World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CGTN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CCTV-4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABC Australia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNBC",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "N-TV",
+      "isFree": null,
       "priority": 5
     }
   ],
@@ -3807,145 +3963,166 @@
     },
     {
       "name": "Gulli",
-      "isFree": true,
+      "isFree": null,
       "keywords": "gulli -bil -arabi",
       "priority": 5
     },
     {
       "name": "Gulli Bil Arabi",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ADN TV+",
-      "isFree": true,
+      "isFree": null,
       "website": "https://animationdigitalnetwork.fr/live",
       "priority": 5
     },
     {
       "name": "Al Rawda",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Canal J",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canalj.fr/",
       "priority": 5
     },
     {
       "name": "Disney",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.disneychannel.fr/",
       "priority": 5
     },
     {
       "name": "Game One",
-      "isFree": true,
+      "isFree": null,
       "keywords": "game one -music -hd",
       "website": "https://gameone.net",
       "priority": 5
     },
     {
       "name": "Gong Max",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.gongnetworks.com/",
       "priority": 5
     },
     {
       "name": "Gulli Africa",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.gulli.fr/",
       "priority": 5
     },
     {
       "name": "J One",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.j-one.com/",
       "priority": 5
     },
     {
       "name": "Ludikids",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ludikids.com/",
       "priority": 5
     },
     {
       "name": "Nickelodeon Junior",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.nickelodeonjunior.fr/",
       "priority": 5
     },
     {
       "name": "Nickelodeon Teen",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nickelodeon.fr/",
       "priority": 5
     },
     {
       "name": "Persiana Junior",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Teen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "TeleToon Africa",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.teletoonplus.fr/",
       "priority": 5
     },
     {
       "name": "Teletoon+",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.teletoonplus.fr/",
       "priority": 5
     },
     {
       "name": "TiJi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tiji.fr/",
       "priority": 5
     },
     {
       "name": "Toonami",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.adultswim.com/videos/toonami",
       "priority": 5
     },
     {
       "name": "Warner TV Next",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.warnertvnext.fr",
       "priority": 5
     },
     {
       "name": "XilamTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://xilam.com/en/",
+      "priority": 5
+    },
+    {
+      "name": "CBeebies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Baby TV",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Disney Channel",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Super RTL",
+      "isFree": true,
       "priority": 5
     }
   ],
   "Cooking": [
     {
       "name": "Tastemade France",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
   "Sports": [
     {
       "name": "Trace Sport Stars",
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "4 Sports",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 10
     },
@@ -3957,400 +4134,405 @@
     },
     {
       "name": "Canal+ Formula",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Sport 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mycanal.fr/sport/",
       "priority": 10
     },
     {
       "name": "Canal+ Sport 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mycanal.fr/sport/",
       "priority": 10
     },
     {
       "name": "Canal+ Sport 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mycanal.fr/sport/",
       "priority": 10
     },
     {
       "name": "Canal+ Sport 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mycanal.fr/sport/",
       "priority": 10
     },
     {
       "name": "Canal+ Sport Reunion",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.canalplus.fr/pid1747-c-sport.html",
       "priority": 10
     },
     {
       "name": "Canal+ Sports Myanmar",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Equidia Pro",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.equidia.fr/",
       "priority": 5
     },
     {
       "name": "Equidia Pro 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.equidia.fr/",
       "priority": 5
     },
     {
       "name": "Eurosport",
-      "isFree": true,
+      "isFree": false,
       "keywords": "eurosport -1 -2 -3 -360 -hd -4 -5 -6 -7 -8 -9 -4k",
       "website": "https://www.eurosport.fr/",
       "priority": 10
     },
     {
       "name": "Eurosport 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.eurosport.fr/",
       "priority": 10
     },
     {
       "name": "Eurosport 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Eurosport 360 HD",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Eurosport 360 HD 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Eurosport 360 HD 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Eurosport 360 HD 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Eurosport 360 HD 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Eurosport 360 HD 6",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Eurosport 360 HD 7",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Eurosport 360 HD 8",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Eurosport 360 HD 9",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Eurosport 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Eurosport 4K",
-      "isFree": true,
+      "isFree": false,
       "website": "https://4k.eurosport.ru/",
       "priority": 10
     },
     {
       "name": "Eurosport 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Eurosport 6",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Eurosport 7",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Eurosport 8",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Eurosport 9",
-      "isFree": true,
+      "isFree": false,
       "website": "https://eurosport.com/",
       "priority": 10
     },
     {
       "name": "Fighting Spirit",
-      "isFree": true,
+      "isFree": null,
       "website": "https://fighting.fr/",
       "priority": 5
     },
     {
       "name": "Foot+",
-      "isFree": true,
+      "isFree": null,
       "keywords": "footplus -24",
       "website": "http://www.canalsat.fr/",
       "priority": 5
     },
     {
       "name": "Golf",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.golfchannel.fr/",
       "priority": 5
     },
     {
       "name": "Kozoom",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tv.kozoom.com/",
       "priority": 5
     },
     {
       "name": "L'Equipe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.lequipe.fr/lachainelequipe/",
       "priority": 5
     },
     {
       "name": "Motorsport",
-      "isFree": true,
+      "isFree": null,
       "website": "https://motorsport.tv/",
       "priority": 10
     },
     {
       "name": "MultiSports",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.canalsat.fr/",
       "priority": 10
     },
     {
       "name": "MultiSports 2",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.canalsat.fr/",
       "priority": 10
     },
     {
       "name": "MultiSports 3",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.canalsat.fr/",
       "priority": 10
     },
     {
       "name": "MultiSports 4",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.canalsat.fr/",
       "priority": 10
     },
     {
       "name": "MultiSports 5",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.canalsat.fr/",
       "priority": 10
     },
     {
       "name": "MultiSports 6",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.canalsat.fr/",
       "priority": 10
     },
     {
       "name": "OL",
-      "isFree": true,
+      "isFree": null,
       "website": "https://olplay.ol.fr/en/",
       "priority": 5
     },
     {
       "name": "Persiana Fight",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Sports",
-      "isFree": true,
+      "isFree": null,
       "keywords": "persiana sports -2 -3 -4",
       "website": "https://persianagroup.tv/",
       "priority": 10
     },
     {
       "name": "Persiana Sports 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.persianagroup.tv/",
       "priority": 10
     },
     {
       "name": "Persiana Sports 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.persianagroup.tv/",
       "priority": 10
     },
     {
       "name": "Persiana Sports 4",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.persianagroup.tv/",
       "priority": 10
     },
     {
       "name": "Poker",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "RMC Sport",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport Access",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport Access 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport Live 10",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport Live 11",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport Live 12",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport Live 13",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport Live 14",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport Live 15",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport Live 16",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport Live 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport Live 6",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport Live 7",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport Live 8",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RMC Sport Live 9",
-      "isFree": true,
+      "isFree": false,
       "website": "https://rmcsport.bfmtv.com/",
       "priority": 10
     },
     {
       "name": "RugbyZone",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rugbyzone.tv/",
+      "priority": 5
+    },
+    {
+      "name": "SPOTV",
+      "isFree": false,
       "priority": 5
     }
   ],
@@ -4392,7 +4574,7 @@
     },
     {
       "name": "Canal+ Docs",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus.com/",
       "priority": 5
     },
@@ -4457,7 +4639,7 @@
     },
     {
       "name": "National Geographic Wild",
-      "isFree": true,
+      "isFree": false,
       "website": "http://natgeotv.com/fr",
       "priority": 7
     },
@@ -4500,60 +4682,60 @@
   "Music Videos": [
     {
       "name": "MCM Top",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TZiK",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "4Kurd",
-      "isFree": true,
+      "isFree": null,
       "website": "https://4kurd.persiana.live/",
       "priority": 5
     },
     {
       "name": "4 Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://4music.persiana.live/",
       "priority": 5
     },
     {
       "name": "BAZIK",
-      "isFree": true,
+      "isFree": null,
       "keywords": "bazik tv -hot -rumba",
       "website": "https://bazik.tv/",
       "priority": 5
     },
     {
       "name": "BAZIK TV Hot",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bazik.tv/",
       "priority": 5
     },
     {
       "name": "BAZIK TV Rumba",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bazik.tv/",
       "priority": 5
     },
     {
       "name": "Bblack! Africa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bblackafrica-tv.com/",
       "priority": 5
     },
     {
       "name": "Bblack! Caribbean",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bblackcruise.com/media",
       "priority": 5
     },
     {
       "name": "Bblack! Classik",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bblackcruise.com/media",
       "priority": 5
     },
@@ -4565,158 +4747,158 @@
     },
     {
       "name": "Canal+ Pop Centre",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.canalplus-afrique.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Pop Ouest",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.canalplus-afrique.com/",
       "priority": 5
     },
     {
       "name": "C Star Hits France",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "D5Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://d5music.tv/live/",
       "priority": 5
     },
     {
       "name": "Fun Radio",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.funradio.fr/",
       "priority": 5
     },
     {
       "name": "Littoral FM",
-      "isFree": true,
+      "isFree": null,
       "website": "https://littoral.fm/",
       "priority": 5
     },
     {
       "name": "M6 Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.6play.fr/m6",
       "priority": 5
     },
     {
       "name": "MCM Pop",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.mcm.fr/mcm-pop/",
       "priority": 5
     },
     {
       "name": "Melody",
-      "isFree": true,
+      "isFree": null,
       "keywords": "melody -d -afrique",
       "website": "https://www.melody.tv/",
       "priority": 5
     },
     {
       "name": "Melody d'Afrique",
-      "isFree": true,
+      "isFree": null,
       "website": "https://melodydafrique.tv/",
       "priority": 5
     },
     {
       "name": "Mouv'",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mouv.fr/",
       "priority": 5
     },
     {
       "name": "My Gospel",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mygospeltv.fr/",
       "priority": 5
     },
     {
       "name": "OFIVE",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ofive.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Billboard",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Folk",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Nostalgia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Rap",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Sonnati",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Vibe",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Playloud",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.playloud.fr/index.php/playloud-tv/",
       "priority": 5
     },
     {
       "name": "Qwest",
-      "isFree": true,
+      "isFree": null,
       "keywords": "qwest tv -classical -jazz -beyond -mix",
       "website": "https://www.qwest.tv/",
       "priority": 5
     },
     {
       "name": "Qwest TV Classical",
-      "isFree": true,
+      "isFree": false,
       "website": "https://qwest.tv/",
       "priority": 5
     },
     {
       "name": "Qwest TV Jazz & Beyond",
-      "isFree": true,
+      "isFree": false,
       "website": "https://qwest.tv/",
       "priority": 5
     },
     {
       "name": "Radio Karaoke",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.radio-karaoke.com/",
       "priority": 5
     },
     {
       "name": "Radio Soleil des Tropiques",
-      "isFree": true,
+      "isFree": null,
       "website": "https://radio-soleil-des-tropiques.fr/",
       "priority": 5
     },
@@ -4728,49 +4910,49 @@
     },
     {
       "name": "RTVHF",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rtvhf.com/",
       "priority": 5
     },
     {
       "name": "Trace Africa",
-      "isFree": true,
+      "isFree": null,
       "website": "http://trace.tv/trace-africa/",
       "priority": 5
     },
     {
       "name": "Trace Afrikora",
-      "isFree": true,
+      "isFree": null,
       "website": "https://trace.company/activities/television/trace-afrikora/",
       "priority": 5
     },
     {
       "name": "Trace Ayiti",
-      "isFree": true,
+      "isFree": null,
       "website": "https://trace.company/activities/television/trace-ayiti/",
       "priority": 5
     },
     {
       "name": "Trace Brazuca",
-      "isFree": true,
+      "isFree": null,
       "website": "https://trace.company/activities/television/trace-brazuca/",
       "priority": 5
     },
     {
       "name": "Trace Hip Hop",
-      "isFree": true,
+      "isFree": null,
       "website": "http://fr.trace.tv/trace-urban/",
       "priority": 5
     },
     {
       "name": "Trace Jama",
-      "isFree": true,
+      "isFree": null,
       "website": "https://trace.company/activities/television/trace-jama/",
       "priority": 5
     },
     {
       "name": "Trace Kitoko",
-      "isFree": true,
+      "isFree": null,
       "website": "https://trace.company/activities/television/trace-kitoko/",
       "priority": 5
     },
@@ -4782,31 +4964,31 @@
     },
     {
       "name": "Trace Mboa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://fr.trace.tv/",
       "priority": 5
     },
     {
       "name": "Trace Muzika",
-      "isFree": true,
+      "isFree": null,
       "website": "https://trace.tv/traceprime/",
       "priority": 5
     },
     {
       "name": "Trace Mziki",
-      "isFree": true,
+      "isFree": null,
       "website": "https://trace.tv/trace-mziki/",
       "priority": 5
     },
     {
       "name": "Trace Naija",
-      "isFree": true,
+      "isFree": null,
       "website": "http://trace.tv/trace-naija/",
       "priority": 5
     },
     {
       "name": "Trace Vanilla Islands",
-      "isFree": true,
+      "isFree": null,
       "website": "https://trace.company/activities/television/trace-vanillaislands/",
       "priority": 5
     }
@@ -4814,183 +4996,188 @@
   "Movies & Series": [
     {
       "name": "Action Movies",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Comedy Movies",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Drama Movies",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Family Movies",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Movies Central",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Wildside",
+      "isFree": null,
       "keywords": "wild side tv | wildside tv",
-      "priority": 5,
-      "isFree": true
+      "priority": 5
     },
     {
       "name": "Afro Novelas",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novelas.tv/",
       "priority": 5
     },
     {
       "name": "Altice Studio",
-      "isFree": true,
+      "isFree": null,
       "website": "http://altice.net/",
       "priority": 5
     },
     {
       "name": "Canal+ Action Centre",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Action Myanmar",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Canal+ Action Ouest",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Box Office",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus.com/chaines/canal-plus-box-office/",
       "priority": 5
     },
     {
       "name": "Canal+ Cinema Centre",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.canalplus.fr/pid1748-c-cinema.html",
       "priority": 5
     },
     {
       "name": "Canal+ Cinema Ouest",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.canalplus.fr/pid1748-c-cinema.html",
       "priority": 5
     },
     {
       "name": "Canal+ Cinema Reunion",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.canalplus.fr/pid1748-c-cinema.html",
       "priority": 5
     },
     {
       "name": "Canal+ Cinemas",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.canalplus.fr/pid1748-c-cinema.html",
       "priority": 5
     },
     {
       "name": "Canal+ Grand Ecran",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus.com/",
       "priority": 5
     },
     {
       "name": "Canal+ Series",
-      "isFree": true,
+      "isFree": false,
       "keywords": "canalplus series -reunion",
       "website": "https://www.canalplus.com/series/",
       "priority": 5
     },
     {
       "name": "Canal+ Series Reunion",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus.com/series/",
       "priority": 5
     },
     {
       "name": "Cine Nanar",
-      "isFree": true,
+      "isFree": null,
       "website": "https://communityzylo7.wixsite.com/cine-nanar",
       "priority": 5
     },
     {
       "name": "Cine+ Classic",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canalplus.com/chaines/cine-plus-ocs/",
       "priority": 5
     },
     {
       "name": "Cine+ Club",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canalplus.com/chaines/cineplus",
       "priority": 5
     },
     {
       "name": "Cine+ Emotion",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canalplus.com/chaines/cine-plus-ocs/",
       "priority": 5
     },
     {
       "name": "Cine+ Family",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canalplus.com/chaines/cine-plus-ocs/",
       "priority": 5
     },
     {
       "name": "Cine+ Festival",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canalplus.com/chaines/cine-plus-ocs/",
       "priority": 5
     },
     {
       "name": "Cine+ Frisson",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canalplus.com/chaines/cine-plus-ocs/",
       "priority": 5
     },
     {
       "name": "Cine+ OCS",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ocs.fr/",
       "priority": 5
     },
     {
       "name": "Cine+ Premier",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canalplus.com/chaines/cineplus",
       "priority": 5
     },
     {
       "name": "Cine Western",
-      "isFree": true,
+      "isFree": null,
       "website": "https://communityzylo7.wixsite.com/cine-western-fr",
       "priority": 5
     },
     {
       "name": "Crime District",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.crimedistrict.tv/",
       "priority": 5
     },
     {
       "name": "Disney Cinema",
-      "isFree": true,
+      "isFree": false,
       "website": "http://tv.disney.fr/disney-cinema",
       "priority": 5
     },
     {
       "name": "Emotion L",
-      "isFree": true,
+      "isFree": null,
       "website": "https://communityzylo7.wixsite.com/emotionl",
       "priority": 5
     },
@@ -5002,190 +5189,190 @@
     },
     {
       "name": "Frequence Novelas",
-      "isFree": true,
+      "isFree": null,
       "website": "https://communityzylo7.wixsite.com/frequence-novelas",
       "priority": 5
     },
     {
       "name": "La Chaine FreeTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://oqee.tv/home/channels/1231/play",
       "priority": 5
     },
     {
       "name": "Nollywood",
-      "isFree": true,
+      "isFree": null,
       "keywords": "nollywood tv -epic",
       "website": "https://www.nollywoodtv.fr/",
       "priority": 5
     },
     {
       "name": "Novelas",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.novelas.tv/",
       "priority": 5
     },
     {
       "name": "OCS Choc",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.ocs.fr/ocschoc/",
       "priority": 5
     },
     {
       "name": "OCS City",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ocs city -generation -hbo",
       "website": "http://www.ocs.fr/ocscity/",
       "priority": 5
     },
     {
       "name": "OCS Geants",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.ocs.fr/ocsgeants/",
       "priority": 5
     },
     {
       "name": "OCS Max",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.ocs.fr/ocsmax/",
       "priority": 5
     },
     {
       "name": "OCS Novo",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.ocs.fr/",
       "priority": 5
     },
     {
       "name": "OCS Pulp",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.ocs.fr/",
       "priority": 5
     },
     {
       "name": "Paramount Channel Offset",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.paramountchannel.fr/",
       "priority": 5
     },
     {
       "name": "Persiana",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Cinema",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Classic",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Emirates",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Family",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Iranian",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Korea",
-      "isFree": true,
+      "isFree": null,
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Latino",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Plus",
-      "isFree": true,
+      "isFree": null,
       "keywords": "persiana plus -one",
       "website": "https://persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Plus One",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Persiana Series",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.persianagroup.tv/",
       "priority": 5
     },
     {
       "name": "Planete+ Crime",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.canalplus.com/chaines/les-chaines-planete",
       "priority": 5
     },
     {
       "name": "ScreamIN",
-      "isFree": true,
+      "isFree": null,
       "website": "https://communityzylo7.wixsite.com/screamin",
       "priority": 5
     },
     {
       "name": "Sony One Blacklist",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sony One Favoris",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sony One Hits Action",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sony One Hits Comedie",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sony One Series Comedie",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sony One Series Thriller",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "TCM Cinema",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.canalplus.com/chaines/tcm-cinema",
       "priority": 5
     },
     {
       "name": "Warner",
-      "isFree": true,
+      "isFree": null,
       "keywords": "warner tv -next",
       "website": "http://www.warnertv.fr/",
       "priority": 5

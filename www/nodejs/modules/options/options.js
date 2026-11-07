@@ -123,7 +123,6 @@ class PerformanceProfiles extends Timer {
         this.uiSetup = false;
         this.profiles = {
             high: {
-                'animate-background': 'slow-desktop',
                 'auto-test': true,
                 'autocrop-logos': true,
                 'broadcast-start-timeout': 40,
@@ -145,13 +144,11 @@ class PerformanceProfiles extends Timer {
                 'ui-sounds': true,
             },
             low: {
-                'animate-background': 'none',
                 'auto-test': false,
                 'autocrop-logos': false,
                 'broadcast-start-timeout': 60,
                 'connect-timeout': 20,
                 'read-timeout': 10,
-                'custom-background-video': '',
                 'epg': 'disabled',
                 'ffmpeg-broadcast-pre-processing': 'no',
                 'fx-nav-intensity': 0,
@@ -394,19 +391,6 @@ class OptionsExportImport extends OptionsGPU {
                 natts[k] = atts[k];
             }
         })
-        if (natts['custom-background-image']) {
-            const buf = Buffer.from(natts['custom-background-image'], 'base64');
-            fs.writeFileSync(global.theme.customBackgroundImagePath, buf);
-            natts['custom-background-image'] = global.theme.customBackgroundImagePath;
-        }
-        if (natts['custom-background-video']) {
-            const buf = Buffer.from(natts['custom-background-video'], 'base64');
-            const uid = parseInt(Math.random() * 1000);
-            const file = global.theme.customBackgroundVideoPath + '-' + uid + '.mp4';
-            fs.writeFileSync(file, buf);
-            natts['custom-background-video'] = file;
-            global.theme.cleanVideoBackgrounds(file);
-        }
         return natts;
     }
     prepareExportConfig(atts, keysToExport) {
@@ -421,22 +405,6 @@ class OptionsExportImport extends OptionsGPU {
                 }
             }
         });
-        if (typeof(natts['custom-background-image']) == 'string' && natts['custom-background-image']) {
-            let buf = fs.readFileSync(natts['custom-background-image']);
-            if (buf) {
-                natts['custom-background-image'] = buf.toString('base64');
-            } else {
-                delete natts['custom-background-image'];
-            }
-        }
-        if (typeof(natts['custom-background-video']) == 'string' && natts['custom-background-video']) {
-            let buf = fs.readFileSync(natts['custom-background-video']);
-            if (buf) {
-                natts['custom-background-video'] = buf.toString('base64');
-            } else {
-                delete natts['custom-background-video'];
-            }
-        }
         return natts;
     }
     async prepareExportConfigFile(file, atts, keysToExport) {
@@ -473,9 +441,6 @@ class OptionsExportImport extends OptionsGPU {
                         }
                         catch (e) {}
                     }
-                    if (entry.entryName.startsWith('Themes')) {
-                        zip.extractEntryTo(entry, path.dirname(global.theme.folder), true, true);
-                    }
                 }
                 if (imported.config) {
                     console.warn('CONFIG', imported.config);
@@ -505,7 +470,6 @@ class OptionsExportImport extends OptionsGPU {
             files.push(storage.resolve(key, 'dat'))
         });
         files.forEach(add);
-        add(global.theme.folder, 'Themes');
         add(icons.opts.folder, 'icons');
         const { temp } = paths;
         zip.writeZip(temp + '/megacubo.export.zip');
@@ -524,6 +488,34 @@ class Options extends OptionsExportImport {
             this.timerEntry()
         ];
         return entries;
+    }
+    contentProfileIcon(code) {
+        const icons = {
+            '': 'fas fa-globe',
+            adult: 'fas fa-user-secret',
+            sports: 'fas fa-futbol',
+            movies: 'fas fa-film',
+            series: 'fas fa-tv',
+            kids: 'fas fa-child',
+            anime: 'fas fa-dragon',
+            news: 'fas fa-newspaper',
+            'music-video': 'fas fa-music',
+            religious: 'fas fa-church'
+        }
+        return icons[code] || 'fas fa-user-tag'
+    }
+    /**
+     * Releasing +18 is always an explicit decision: the profile alone never
+     * raises the age behind the user's back.
+     */
+    async confirmAdultProfile() {
+        const ret = await menu.dialog([
+            { template: 'question', text: lang.CONTENT_PROFILE_ADULT_CONFIRM || lang.CONTENT_PROFILE, fa: 'fas fa-user-secret' },
+            { template: 'message', text: lang.CONTENT_PROFILE_ADULT_CONFIRM_HINT || lang.ADULT_CONTENT_BLOCKED_INFO },
+            { template: 'option', text: lang.YES, fa: 'fas fa-check-circle', id: 'yes' },
+            { template: 'option', text: lang.NO, fa: 'fas fa-times-circle', id: 'no' }
+        ], 'no').catch(err => console.error(err))
+        return ret == 'yes'
     }
     async showLanguageEntriesDialog() {
         const restart = config.get('community-mode-lists-amount');
@@ -568,7 +560,10 @@ class Options extends OptionsExportImport {
             }
             const countries = lang.countries.getCountriesFromLanguage(locale);
             const pcountries = lang.countries.orderCodesBy(countries, 'population', true).slice(0, 4);
-            await this.country([...pcountries, ...countries.filter(c => !pcountries.includes(c))], true).catch(err => console.error(err));
+            // the detected country and the closest candidates are offered first, before the
+            // most populous countries of the chosen language
+            const detected = [lang.countryCode, ...(lang.alternateCountries || [])].filter(c => c && lang.countries.countryCodeExists(c));
+            await this.country([...detected, ...pcountries, ...countries.filter(c => !pcountries.includes(c) && !detected.includes(c))], true).catch(err => console.error(err));
             restart && energy.restart();
         }
     }
@@ -1437,40 +1432,44 @@ class Options extends OptionsExportImport {
             { name: lang.LANGUAGE, details: lang.SELECT_LANGUAGE, fa: 'fas fa-language', type: 'action', action: () => this.showLanguageEntriesDialog() },
             { name: lang.COUNTRIES, details: lang.COUNTRIES_HINT, fa: 'fas fa-globe', type: 'group', renderer: () => this.countriesEntries() },
             { name: lang.CONTENT_PROFILE, details: lang.CONTENT_PROFILE_HINT, fa: 'fas fa-user-tag', type: 'select', renderer: async () => {
-                    const current = paths.EDITION
-                    const file = paths.data + '/EDITION.md'
-                    const set = async (code) => {
-                        // Sem BOM e sem quebra de linha: é a gramática que o instalador grava e
-                        // que o servidor espera (contrato C3).
-                        await fs.promises.writeFile(file, code, 'utf8');
-                        menu.refreshNow();
-                        energy.askRestart();
+                    const profile = global.lists?.contentProfile
+                    if (!profile) {
+                        return []
                     }
+                    const state = profile.state()
                     const opts = []
-                    // Um código que esta tela não conhece (ex.: `premium`, vindo da página de
-                    // preços) é mostrado, não apagado: escolher é ato explícito do usuário, e
-                    // sobrescrever o que ele não pediu para mudar seria perda silenciosa.
-                    if (current != 'generic' && current != 'ero') {
-                        opts.push({ name: lang.CONTENT_PROFILE_DETECTED.replace('%s', current), type: 'action', selected: true, action: async () => {} })
+                    if (state.suspended) {
+                        opts.push({ name: lang.CONTENT_PROFILE_SUSPENDED || profile.label('adult'), details: lang.CONTENT_PROFILE_SUSPENDED_HINT || '', fa: 'fas fa-lock', type: 'action', class: 'entry-disabled', action: async () => {} })
                     }
-                    opts.push({
-                        name: lang.CONTENT_PROFILE_GENERIC,
-                        type: 'action', selected: (current == 'generic'),
-                        action: async (data) => {
-                            if (current == 'generic')
-                                return;
-                            await set('generic');
-                        }
-                    }, {
-                        name: lang.CONTENT_PROFILE_ERO,
-                        type: 'action', selected: (current == 'ero'),
-                        action: async (data) => {
-                            if (current == 'ero')
-                                return;
-                            await set('ero');
-                        }
-                    });
-                    return opts;
+                    for (const code of profile.codes()) {
+                        opts.push({
+                            name: profile.label(code),
+                            type: 'action',
+                            fa: this.contentProfileIcon(code),
+                            selected: (state.profile == code),
+                            action: async () => {
+                                if (state.profile == code) {
+                                    return
+                                }
+                                if (code == 'adult' && !state.adultAllowed) {
+                                    // The profile alone never releases +18: ask for the age too.
+                                    const ok = await this.confirmAdultProfile()
+                                    if (!ok) {
+                                        return
+                                    }
+                                }
+                                if (code == 'adult' && !await lists.parentalControl.confirmAuth()) {
+                                    return
+                                }
+                                if (code == 'adult' && !state.adultAllowed) {
+                                    profile.setMaxAge(18)
+                                }
+                                profile.setProfile(code)
+                                menu.refreshNow()
+                            }
+                        })
+                    }
+                    return opts
                 } },
             secOpt,
             { name: lang.MANAGE_CHANNEL_LIST, fa: 'fas fa-stream', type: 'group', details: lang.LIVE, renderer: global.channels.options.bind(global.channels) },
@@ -1562,7 +1561,7 @@ class Options extends OptionsExportImport {
     }
     async hook(entries, path) {
         if (!path) {
-            const sopts = this.prm() ? [lang.RECORDINGS, lang.TIMER] : [lang.TIMER, lang.THEMES];
+            const sopts = this.prm() ? [lang.RECORDINGS, lang.TIMER] : [lang.TIMER, lang.CUSTOMIZE];
             const details = sopts.join(', ');
             const headerOptions = [
                 { name: lang.TOOLS, side: true, fa: 'fas fa-tools', type: 'group', details, renderer: this.tools.bind(this) },

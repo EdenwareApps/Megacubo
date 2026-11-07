@@ -7,12 +7,17 @@ import crypto from 'crypto'
 import config from "../config/config.js"
 import renderer from '../bridge/bridge.js'
 import { getDomain } from "../utils/utils.js";                                     
+import contentProfile from "../profiles/content-profile.js";
+
+const PIN_LENGTH = 4;
+const PIN_MAX_ATTEMPTS = 3;
                                         
 class ParentalControl extends EventEmitter {
     constructor() {
         super();
-        this.authTTL = 1800; // 30 minutes (increased from 10 minutes to reduce password prompts)
+        this.authTTL = 1800; // 30 minutes (increased from 10 minutes to reduce PIN prompts)
         this.termsRegex = false;
+        this.customTermsRegex = false;
         this.defaultTerms = []; // Terms from cloud (always active)
         this.customTerms = []; // Custom terms from user
         this.terms = []; // Combined terms (default + custom)
@@ -47,66 +52,189 @@ class ParentalControl extends EventEmitter {
             }
         });
     }
+    /**
+     * Maximum allowed age rating; 18 means +18 content is released.
+     * The age alone decides this - the content profile never relaxes it.
+     */
+    maxAge() {
+        return contentProfile.maxAge();
+    }
+    adultAllowed() {
+        return contentProfile.adultAllowed();
+    }
+    hasPin() {
+        return !!config.get('parental-control-pin');
+    }
+    hasLegacyPassword() {
+        return !!config.get('parental-control-pw');
+    }
+    installerAdultExemption() {
+        return contentProfile.isInstallerAdult();
+    }
+    /**
+     * Selectable age ratings. Only 18 releases +18 content.
+     */
+    ageValues() {
+        return [0, 7, 12, 13, 16, 18];
+    }
+    ageIcon(age) {
+        return {
+            0: 'fas fa-check-circle',
+            7: 'fas fa-child',
+            12: 'fas fa-user',
+            13: 'fas fa-user-friends',
+            16: 'fas fa-user-tie',
+            18: 'fas fa-user-secret'
+        }[age] || 'fas fa-user';
+    }
+    ageLabel(age) {
+        return lang['AGE_RATING_' + age + '_PLUS'] || (age ? age + '+' : '0+');
+    }
+    /**
+     * Persist the age rating. The content profile is never changed here: an
+     * adult profile stays remembered and is suspended while age < 18.
+     */
+    setAge(age) {
+        contentProfile.setMaxAge(age);
+        this.emit('updated');
+        osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal');
+    }
+    /**
+     * PIN gate used by shortcuts and dialogs.
+     * Returns false when the user cannot be authorized.
+     */
+    async confirmAuth() {
+        if (this.installerAdultExemption()) {
+            return true;
+        }
+        if (!this.hasPin() && !this.hasLegacyPassword()) {
+            const res = await menu.dialog([
+                { template: 'question', text: lang.PARENTAL_CONTROL, fa: 'fas fa-shield-alt' },
+                { template: 'message', text: lang.PIN_REQUIRED || 'Crie um PIN de 4 números para proteger o controle dos pais.' },
+                { template: 'option', id: 'setup', fa: 'fas fa-key', text: lang.PIN || 'PIN' }
+            ], 'parental-control-setup', true);
+            if (res != 'setup') {
+                return false;
+            }
+            return await this.setupPin().catch(err => {
+                console.error('Error setting up PIN:', err);
+                return false;
+            });
+        }
+        if (this.lazyAuth()) {
+            return true;
+        }
+        try {
+            await this.auth();
+            return true;
+        } catch (err) {
+            return false;
+        }
+    }
+    /**
+     * Age rating dialog, used by the keyboard shortcut.
+     * Returns the chosen age or false when cancelled/unauthorized.
+     */
+    async promptAge() {
+        if (!await this.confirmAuth()) {
+            return false;
+        }
+        const currentAge = this.maxAge();
+        const lines = [
+            { template: 'question', text: lang.AGE_RATING_MAXIMUM, fa: 'fas fa-calendar-alt' },
+            { template: 'message', text: lang.AGE_RATING_DESCRIPTION }
+        ];
+        if (contentProfile.isSuspended()) {
+            lines.push({
+                template: 'message',
+                text: lang.CONTENT_PROFILE_SUSPENDED_DESCRIPTION || 'O perfil Adulto está suspenso enquanto a idade máxima for menor que 18 anos. Ao voltar para 18+, ele é reativado automaticamente.'
+            });
+        }
+        const options = this.ageValues().map(age => ({
+            template: 'option',
+            id: 'age-' + age,
+            fa: age === currentAge ? 'fas fa-check-circle' : this.ageIcon(age),
+            text: this.ageLabel(age) + (age === currentAge ? ' ✓' : '')
+        }));
+        const optionId = await menu.dialog(lines.concat(options), 'parental-control-age', true);
+        if (!optionId) {
+            return false;
+        }
+        const age = parseInt(String(optionId).replace('age-', ''), 10);
+        if (isNaN(age)) {
+            return false;
+        }
+        this.setAge(age);
+        return age;
+    }
+    buildRegex(terms) {
+        if (!terms.length) {
+            return false;
+        }
+        // Escape all regex metacharacters (except ^ and $, handled below) so terms match literally
+        const escapeRegExp = (text) => text.replace(/[.*+?{}()|[\]\\]/g, '\\$&')
+        const rgx = terms
+            .map(escapeRegExp)
+            .join('|')
+            .replace(/[\^\$]/g, '(\\b|\\W)') // Keep ^ and $ as word-boundary markers
+        try {
+            return new RegExp(rgx, 'i')
+        } catch (err) {
+            console.error('Parental control terms invalid regex: '+ rgx, err);
+            return false;
+        }
+    }
     entry() {
         return {
             name: lang.PARENTAL_CONTROL, fa: 'fas fa-shield-alt', type: 'group',
             renderer: async () => {
-                // SECURITY: Force password creation if not set - cannot proceed without it
-                const password = config.get('parental-control-pw');
-                if (!password) {
-                    // Show clear message for parents
+                if (this.installerAdultExemption()) {
+                    // The adult installer profile stays trusted until the user changes it.
+                } else if (!this.hasPin() && !this.hasLegacyPassword()) {
                     await menu.dialog([
                         { template: 'question', text: lang.PARENTAL_CONTROL, fa: 'fas fa-shield-alt' },
-                        { template: 'message', text: lang.PARENTAL_CONTROL_SETUP_REQUIRED || 'A senha é obrigatória para proteger o controle dos pais. Por favor, crie uma senha agora.' },
+                        { template: 'message', text: lang.PIN_REQUIRED || 'Crie um PIN de 4 números para proteger o controle dos pais.' },
                         { template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK' }
                     ], 'parental-control-setup', true);
-                    
-                    // Force password creation - allow retry if user cancels or makes mistake
                     let setup = false;
                     let attempts = 0;
-                    const maxAttempts = 5; // Prevent infinite loop
+                    const maxAttempts = 5;
                     
                     while (!setup && attempts < maxAttempts) {
                         attempts++;
-                        setup = await this.setupAuth().catch(err => {
-                            console.error('Error setting up password:', err);
+                        setup = await this.setupPin().catch(err => {
+                            console.error('Error setting up PIN:', err);
                             return false;
                         });
                         
                         if (!setup) {
-                            // User cancelled or made mistake - ask if they want to try again
                             if (attempts < maxAttempts) {
                                 const retry = await menu.dialog([
                                     { template: 'question', text: lang.PARENTAL_CONTROL, fa: 'fas fa-shield-alt' },
-                                    { template: 'message', text: lang.PASSWORD_SETUP_FAILED || 'Password setup was not completed. Do you want to try again?' },
+                                    { template: 'message', text: lang.PIN_SETUP_FAILED || 'A configuração do PIN não foi concluída. Deseja tentar novamente?' },
                                     { template: 'option', id: 'yes', fa: 'fas fa-redo', text: lang.YES || 'Yes' },
                                     { template: 'option', id: 'no', fa: 'fas fa-times', text: lang.NO || 'No' }
                                 ], 'parental-control-retry', true);
                                 
                                 if (retry !== 'yes') {
-                                    // User chose not to retry
-                                    menu.displayErr(lang.PASSWORD_REQUIRED || 'A senha é obrigatória para acessar o controle dos pais');
+                                    menu.displayErr(lang.PIN_REQUIRED || 'Um PIN é obrigatório para acessar o controle dos pais');
                                     return [];
                                 }
                             } else {
-                                // Max attempts reached
-                                menu.displayErr(lang.PASSWORD_SETUP_MAX_ATTEMPTS || 'Muitas tentativas. Por favor, tente novamente mais tarde.');
+                                menu.displayErr(lang.PIN_SETUP_MAX_ATTEMPTS || 'Muitas tentativas. Por favor, tente novamente mais tarde.');
                                 return [];
                             }
                         }
                     }
                     
                     if (!setup) {
-                        // Password setup failed after all attempts
-                        menu.displayErr(lang.PASSWORD_REQUIRED || 'A senha é obrigatória para acessar o controle dos pais');
+                        menu.displayErr(lang.PIN_REQUIRED || 'Um PIN é obrigatório para acessar o controle dos pais');
                         return [];
                     }
                 } else {
-                    // Password exists, require authentication
                     try {
                         await this.auth();
                     } catch (err) {
-                        // Authentication failed - deny access
                         return [];
                     }
                 }
@@ -120,30 +248,23 @@ class ParentalControl extends EventEmitter {
                         fa: 'fas fa-calendar-alt',
                         safe: true,
                         renderer: async () => {
-                            // Only ask for password if not already authenticated
+                            // Only authenticate if not already authorized
                             if (!this.lazyAuth()) {
                                 await this.auth();
                             }
-                            const currentAge = config.get('parental-control-age', 16); // Default to 16+
-                            const options = [
-                                { name: lang.AGE_RATING_0_PLUS, value: 0, fa: 'fas fa-check-circle' },
-                                { name: lang.AGE_RATING_7_PLUS, value: 7, fa: 'fas fa-child' },
-                                { name: lang.AGE_RATING_12_PLUS, value: 12, fa: 'fas fa-user' },
-                                { name: lang.AGE_RATING_13_PLUS, value: 13, fa: 'fas fa-user-friends' },
-                                { name: lang.AGE_RATING_16_PLUS, value: 16, fa: 'fas fa-user-tie' },
-                                { name: lang.AGE_RATING_18_PLUS, value: 18, fa: 'fas fa-user-secret' }
-                            ].map(opt => ({
-                                ...opt,
-                                selected: currentAge === opt.value,
+                            const currentAge = this.maxAge();
+                            const options = this.ageValues().map(value => ({
+                                name: this.ageLabel(value),
+                                fa: this.ageIcon(value),
+                                value,
+                                selected: currentAge === value,
                                 type: 'action',
                                 action: async () => {
-                                    // Only ask for password if not already authenticated
+                                    // Only authenticate if not already authorized
                                     if (!this.lazyAuth()) {
                                         await this.auth();
                                     }
-                                    config.set('parental-control-age', opt.value);
-                                    this.emit('updated');
-                                    osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal');
+                                    this.setAge(value);
                                 }
                             }));
                             return options;
@@ -157,7 +278,7 @@ class ParentalControl extends EventEmitter {
                         type: 'input',
                         fa: 'fas fa-shield-alt',
                         action: async (e, v) => {
-                            // Only ask for password if not already authenticated and value is being set
+                            // Only authenticate if not already authorized and value is being set
                             if (v !== false) {
                                 if (!this.lazyAuth()) {
                                     await this.auth();
@@ -174,19 +295,19 @@ class ParentalControl extends EventEmitter {
                         safe: true
                     },
                     
-                    // Change password option
+                    // Change PIN option
                     {
-                        name: lang.CHANGE_PASSWORD || 'Change Password',
-                        details: lang.CHANGE_PASSWORD_DESCRIPTION || 'Change parental control password',
+                        name: lang.CHANGE_PIN || lang.CHANGE_PASSWORD || 'Change PIN',
+                        details: lang.CHANGE_PIN_DESCRIPTION || lang.CHANGE_PASSWORD_DESCRIPTION || 'Change parental control PIN',
                         type: 'action',
                         fa: 'fas fa-key',
                         safe: true,
                         action: async () => {
-                            // Only ask for password if not already authenticated
+                            // Only authenticate if not already authorized
                             if (!this.lazyAuth()) {
                                 await this.auth();
                             }
-                            const setup = await this.setupAuth().catch(err => console.error(err));
+                            const setup = await this.setupPin().catch(err => console.error(err));
                             if (setup) {
                                 osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal');
                             }
@@ -227,22 +348,8 @@ class ParentalControl extends EventEmitter {
                 // Combine both (default terms are always active, custom terms are additional)
                 this.terms = [...new Set([...this.defaultTerms, ...this.customTerms])];
                 
-                if (this.terms.length) {
-                    // Escape all regex metacharacters (except ^ and $, handled below) so terms match literally
-                    const escapeRegExp = (text) => text.replace(/[.*+?{}()|[\]\\]/g, '\\$&')
-                    const rgx = this.terms
-                        .map(escapeRegExp)
-                        .join('|')
-                        .replace(/[\^\$]/g, '(\\b|\\W)') // Keep ^ and $ as word-boundary markers
-                    try {
-                        this.termsRegex = new RegExp(rgx, 'i')
-                    } catch (err) {
-                        console.error('Parental control terms invalid regex: '+ rgx, err);
-                        this.termsRegex = false;
-                    }
-                } else {
-                    this.termsRegex = false;
-                }
+                this.termsRegex = this.buildRegex(this.terms);
+                this.customTermsRegex = this.buildRegex(this.customTerms);
                 
                 this.emit('updated');
             } finally {
@@ -262,15 +369,31 @@ class ParentalControl extends EventEmitter {
     has(stack) {
         return this.termsRegex ? stack.match(this.termsRegex) : false;
     }
+    /**
+     * Whether the given text is blocked by parental control terms.
+     * When +18 content is released only the user's custom terms apply, as the
+     * default (cloud) terms are adult-content terms.
+     */
+    blockedByTerms(stack) {
+        if (!stack || typeof(stack) != 'string') {
+            return false
+        }
+        if (this.adultAllowed()) {
+            return this.customTermsRegex ? !!stack.match(this.customTermsRegex) : false
+        }
+        return !!this.has(stack)
+    }
     allow(entry) {
         if (typeof(entry) == 'string') {
-            return !this.has(entry);
+            return !this.blockedByTerms(entry)
         }
+        
+        const adultAllowed = this.adultAllowed()
         
         // Check for adult domains in URL FIRST (before type check)
         // This applies to all types including VOD, and handles both entry.url and entry.entry.url
         const urlToCheck = entry.url || entry.entry?.url;
-        if (urlToCheck) {
+        if (urlToCheck && !adultAllowed) {
             const domain = getDomain(urlToCheck);
             const adultDomains = ['adultiptv.net', 'redtraffic.xyz'];
             // Check if domain ends with any adult domain
@@ -297,8 +420,7 @@ class ParentalControl extends EventEmitter {
         // Check both entry.age and entry.programme.age for EPG data
         const age = entry.age !== undefined ? entry.age : (entry.programme?.age || 0)
         if (age > 0) {
-            const parentalControlAge = config.get('parental-control-age', 16); // Default to 16+
-            if (age > parentalControlAge) {
+            if (age > this.maxAge()) {
                 allow = false;
             }
         }
@@ -316,26 +438,25 @@ class ParentalControl extends EventEmitter {
                 // Adult ratings
                 if (rating.includes('18') || rating.includes('adult') || rating.includes('r-rated') || 
                     rating.includes('nc-17') || rating.includes('xxx')) {
-                    allow = false;
+                    if (!adultAllowed) {
+                        allow = false;
+                    }
                 }
                 // Teen ratings above parental control age
                 else if (rating.includes('16') || rating.includes('pg-16') || rating.includes('tv-ma')) {
-                    const parentalControlAge = config.get('parental-control-age', 16); // Default to 16+
-                    if (parentalControlAge < 16) {
+                    if (this.maxAge() < 16) {
                         allow = false;
                     }
                 }
                 // 13+ ratings
                 else if (rating.includes('13') || rating.includes('pg-13') || rating.includes('tv-14')) {
-                    const parentalControlAge = config.get('parental-control-age', 16); // Default to 16+
-                    if (parentalControlAge < 13) {
+                    if (this.maxAge() < 13) {
                         allow = false;
                     }
                 }
                 // 12+ ratings
                 else if (rating.includes('12') || rating.includes('pg-12')) {
-                    const parentalControlAge = config.get('parental-control-age', 16); // Default to 16+
-                    if (parentalControlAge < 12) {
+                    if (this.maxAge() < 12) {
                         allow = false;
                     }
                 }
@@ -343,14 +464,14 @@ class ParentalControl extends EventEmitter {
         }
         
         // Check traditional terms-based blocking
-        if (str && this.has(str)) {
+        if (str && this.blockedByTerms(str)) {
             allow = false;
         }
         
         return allow;
     }
     /**
-     * Filter entries - always uses block behavior (requires password to unlock)
+     * Filter entries - always uses block behavior (requires PIN to unlock)
      * Content is blocked if it exceeds age rating or matches blocked keywords
      */
     filter(entries, skipProtect) {
@@ -374,28 +495,35 @@ class ParentalControl extends EventEmitter {
     /**
      * Check if authentication is required (lazy check)
      * SECURITY: Returns true ONLY if already authenticated
-     * If no password is set, returns false (parental control is active but not authenticated)
+     * If no PIN is set, returns false (parental control is active but not authenticated)
      */
     lazyAuth() {
-        if (this.authenticated) {
+        if (this.installerAdultExemption()) {
             return true;
         }
-        // SECURITY: If no password is set, parental control is still active (blocks content)
-        // but user is not authenticated (cannot access adult content grid)
+        if (this.authenticated) {
+            if (typeof this.authenticated == 'number' && (Date.now() / 1000) <= this.authenticated) {
+                return true;
+            }
+            delete this.authenticated;
+        }
         return false;
     }
     /**
      * Authenticate user - required to access parental control settings or unlock blocked content
-     * SECURITY: Never allows access without password - if no password exists, throws error
+     * SECURITY: Never allows access without authorization - missing credentials throw an error
      */
     async auth() {
+        if (this.installerAdultExemption()) {
+            return true;
+        }
         const now = (Date.now() / 1000);
-        const password = config.get('parental-control-pw');
+        const pin = config.get('parental-control-pin');
+        const legacyPassword = config.get('parental-control-pw');
         
-        // SECURITY: If no password is set, throw error - password must be created first
-        if (!password) {
-            menu.displayErr(lang.PASSWORD_REQUIRED || 'A senha é obrigatória');
-            throw new Error('Password not set');
+        if (!pin && !legacyPassword) {
+            menu.displayErr(lang.PIN_REQUIRED || 'Um PIN é obrigatório');
+            throw new Error('PIN not set');
         }
         
         // Check if already authenticated and not expired
@@ -416,26 +544,47 @@ class ParentalControl extends EventEmitter {
                     return true;
                 }
                 
-                // Require password
-                const pass = await menu.prompt({
-                    question: lang.PASSWORD,
+                if (pin) {
+                    let mismatch = false;
+                    for (let attempt = 1; attempt <= PIN_MAX_ATTEMPTS; attempt++) {
+                        const credential = await menu.pin({
+                            question: lang.ENTER_PIN || 'Digite seu PIN de 4 números',
+                            message: mismatch ? (lang.PIN_INCORRECT || 'PIN incorreto. Tente novamente.') : '',
+                            fa: 'fas fa-key',
+                            length: PIN_LENGTH
+                        });
+                        if (!credential) {
+                            throw new Error('PIN prompt cancelled');
+                        }
+                        if (this.verifyPin(credential, pin)) {
+                            this.authenticated = now + this.authTTL;
+                            return true;
+                        }
+                        mismatch = true;
+                    }
+                    menu.displayErr(lang.PIN_INCORRECT || 'PIN incorreto');
+                    throw new Error('PIN mismatch');
+                }
+                
+                const credential = await menu.prompt({
+                    question: lang.LEGACY_PASSWORD || lang.PASSWORD || 'Senha atual',
                     fa: 'fas fa-key',
                     isPassword: true
                 });
                 
-                // User cancelled the prompt
-                if (!pass || pass === null || pass === undefined) {
-                    throw new Error('Password prompt cancelled');
+                if (!credential) {
+                    throw new Error('PIN prompt cancelled');
                 }
                 
-                // Verify password
-                if (this.md5(pass) == password) {
-                    this.authenticated = now + this.authTTL;
-                    return true;
-                } else {
-                    menu.displayErr(lang.PASSWORD_NOT_MATCH);
-                    throw new Error('Password mismatch');
+                if (legacyPassword && this.md5(credential) == legacyPassword) {
+                    if (await this.setupPin()) {
+                        this.authenticated = (Date.now() / 1000) + this.authTTL;
+                        return true;
+                    }
+                    throw new Error('PIN migration cancelled');
                 }
+                menu.displayErr(lang.PASSWORD_NOT_MATCH);
+                throw new Error('PIN mismatch');
             } finally {
                 // Clear the promise so next call can start fresh
                 this.authPromise = null;
@@ -444,98 +593,96 @@ class ParentalControl extends EventEmitter {
         
         return this.authPromise;
     }
-    async setupAuth() {
+    verifyPin(pin, stored) {
+        if (typeof pin != 'string' || !/^\d{4}$/.test(pin) ||
+            !stored || typeof stored != 'object' ||
+            typeof stored.salt != 'string' || !/^[0-9a-f]{32}$/i.test(stored.salt) ||
+            typeof stored.hash != 'string' || !/^[0-9a-f]{64}$/i.test(stored.hash)) {
+            return false;
+        }
+        const expected = Buffer.from(stored.hash, 'hex');
+        const actual = crypto.scryptSync(pin, Buffer.from(stored.salt, 'hex'), 32);
+        return expected.length == actual.length && crypto.timingSafeEqual(expected, actual);
+    }
+    async setupPin() {
         // Clear any previous authentication
         if (this.authenticated) {
             delete this.authenticated;
         }
-        // Clear any ongoing authentication
-        if (this.authPromise) {
-            this.authPromise = null;
-        }
-        
-        // First password - allow cancel (will be handled by caller)
-        const pass = await menu.prompt({
-            question: lang.CREATE_YOUR_PASS || 'Crie uma senha para o controle dos pais',
-            fa: 'fas fa-key',
-            isPassword: true,
-            placeholder: lang.PASSWORD || 'Senha'
+        const pin = await menu.pin({
+            question: lang.CREATE_YOUR_PIN || 'Crie um PIN de 4 números',
+            message: lang.CREATE_PIN_HINT || 'Digite os 4 números e o PIN será confirmado automaticamente.',
+            length: PIN_LENGTH
         });
         
-        // User cancelled first prompt
-        if (!pass) {
+        if (!pin) {
             return false;
         }
         
-        // Validate password length
-        if (pass.length < 4) {
+        if (!/^\d{4}$/.test(pin)) {
             await menu.dialog([
                 { template: 'question', text: lang.PARENTAL_CONTROL, fa: 'fas fa-exclamation-triangle' },
-                { template: 'message', text: lang.PASSWORD_TOO_SHORT || 'A senha deve ter pelo menos 4 caracteres' },
+                { template: 'message', text: lang.PIN_INVALID || 'O PIN deve conter exatamente 4 números.' },
                 { template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK' }
             ], 'parental-control', true);
             return false;
         }
         
-        // Confirm password - allow cancel (will be handled by caller)
-        const pass2 = await menu.prompt({
-            question: lang.TYPE_PASSWORD_AGAIN || 'Digite a senha novamente para confirmar',
-            fa: 'fas fa-key',
-            isPassword: true,
-            placeholder: lang.PASSWORD || 'Senha'
+        const pin2 = await menu.pin({
+            question: lang.TYPE_PIN_AGAIN || 'Digite o PIN novamente para confirmar',
+            length: PIN_LENGTH
         });
         
-        // User cancelled confirmation prompt
-        if (!pass2) {
+        if (!pin2) {
             return false;
         }
         
-        // Check if passwords match
-        if (pass === pass2) {
-            config.set('parental-control-pw', this.md5(pass));
-            // Show success message
-            osd.show(lang.PASSWORD_CREATED || 'Senha criada com sucesso!', 'fas fa-check-circle faclr-green', 'options', 'normal');
+        if (pin === pin2) {
+            const salt = crypto.randomBytes(16);
+            config.set('parental-control-pin', {
+                salt: salt.toString('hex'),
+                hash: crypto.scryptSync(pin, salt, 32).toString('hex')
+            });
+            config.set('parental-control-pw', '');
+            this.authenticated = (Date.now() / 1000) + this.authTTL;
+            osd.show(lang.PIN_CREATED || 'PIN criado com sucesso!', 'fas fa-check-circle faclr-green', 'options', 'normal');
             return true;
         } else {
-            // Passwords don't match - show clear error
             await menu.dialog([
                 { template: 'question', text: lang.PARENTAL_CONTROL, fa: 'fas fa-exclamation-triangle' },
-                { template: 'message', text: lang.PASSWORD_NOT_MATCH || 'As senhas não coincidem. Por favor, tente novamente.' },
+                { template: 'message', text: lang.PIN_NOT_MATCH || 'Os PINs não coincidem. Tente novamente.' },
                 { template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK' }
             ], 'parental-control', true);
             return false;
         }
+    }
+    async setupAuth() {
+        return this.setupPin();
     }
     protect(e) {
         if (e.class && e.class.includes('parental-control-protected')) {
             return e;
         }
         const action = async () => {
-            // SECURITY: Always require password to unlock blocked content
-            const password = config.get('parental-control-pw');
-            if (!password) {
-                // No password set - force creation before allowing access
+            if (!this.hasPin() && !this.hasLegacyPassword() && !this.installerAdultExemption()) {
                 await menu.dialog([
                     { template: 'question', text: lang.PARENTAL_CONTROL, fa: 'fas fa-shield-alt' },
-                    { template: 'message', text: lang.PARENTAL_CONTROL_SETUP_REQUIRED || 'A senha é obrigatória para proteger o controle dos pais. Por favor, crie uma senha agora.' },
+                    { template: 'message', text: lang.PIN_REQUIRED || 'Crie um PIN de 4 números para proteger o controle dos pais.' },
                     { template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK' }
                 ], 'parental-control-setup', true);
                 
-                const setup = await this.setupAuth().catch(err => {
-                    console.error('Error setting up password:', err);
+                const setup = await this.setupPin().catch(err => {
+                    console.error('Error setting up PIN:', err);
                     return false;
                 });
                 if (!setup) {
-                    // Password setup failed - content remains blocked
                     return;
                 }
             }
             
-            // Password exists, require authentication
             try {
                 let allow = await this.auth();
                 if (allow === true) {
-                    // Authentication successful - unlock and play content
                     if (typeof e.action === 'function') {
                         const ret = e.action(e)
                         if (ret && typeof ret.catch === 'function') ret.catch(err => console.error(err))
@@ -544,10 +691,8 @@ class ParentalControl extends EventEmitter {
                     }
                 }
             } catch (err) {
-                // Authentication failed or cancelled - content remains blocked
-                // Only show error if it's not a cancellation
-                if (err && err.message !== 'Password prompt cancelled') {
-                    // Error message already shown by auth() for password mismatch
+                if (err && err.message !== 'PIN prompt cancelled' && err.message !== 'PIN migration cancelled') {
+                    console.warn('Parental control authorization failed:', err.message || err);
                 }
             }
         };
@@ -557,7 +702,7 @@ class ParentalControl extends EventEmitter {
             type: 'action', 
             icon: undefined, 
             fa: 'fas fa-lock',
-            details: lang.CONTENT_BLOCKED || 'Conteúdo bloqueado - digite a senha para desbloquear'
+            details: lang.CONTENT_BLOCKED || 'Conteúdo bloqueado - digite o PIN para desbloquear'
         });
         return entry;
     }

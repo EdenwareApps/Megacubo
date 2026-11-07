@@ -63,6 +63,11 @@ function rgbToHex(r, g, b) {
     return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)
 }
 
+// The layout owns its palette (see the --nf-* variables in App.svelte), so every
+// color below is derived from these two constants instead of user settings.
+const BACKGROUND_COLOR = '#0b0b0e'
+const FONT_COLOR = '#ffffff'
+
 class Theme extends EventEmitter {
     constructor(){
         super()
@@ -76,149 +81,20 @@ class Theme extends EventEmitter {
         })
         this.on('resized', () => this.updateFontSize())
     }
-    renderBackground(data) {
-        const bg = document.getElementById('background')	
-        const v = bg.querySelector('video')
-		if(data.video){
-			bg.style.backgroundImage = 'none';	
-			if(!v){
-				bg.innerHTML += '<video crossorigin src="'+ data.video +'" onerror="setTimeout(() => {if(this.parentNode)this.load()}, 500)" loop muted autoplay style="background-color: black;object-fit: cover;" poster="./assets/images/blank.png"></video>'
-			} else if(v.src != data.video) {
-                v.setAttribute('src', data.video)
-                try {
-                    v.load()
-                } catch(e) {
-                    console.error(e)
-                }
-            }
-		} else {
-			var m = 'url("' + data.image +'")';
-			if(bg.style.backgroundImage != m){
-				bg.style.backgroundImage = m;
-			}
-            v && v.parentNode.removeChild(v)
-		}
-		this.setCurtainsTransition(false, false)
-	}
-    animateBackground(val) {
-        var c = document.body.className || ''
-        if(val.includes('-desktop')){
-            if(window.capacitor){
-                val = 'none';
-            } else {
-                val = val.replace('-desktop', '');
-            }
-        }
-        if(val == this.currentAnimateBackground){ // avoid background reload
-            return
-        }
-        this.currentAnimateBackground = val
-        if(val == 'fast'){
-            var n = 'animate-background-fast';
-            if(!c.includes(n)) {
-                document.body.className = c.replace(new RegExp('animate-background-[a-z]+', 'g'), '') + ' ' + n;
-            }
-        } else if(val == 'slow') {
-            var n = 'animate-background-slow';
-            if(!c.includes(n)) {
-                document.body.className = c.replace(new RegExp('animate-background-[a-z]+', 'g'), '') + ' ' + n;
-            }
-        } else {
-            var n = 'animate-background';
-            if(c.includes(n)) {
-                document.body.className = c.replace(new RegExp('animate-background-[a-z]+', 'g'), '');
-            }
-        }
-    }
-    update(image, video, color, fontColor, animate) {
-        let data = localStorage.getItem('background-data')
+    renderBackground() {
         const bg = document.getElementById('background')
-        const splash = document.getElementById('splash')
         if(!bg) return
-        var defaultData = {
-            image: screen.width > 1920 ? './assets/images/background-3840x2160.jpg' : './assets/images/background-1920x1080.jpg', 
-            video: '', 
-            color: '#15002C', 
-            fontColor: '#FFFFFF', 
-            animate: 'none'
-        };
-        if(data){
-            data = JSON.parse(data);
-            Object.keys(defaultData).forEach(function (k){
-                if(typeof(data[k]) == 'undefined'){
-                    data[k] = defaultData[k];
-                }
-            });
-        } else {
-            data = defaultData; // defaults
-            try {
-                localStorage.setItem('background-data', JSON.stringify(data));
-            } catch(e) {
-                console.error('Theme renderer error:', e.message || e)
-                data.video = '';
-                data.image = '';
-                localStorage.setItem('background-data', JSON.stringify(data));
-                data.image = image;
-                data.video = video;
-            }
+        const v = bg.querySelector('video')
+        if(v) v.parentNode.removeChild(v)
+        if(bg.style.backgroundImage != 'none') {
+            bg.style.backgroundImage = 'none'
         }
-        if(typeof(image) == 'string' || typeof(video) == 'string'){ // from node
-            var changed;
-            if(image != data.image){
-                data.image = image || defaultData.image;
-                changed = true;
-            }
-            if(video != data.video){
-                data.video = video || defaultData.video;
-                changed = true;
-            }
-            if(fontColor != data.fontColor){
-                data.fontColor = fontColor;
-                changed = true;
-            }
-            if(color != data.color){
-                data.color = color;	
-                changed = true;
-            }
-            if(animate != data.animate){
-                data.animate = animate || 'none';
-                changed = true;
-            }
-            if(changed){
-                try {
-                    localStorage.setItem('background-data', JSON.stringify(data));
-                } catch(e) {
-                    console.error('Theme renderer error:', e.message || e)
-                    data.image = '';
-                    data.video = '';
-                    localStorage.setItem('background-data', JSON.stringify(data));
-                    data.image = image;
-                    data.video = video;
-                }
-            }					
-        }
-        if(!data.image && !data.video) {
-            data.image = defaultData.image;
-        }
-        if(data.video) {
-            data.image = ''
-        } else {
-            data.video = defaultData.video;
-        }
-        if(this.themeBackgroundReady === true) {
-            this.renderBackground(data)
-        } else {
-            if(typeof(this.themeBackgroundReady) == 'undefined') {
-                this.themeBackgroundReady = (data => {
-                    this.themeBackgroundReady = true
-                    this.renderBackground(data)
-                }).apply(this, [data])
-            }
-        }
-        if(splash) {
-            splash.style.backgroundColor = data.color;
-            splash.style.color = data.fontColor;
-        }
+        this.setCurtainsTransition(false, false)
+    }
+    update() {
+        const bg = document.getElementById('background')
+        if(!bg) return
+        this.renderBackground()
         const systemFont = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif'
         let family = main.config['font-family']
         if(!family) {
@@ -226,12 +102,10 @@ class Theme extends EventEmitter {
         } else if(!family.includes(systemFont)) {
             family += ','+ systemFont
         }
-        const shadowColor = colorMixer(Object.values(hexToRgb(main.config['background-color'])), [0, 0, 0], 0.675)
-        const dialogBackgroundLayerColor = hexToRGBA(rgbToHex(shadowColor), 0.75)
-        const backgroundColor = hexToRGBA(main.config['background-color'], (100 - main.config['background-transparency']) / 100)
-        const alphaBackgroundColor = hexToRGBA(rgbToHex(backgroundColor), 0.75)
+        const bgRgb = Object.values(hexToRgb(BACKGROUND_COLOR))
+        const shadowColor = colorMixer(bgRgb, [0, 0, 0], 0.675)
         const alphaShadowColor = hexToRGBA(rgbToHex(shadowColor), 0.75)
-        const secondaryFontColor = colorMixer(Object.values(hexToRgb(main.config['font-color'])), [0, 0, 0], 0.75)
+        const secondaryFontColor = colorMixer(Object.values(hexToRgb(FONT_COLOR)), [0, 0, 0], 0.75)
         const fxNavIntensityStep = parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--menu-fx-nav-intensity-step').trim())
         const fxNavIntensity = Math.min(0.14, main.config['fx-nav-intensity'] * fxNavIntensityStep)
         let fxNavDuration
@@ -247,28 +121,23 @@ class Theme extends EventEmitter {
             return c.replace('rgb(','rgba(').replace(')', ', '+ a +')')
         }
         let baseColor = [70,70,70], baseFactor = 0.9
-        let a = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.35)
-        let b = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.5)
-        let c = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.55)
-        let d = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.85)
-        let g = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.5)
-        let h = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.7)
+        let b = setAlpha(hexToRgb(colorMixer(bgRgb, baseColor, baseFactor)), 0.5)
+        let d = setAlpha(hexToRgb(colorMixer(bgRgb, baseColor, baseFactor)), 0.85)
+        let g = setAlpha(hexToRgb(colorMixer(bgRgb, baseColor, baseFactor)), 0.5)
+        let h = setAlpha(hexToRgb(colorMixer(bgRgb, baseColor, baseFactor)), 0.7)
 
         baseColor = [255, 255, 255]
-        let dialogBackgroundColorTop = hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, 0.375))
-        let dialogBackgroundColorBottom = hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, 0.3))
-
-        let l = main.config['view-size'].landscape.x > 1 ? 'column' : 'row'
-        let p = main.config['view-size'].portrait.x > 1 ? 'column' : 'row'
+        let dialogBackgroundColorTop = hexToRgb(colorMixer(bgRgb, baseColor, 0.375))
+        let dialogBackgroundColorBottom = hexToRgb(colorMixer(bgRgb, baseColor, 0.3))
 
         let cssCode = `
         :root {
             --menu-fx-nav-duration: ${fxNavDuration}s;
-            --font-color: ${main.config['font-color']};
+            --font-color: ${FONT_COLOR};
             --secondary-font-color: ${secondaryFontColor};
-            --background-color: ${main.config['background-color']};
-            --dialog-background-color: ${dialogBackgroundLayerColor};
-            --alpha-background-color: ${alphaBackgroundColor};
+            --background-color: ${BACKGROUND_COLOR};
+            --dialog-background-color: ${alphaShadowColor};
+            --alpha-background-color: rgba(0, 0, 0, 0.85);
             --shadow-background-color: ${shadowColor};
             --alpha-shadow-background-color: ${alphaShadowColor};
             --menu-fx-nav-intensity: ${fxNavIntensity};
@@ -297,7 +166,7 @@ class Theme extends EventEmitter {
             text-transform: ${ucase};
         }
         div#background > div {
-            background-color: ${backgroundColor};
+            background-color: ${BACKGROUND_COLOR};
         }
         #menu a span.entry-wrapper {
             background: linear-gradient(to top, ${g} 75%, ${h} 100%) !important;
@@ -315,7 +184,6 @@ class Theme extends EventEmitter {
         `
         main.css(cssCode, 'theme')
         this.updateFontSize()
-        this.animateBackground(data.video ? 'none' : data.animate)
         main.menu.resize(true) // force layout update
     }
     defaultFontSize() {
@@ -365,9 +233,6 @@ class Theme extends EventEmitter {
     }
     hideSplashScreen() {
         localStorage.setItem('splash-time-hint', String((new Date()).getTime() - this.splashStartTime))
-        if (typeof(this.themeBackgroundReady) == 'function') {
-            this.themeBackgroundReady()
-        }
         const bg = document.getElementById('background')
         bg.style.visibility = 'visible'
         const splash = document.getElementById('splash')
@@ -377,9 +242,8 @@ class Theme extends EventEmitter {
             s.visibility = 'visible'
             s.display = 'block'
             document.body.style.backgroundImage = 'none'
-            document.getElementById('background').style.visibility = 'visible'
+            setTimeout(() => splash.parentNode.removeChild(splash), 200)
         }
-        setTimeout(() => splash.parentNode.removeChild(splash), 200)
         main.idle.reset()
     }
     closeCurtains(alpha, hideAfter, cb){
@@ -465,28 +329,22 @@ main.waitRenderer(() => {
     main.on('config', () => theme.update())
 })
 
-main.on('theme-update', (image, video, color, fontColor, animate) => {
+main.on('theme-update', () => {
     try {
-        theme.update(image, video, color, fontColor, animate)
+        theme.update()
     } catch(e) {console.error('Theme renderer error:', e.message || e)}
 })
 main.on('player-show', () => {
-    theme.animateBackground('none')
     theme.closeCurtains(false, true)
 })
 main.on('player-hide', () => {
-    theme.openCurtains(false, true, () => {
-        theme.animateBackground(main.config['animate-background'])
-    })
+    theme.openCurtains(false, true)
 })
 main.idle.energySaver.on('start', () => {
-    theme.animateBackground('none')
     theme.closeCurtains(true, false)
 })
 main.idle.energySaver.on('end', () => {
-    theme.openCurtains(true, true, () => {
-        theme.animateBackground(main.config['animate-background'])
-    })
+    theme.openCurtains(true, true)
 })
 main.on('exit-ui', () => {
     theme.closeCurtains(false, false)

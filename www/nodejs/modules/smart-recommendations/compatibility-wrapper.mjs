@@ -11,6 +11,50 @@ import { terms, match } from '../lists/tools.js'
 import Limiter from '../limiter/limiter.js'
 import StreamClassifier from "../lists/stream-classifier.js";
 import mega from "../mega/mega.js";
+import { stripFalseFriends } from '../profiles/content-profile.js'
+
+/**
+ * How much a live channel weighs against a VOD title when the home row mixes
+ * both. Live is what the app is opened for, so it keeps ~1.25x the relevance of
+ * a title and VOD gets `share / LIVE_RELEVANCE_WEIGHT` of the row.
+ */
+const LIVE_RELEVANCE_WEIGHT = 1.25
+
+/**
+ * Scores a channel by its name against the interest tags (profile seeds +
+ * learned taste). Before the EPG is parsed the channel name is the only signal
+ * available, so every word of the name is matched - matching the whole name or
+ * exact terms alone leaves every channel at score 0, which turned the fallback
+ * into "first channels of the list" regardless of the content profile.
+ * @param {string} name - Channel name
+ * @param {Object} tags - term => weight map
+ * @returns {number} Relevance score
+ */
+function scoreChannelByTags(name, tags) {
+    const text = stripFalseFriends(name)
+    if (!text.trim()) return 0
+    const tokens = new Set(terms(text))
+    let score = 0
+    for (const [tag, weight] of Object.entries(tags)) {
+        if (!weight || tag === 'default' || tag.length < 3) continue
+        let hit = 0
+        if (tokens.has(tag)) { // 'playboy' in 'Playboy TV'
+            hit = 1
+        } else if (tag.includes(' ') && text.includes(tag)) { // 'globo news'
+            hit = 1
+        } else { // plural/derived forms: tag 'filme' vs token 'filmes'
+            for (const token of tokens) {
+                if (token.length < 4 || tag.length < 4) continue
+                if (token.startsWith(tag) || tag.startsWith(token)) {
+                    hit = 0.5
+                    break
+                }
+            }
+        }
+        if (hit) score += weight * hit
+    }
+    return score
+}
 
 /**
  * Compatibility Wrapper for Smart Recommendations
@@ -27,12 +71,23 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         this.someListLoaded = false
         this.listsLoaded = false
         this.initializationTime = Date.now() / 1000
+        // Profile content tracking (see getProfileChannels/scheduleProfileRefresh)
+        this._profilePicksMissing = false
+        this._profilePicksAdded = false
+        this._profileRefreshTries = 0
+        this._profileRefreshTimer = null
+        this._forceProfileRefresh = false
 
         // Storage-based cache system (single TTL for validity and storage expiration)
         this.cacheKey = 'smart-recommendations-cache'
         this.lastChannelsCacheKey = 'smart-recommendations-last-channels'  // separate key so it survives main cache overwrites
+        this.vodCacheKey = 'smart-recommendations-vod-cache'  // Movies & Series "Recommended for you"
+        this.vodWarmPromise = null
         this.cacheTTLSeconds = 7 * 24 * 60 * 60  // 7 days
         this.cacheMaxAge = this.cacheTTLSeconds * 1000  // same in ms for isCacheValid
+        // Bump whenever the scoring changes: a cache written by an older scoring
+        // would otherwise be served for up to 7 days.
+        this.cacheVersion = 8
 
         // Update queue system using p-queue (prevents simultaneous updates)
         this.updateQueue = new PQueue({
@@ -240,12 +295,21 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         })
 
         global.lists.on('epg-update', () => {
-            if(this.epgLoaded) {
-                this.clearCache()
-            } else {
-                this.epgLoaded = true
-            }
+            // Do NOT clear the persisted cache here: 'epg-update' is emitted many
+            // times while the EPG loads, and clearing it threw away the rich
+            // recommendations (and lastCachedChannelNames) saved by the previous
+            // session, making every boot replay the same sequence from scratch.
+            this.epgLoaded = true
             this.maybeUpdateCache().catch(err => ErrorHandler.warn('Failed to maybe update cache:', err.message))
+        })
+
+        // Content profile / parental age changes alter how lists are filtered and
+        // which tags lead the recommendations, so anything built for the previous
+        // profile (persisted cache, in-memory caches, cached channel names) is stale.
+        global.lists.on('content-profile-changed', (state) => {
+            this.handleContentProfileChange(state).catch(err => {
+                ErrorHandler.warn('Content profile change handler failed:', err?.message || err)
+            })
         })
 
         await global.lists.ready()
@@ -276,11 +340,7 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         this.scheduleUpdate()
 
             await global.lists.epgReady()
-        if(this.epgLoaded) {
-            this.clearCache()
-        } else {
-            this.epgLoaded = true
-        }
+        this.epgLoaded = true
         this.scheduleUpdate()
     }
 
@@ -290,7 +350,10 @@ class SmartRecommendationsCompatibility extends EventEmitter {
     isEPGEnabled() {
         let activeEPG = config.get('epg-' + lang.locale)
         if(activeEPG && activeEPG !== 'disabled') {
-            return Array.isArray(activeEPG) ? activeEPG.filter(r => r.active).length : activeEPG.length
+            // An empty array means no manual EPG was chosen, so the cloud
+            // suggestions are what provide the EPG data.
+            const actives = Array.isArray(activeEPG) ? activeEPG.filter(r => r.active).length : activeEPG.length
+            if (actives) return actives
         }
         return config.get('epg-suggestions')
     }
@@ -317,12 +380,193 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                 await this.clearCache()
                 this.lastConfiguredType = configuredType
             }
-            
+
             // Schedule update to generate new VOD recommendations
             // The limiter (10s) prevents excessive updates during mass list loading
             await this.scheduleUpdate().catch(err => ErrorHandler.warn('Failed to schedule VOD update after list load:', err.message))
         }
+
+        // The "Movies & Series > Recommended for you" folder always asks for VOD
+        // recommendations, even when the app is configured for live ones. Building
+        // them in background keeps that folder instant (and profile aligned).
+        await this.warmVODCache().catch(err => ErrorHandler.warn('Failed to warm VOD recommendations cache:', err?.message || err))
     }
+
+    /**
+     * Drops the entries the StreamState already knows to be offline, so a dead
+     * stream is never offered again as a recommendation. Unknown states (never
+     * tested) are kept.
+     * @param {Array} entries
+     * @returns {Array}
+     */
+    filterOfflineEntries(entries) {
+        if (!Array.isArray(entries) || !entries.length) return Array.isArray(entries) ? entries : []
+        const state = global.streamer?.state
+        if (!state || typeof state.get != 'function') return entries
+        const alive = entries.filter(entry => {
+            const url = entry?.url
+            if (!url) return true
+            let st
+            try {
+                st = state.get(url)
+            } catch (err) {
+                return true
+            }
+            return !(st === false || st === 'offline')
+        })
+        const dropped = entries.length - alive.length
+        if (dropped > 0) {
+            ErrorHandler.debug(`filterOfflineEntries: dropped ${dropped} offline entries`)
+        }
+        return alive
+    }
+
+    /**
+     * Read the persisted VOD ("Movies & Series") recommendations
+     * @returns {Promise<Array|null>} Cached entries or null
+     */
+    async getVODCache() {
+        try {
+            const cacheData = await storage.get(this.vodCacheKey)
+            if (!cacheData || cacheData.version !== this.cacheVersion) return null
+            if (!Array.isArray(cacheData.featured) || !cacheData.featured.length) return null
+            // Built under another content profile / parental age: rebuild.
+            const signature = this.profileSignature()
+            if (signature && (cacheData.profile || '') !== signature) return null
+            // A folder with a handful of items is usually a partial pass (few lists
+            // loaded, narrow caller): treat it as absent so it gets rebuilt. Unless
+            // the full pass already found the catalog has no VOD content at all.
+            if (cacheData.featured.length < 8 && !cacheData.thin) return null
+            if ((Date.now() - (cacheData.timestamp || 0)) > this.cacheMaxAge) return null
+            const alive = this.filterOfflineEntries(cacheData.featured)
+            return alive.length ? alive : null
+        } catch (err) {
+            ErrorHandler.warn('Failed to read VOD recommendations cache:', err?.message || err)
+            return null
+        }
+    }
+
+    /**
+     * Persist VOD ("Movies & Series") recommendations
+     * @param {Array} entries
+     * @param {Object} [options]
+     * @param {boolean} [options.thin] - The catalog has no more VOD content than this
+     */
+    async setVODCache(entries, options = {}) {
+        if (!Array.isArray(entries)) return
+        entries = this.filterOfflineEntries(entries) // offline streams never enter the folder
+        if (!entries.length) return
+        try {
+            // A narrow caller (a folder preview asking for 2 items, an early
+            // partial pass) must not shrink the folder for the whole session.
+            const existing = await storage.get(this.vodCacheKey)
+            if (existing && existing.version === this.cacheVersion && existing.profile === this.profileSignature() && Array.isArray(existing.featured) && existing.featured.length > entries.length) {
+                return
+            }
+            await storage.set(this.vodCacheKey, {
+                featured: entries,
+                timestamp: Date.now(),
+                version: this.cacheVersion,
+                profile: this.profileSignature(),
+                thin: !!options.thin
+            }, { ttl: this.cacheTTLSeconds })
+        } catch (err) {
+            ErrorHandler.warn('Failed to save VOD recommendations cache:', err?.message || err)
+        }
+    }
+
+    /**
+     * VOD catalogs of the community lists are mostly movies and series, so a
+     * narrow profile vocabulary (music, news) matches almost nothing by name and
+     * the folder would be left with a single title. This fills the folder with
+     * general titles, keeping the profile-aligned ones first so the profile still
+     * leads it.
+     * @param {Array} entries - Entries already picked for the folder
+     * @param {number} amount - Desired folder size
+     * @returns {Promise<Array>} the same array when no top-up is needed
+     */
+    async topUpVOD(entries, amount = 25) {
+        const aligned = Array.isArray(entries) ? entries.slice() : []
+        if (aligned.length >= 8) return entries
+        let general = []
+        try {
+            // Without tags the engine returns general titles instead of the
+            // profile vocabulary ones. Reused for a while: a thin catalog would
+            // otherwise re-run the engine on every folder rebuild.
+            const now = Date.now()
+            if (!this._vodGeneralPass || (now - this._vodGeneralPass.at) > 300000) {
+                this._vodGeneralPass = {
+                    at: now,
+                    entries: await this.get({}, amount * 2, { type: 'vod', group: true, typeStrict: true })
+                }
+            }
+            general = this._vodGeneralPass.entries
+        } catch (err) {
+            ErrorHandler.warn('VOD top-up failed:', err?.message || err)
+            return entries
+        }
+        if (!Array.isArray(general) || !general.length) return entries
+        const profile = global.lists?.contentProfile
+        const score = entry => {
+            if (!profile || typeof profile.groupRelevance != 'function') return 0
+            const name = entry?.originalName || entry?.name || ''
+            try {
+                return profile.groupRelevance({ name, group: entry?.group || '' })
+            } catch (err) {
+                return 0
+            }
+        }
+        const seen = new Set()
+        const unique = []
+        for (const entry of aligned.concat(general)) {
+            const key = String(entry?.originalName || entry?.name || entry?.programme?.channel || '').toLowerCase()
+            if (!key || seen.has(key)) continue
+            seen.add(key)
+            unique.push(entry)
+        }
+        // Profile titles lead the folder, the general ones fill it up.
+        const weight = entry => score(entry) > 0 ? 1 : 0
+        return unique.sort((a, b) => weight(b) - weight(a))
+    }
+
+    /**
+     * Generate (once per session) the VOD recommendations used by the
+     * "Movies & Series > Recommended for you" folder.
+     * @returns {Promise<Array>}
+     */
+    async warmVODCache() {
+        if (this.vodWarmPromise) return this.vodWarmPromise
+        this.vodWarmPromise = (async () => {
+            try {
+                if (!this.listsLoaded && !this.someListLoaded) return []
+                const cached = await this.getVODCache()
+                if (Array.isArray(cached) && cached.length) return cached
+                const startedAt = Date.now()
+                // Fetch more than needed so collapsing repeated episodes of the
+                // same series still leaves a full folder behind.
+                const fetched = await this.get(null, 40, { type: 'vod', group: true, typeStrict: true })
+                let entries = this.collapseVODSeries(this.filterOfflineEntries(fetched), 2).slice(0, 25)
+                const topped = await this.topUpVOD(entries, 25)
+                if (topped !== entries) {
+                    entries = this.collapseVODSeries(topped, 2).slice(0, 25)
+                }
+                if (!Array.isArray(entries) || !entries.length) return []
+                // Few titles after a full pass means the catalog has no VOD
+                // content for this profile: keep them instead of rebuilding the
+                // folder on every pass.
+                await this.setVODCache(entries, { thin: entries.length < 8 && !!this.listsLoaded })
+                ErrorHandler.info(`VOD recommendations: ${entries.length} entries built in ${Date.now() - startedAt}ms`)
+                return entries
+            } catch (err) {
+                ErrorHandler.warn('warmVODCache failed:', err?.message || err)
+                return []
+            } finally {
+                setTimeout(() => { this.vodWarmPromise = null }, 60000)
+            }
+        })()
+        return this.vodWarmPromise
+    }
+
 
     /**
      * Get recommendations - main API method
@@ -472,23 +716,7 @@ class SmartRecommendationsCompatibility extends EventEmitter {
 
                 // Calculate relevance score based on user tags
                 if (userTags && typeof userTags === 'object') {
-                    let score = 0
-                    const channelLower = channelName.toLowerCase()
-                    const termsLower = channelTerms ? channelTerms.map(t => t.toLowerCase()) : []
-
-                    // Check if channel name matches user tags
-                    if (userTags[channelLower]) {
-                        score += userTags[channelLower] * 2 // Higher weight for exact match
-                    }
-
-                    // Check if any channel terms match user tags
-                    termsLower.forEach(term => {
-                        if (userTags[term]) {
-                            score += userTags[term]
-                        }
-                    })
-
-                    entry.score = score
+                    entry.score = scoreChannelByTags(channelName, userTags)
                 } else {
                     entry.score = 0 // Default score if no tags provided
                 }
@@ -503,10 +731,120 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         // Sort by score descending if userTags provided, otherwise keep original order
         if (userTags && typeof userTags === 'object') {
             transformedChannels.sort((a, b) => (b.score || 0) - (a.score || 0))
+        } else if (this.lastCachedChannelNames.length) {
+            // Keep the order of the last recommended channels, so restarting the
+            // app doesn't reset the home to the first channels of the user's list.
+            const rank = new Map()
+            this.lastCachedChannelNames.forEach((name, i) => {
+                const key = name.toLowerCase()
+                if (!rank.has(key)) rank.set(key, i)
+            })
+            const rankOf = entry => {
+                const key = (entry.originalName || entry.name || '').toLowerCase()
+                return rank.has(key) ? rank.get(key) : Infinity
+            }
+            transformedChannels.sort((a, b) => rankOf(a) - rankOf(b))
         }
 
         // Return only the requested amount
         return transformedChannels.slice(0, amount)
+    }
+
+    /**
+     * Channels from the loaded lists that match the content profile in force.
+     * `channels.channelList` is a curated subset of the community lists, so the
+     * list a profile bundles (e.g. the adult list) would never reach the
+     * recommendations without querying the lists themselves.
+     * @param {number} amount - How many entries are wanted
+     * @param {Array<string>} excludes - Channel names already on the row
+     * @returns {Promise<Array>} Profile aligned entries
+     */
+    async getProfileChannels(amount, excludes = []) {
+        const lists = global.lists
+        const profile = lists?.contentProfile
+        if (!amount || amount < 1 || !lists || !profile) {
+            return []
+        }
+        if (typeof profile.effective != 'function' || !profile.effective() || typeof profile.seedTags != 'function') {
+            return []
+        }
+        if (typeof lists.search != 'function') {
+            return []
+        }
+
+        // The lists can still be loading when the first update runs; give them a
+        // short grace period and let scheduleProfileRefresh() retry afterwards.
+        for (let i = 0; i < 6 && typeof lists.loaded == 'function' && !lists.loaded(); i++) {
+            await new Promise(resolve => setTimeout(resolve, 500))
+        }
+        if (typeof lists.loaded == 'function' && !lists.loaded()) {
+            return []
+        }
+
+        const profileSources = new Set(typeof profile.listsForDiscovery == 'function' ? profile.listsForDiscovery() : [])
+        // Generic words ("adult") also match general channels ("Adult Swim"), so
+        // they are only used after the specific ones.
+        const generic = new Set(['adult', 'adulto', 'adultos', 'sexy', 'sensual', 'playboy'])
+        const terms = Object.keys(profile.seedTags() || {})
+            .filter(term => /^[a-z]{3,}$/.test(term))
+            .sort((a, b) => (generic.has(a) ? 1 : 0) - (generic.has(b) ? 1 : 0))
+
+        const seen = new Set(excludes.map(name => String(name).toLowerCase()))
+        const candidates = []
+        for (const term of terms.slice(0, 6)) {
+            if (candidates.length >= amount * 3) {
+                break
+            }
+            // A big limit is needed to reach the community lists (the search
+            // stops early once the first lists fill the working set).
+            const found = await lists.search(term, { limit: 120, type: 'live' }).catch(error => {
+                ErrorHandler.warn('Failed to search lists for the content profile:', error.message)
+                return []
+            })
+            for (const item of (found || [])) {
+                const name = String(item?.name || '').trim()
+                if (!name || (item.mediaType && item.mediaType != 'live')) {
+                    continue
+                }
+                const key = name.toLowerCase()
+                if (seen.has(key)) {
+                    continue
+                }
+                // Hits coming from the list the profile bundles are the best
+                // ones; the rest are ranked by how much they are about it.
+                let score = profile.groupRelevance({ name, group: item.group || item.groupName || '' })
+                if (item.source && profileSources.has(item.source)) {
+                    score += 4
+                }
+                if (score > 0) {
+                    seen.add(key)
+                    candidates.push({ item, name, score })
+                }
+            }
+        }
+
+        candidates.sort((a, b) => b.score - a.score)
+
+        const entries = []
+        for (const candidate of candidates.slice(0, amount)) {
+            try {
+                const entry = global.channels.toMetaEntry({
+                    name: candidate.name,
+                    url: candidate.item.url || global.mega?.build(candidate.name, { mediaType: 'live' }),
+                    terms: candidate.item.terms
+                })
+                if (!entry || !entry.name) {
+                    continue
+                }
+                entry.group = candidate.item.group || candidate.item.groupName || ''
+                entry.score = 0
+                entries.push(entry)
+            } catch (error) {
+                ErrorHandler.warn('Failed to process a profile channel:', error.message)
+            }
+        }
+
+        return entries
     }
 
     /**
@@ -562,8 +900,31 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                 }
             }
 
+            // VOD recommendations live in their own cache: they are much more
+            // expensive to build and the live cache never holds them.
+            if (!entries.length && type === 'vod') {
+                const cachedVod = await withTimeout(this.getVODCache(), cacheTimeoutMs, null, 'getVODCache')
+                if (Array.isArray(cachedVod) && cachedVod.length > 0) {
+                    entries = cachedVod.slice(0, amount)
+                }
+            }
+
             if (!entries.length && allowGenerate) {
-                entries = await withTimeout(this.get(tags, amount, options), generateTimeoutMs, [], 'get')
+                // Searching every list for VOD entries takes far longer than the
+                // lightweight live path, so give it room before falling back.
+                const generateTimeout = type === 'vod' ? Math.max(generateTimeoutMs, 8000) : generateTimeoutMs
+                // Reuse an in-flight background build instead of searching all lists twice
+                const generation = (type === 'vod' && this.vodWarmPromise)
+                    ? this.vodWarmPromise
+                    : this.get(tags, amount, options)
+                entries = await withTimeout(generation, generateTimeout, [], 'get')
+                if (type === 'vod' && Array.isArray(entries) && entries.length) {
+                    // VOD lists are episode-based: spread the series instead of
+                    // letting one show fill the whole folder.
+                    entries = this.filterOfflineEntries(entries)
+                    entries = this.collapseVODSeries(entries, 2).slice(0, amount)
+                    this.setVODCache(entries).catch(err => ErrorHandler.warn('Failed to save VOD recommendations cache:', err?.message || err))
+                }
             }
 
             if (!entries.length) {
@@ -624,6 +985,144 @@ class SmartRecommendationsCompatibility extends EventEmitter {
     }
 
     /**
+     * Signature of the content profile the caches were built under. A cache
+     * written under another profile (or another parental age) is discarded, so
+     * switching the profile never keeps serving the previous profile's picks.
+     * @returns {string}
+     */
+    profileSignature() {
+        const profile = global.lists?.contentProfile
+        if (!profile || typeof profile.state != 'function') {
+            return ''
+        }
+        try {
+            const state = profile.state() || {}
+            return `${state.effective || ''}@${state.age ?? ''}`
+        } catch (err) {
+            return ''
+        }
+    }
+
+    /** Whether an entry is about the content profile in force. */
+    isProfileAligned(entry) {
+        const profile = global.lists?.contentProfile
+        if (!entry || !profile || typeof profile.groupRelevance != 'function' || !profile.effective?.()) {
+            return false
+        }
+        // Titles from a list the profile bundles are aligned by origin: the adult
+        // catalog names its groups after niches ("Brunette"), which the profile
+        // vocabulary never matches.
+        if (typeof profile.isProfileSource == 'function' && profile.isProfileSource(entry.source)) {
+            return true
+        }
+        const name = entry.originalName || entry.name || entry.programme?.channel || ''
+        return profile.groupRelevance({ name, group: entry.group || '' }) > 0
+    }
+
+    /**
+     * Reserved share of the row for the content profile in force. The EPG-driven
+     * picks are general channels, so the content a profile bundles (adult list,
+     * themed list) would never reach the home without a quota.
+     * @param {Array} entries - Entries already picked
+     * @param {number} amount - Size of the row
+     * @returns {number} how many profile-aligned entries are still missing
+     */
+    profileFocusDeficit(entries, amount) {
+        const profile = global.lists?.contentProfile
+        if (!profile || typeof profile.groupRelevance != 'function' || !profile.effective?.()) {
+            return 0
+        }
+        const target = Math.ceil(amount * 0.25)
+        const aligned = (Array.isArray(entries) ? entries : []).filter(entry => this.isProfileAligned(entry)).length
+        return Math.max(0, target - aligned)
+    }
+
+    /**
+     * Spreads the profile picks through the row instead of dumping them at the
+     * end, where the home screen never shows them.
+     */
+    interleaveProfilePicks(entries, picks) {
+        const out = Array.isArray(entries) ? entries.slice() : []
+        if (!Array.isArray(picks) || !picks.length) {
+            return out
+        }
+        const step = Math.max(1, Math.floor(out.length / picks.length))
+        picks.forEach((pick, i) => {
+            out.splice(Math.min(out.length, 1 + ((i + 1) * step)), 0, pick)
+        })
+        return out
+    }
+
+    /**
+     * The lists are usually still being loaded - and their search index still
+     * being built - when the first update runs, so the content the profile
+     * bundles is missing from the row. Probe the profile search until it answers
+     * and only then rebuild the row, otherwise the profile would stay invisible
+     * until the next update (which can take minutes on the EPG).
+     */
+    scheduleProfileRefresh() {
+        const lists = global.lists
+        if (!lists || this._profileRefreshTimer) {
+            return
+        }
+        if (typeof lists.contentProfile?.effective != 'function' || !lists.contentProfile.effective()) {
+            return
+        }
+        const loaded = typeof lists.loaded != 'function' || lists.loaded()
+        if (loaded && !this._profilePicksMissing) {
+            return
+        }
+        // Two rebuilds per profile state at most: a profile whose content is
+        // already in the row must not be rebuilt again.
+        if (this._profileRefreshTries >= 2) {
+            return
+        }
+        let ticks = 0
+        this._profileRefreshTimer = setInterval(async () => {
+            ticks++
+            if (!this._profilePicksMissing) { // a regular update already fixed the row
+                this.stopProfileRefresh()
+                return
+            }
+            const ready = typeof global.lists?.loaded != 'function' || global.lists.loaded()
+            if (!ready && ticks < 40) { // ~160 seconds
+                return
+            }
+            this.stopProfileRefresh()
+            if (!ready || this._profileRefreshTries >= 2) {
+                return
+            }
+            let available = 0
+            try {
+                available = (await this.getProfileChannels(1, [])).length
+            } catch (error) {
+                ErrorHandler.warn('Profile search probe failed:', error.message)
+            }
+            if (!available) { // still being indexed, probe again later
+                this.scheduleProfileRefresh()
+                return
+            }
+            this._profileRefreshTries++
+            // shouldUpdate() refuses to rebuild a row it just wrote, so ask for it
+            // explicitly instead of relying on the regular readiness heuristics.
+            this._forceProfileRefresh = true
+            this.updateLimiter.skip()
+            this.update().catch(error => ErrorHandler.warn('Failed to refresh the profile recommendations:', error.message))
+        }, 4000)
+        if (typeof this._profileRefreshTimer.unref == 'function') {
+            this._profileRefreshTimer.unref()
+        }
+    }
+
+    /** Stops the pending profile refresh timer, if any. */
+    stopProfileRefresh() {
+        if (this._profileRefreshTimer) {
+            clearInterval(this._profileRefreshTimer)
+        }
+        this._profileRefreshTimer = null
+    }
+
+    /**
      * Perform actual update (internal method)
      */
     async performUpdate() {
@@ -634,6 +1133,8 @@ class SmartRecommendationsCompatibility extends EventEmitter {
 
             const amount = 48
             let entries = []
+            this._profilePicksMissing = false
+            this._profilePicksAdded = false
 
             // Always generate new recommendations in update()
             let userContext
@@ -688,22 +1189,42 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                 this.someListLoaded = false;         
             }
 
-            // Fill with channels if needed
-            if (entries.length < amount) {
+            // Fill with channels if needed, reserving part of the row for the
+            // content profile in force (see profileFocusDeficit).
+            const focusDeficit = this.profileFocusDeficit(entries, amount)
+            let profilePicks = []
+            if (entries.length < amount || focusDeficit > 0) {
                 try {
-                    const excludes = entries.map(e => {
-                        if (e && typeof e === 'object') {
-                            return e.originalName || e.name || ''
-                        }
-                        return ''
-                    }).filter(name => name) // Remove empty names
+                    const entryName = entry => (entry && typeof entry === 'object') ? (entry.originalName || entry.name || '') : ''
 
-                    const channels = await this.getChannels(amount - entries.length, excludes, userContext.tags)
-                    entries.push(...channels)
+                    if (focusDeficit > 0) {
+                        const picks = await this.getProfileChannels(focusDeficit, entries.map(entryName).filter(name => name))
+                        if (picks.length) {
+                            profilePicks = picks
+                            this._profilePicksMissing = false
+                            this._profilePicksAdded = true
+                            this._profileRefreshTries = 0
+                        } else {
+                            this._profilePicksMissing = true
+                        }
+                    }
+
+                    if (entries.length + profilePicks.length < amount) {
+                        const excludes = entries.map(entryName)
+                            .concat(profilePicks.map(entryName))
+                            .filter(name => name)
+                        const missing = amount - entries.length - profilePicks.length
+                        const channels = await this.getChannels(missing, excludes, userContext.tags)
+                        entries.push(...channels.slice(0, missing))
+                    }
                 } catch (error) {
                     ErrorHandler.warn('Failed to get channel fallback:', error.message)
                     // Continue without channel fallback
                 }
+            }
+
+            if (entries.length > amount) {
+                entries = entries.slice(0, amount)
             }
 
             // Filter available channels BEFORE caching (non-intrusive test here)
@@ -756,13 +1277,58 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                 }
             }
 
+            // Different EPG sources can describe the same broadcast twice (same
+            // channel, same start): keep only the first, best ranked occurrence.
+            if (entries.length) {
+                const seenProgrammes = new Set()
+                entries = entries.filter(entry => {
+                    const channel = entry?.programme?.channel
+                    const start = entry?.programme?.start
+                    if (!channel || typeof start !== 'number') return true
+                    const key = `${channel.toLowerCase()}@${start}`
+                    if (seenProgrammes.has(key)) return false
+                    seenProgrammes.add(key)
+                    return true
+                })
+            }
+
+            // Before the EPG is parsed the engine can only tell channels apart by
+            // name, and generic/kids names end up outranking the profile-aligned
+            // ones. Re-rank the programme-less fallback by the profile tags so the
+            // first screen still reflects the content profile the user chose.
+            if (entries.length && !entries.some(e => e?.programme?.channel)) {
+                const profileScores = new Map()
+                const profileScoreOf = entry => {
+                    const name = entry?.originalName || entry?.name || ''
+                    const key = name.toLowerCase()
+                    if (!profileScores.has(key)) profileScores.set(key, scoreChannelByTags(name, userContext.tags))
+                    return profileScores.get(key)
+                }
+                entries = entries
+                    .map((entry, index) => ({ entry, index, profileScore: profileScoreOf(entry) }))
+                    .sort((a, b) => (b.profileScore - a.profileScore) || ((b.entry.score || 0) - (a.entry.score || 0)) || (a.index - b.index))
+                    .map(item => item.entry)
+            }
+
+            // Spread the profile picks now: the re-ranking above orders by score,
+            // which would otherwise push them all to the end of the row.
+            if (profilePicks.length) {
+                entries = this.interleaveProfilePicks(entries.slice(0, Math.max(0, amount - profilePicks.length)), profilePicks)
+            }
+
             // Cache the results (already filtered by availability)
             if (entries.length) {
-                await this.setCache(entries)
+                // Don't downgrade a rich cache (recommendations with programmes) to
+                // programme-less channels just because the EPG is still loading.
+                // Otherwise every boot overwrote what the user had been recommended.
+                if (!await this.wouldDowngradeCache(entries)) {
+                    await this.setCache(entries)
+                }
                 // Emit updated event to trigger UI refresh
                 this.emit('updated')
             }
             this.readyState = ((this.epgLoaded || !this.isEPGEnabled()) && this.listsLoaded) ? 4 : 3
+            this.scheduleProfileRefresh()
         } catch (error) {
             ErrorHandler.error('performUpdate failed:', error.message, error.stack)
             throw error
@@ -820,16 +1386,8 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             this.initialized && 
             (this.listsLoaded && (configuredType === 'vod' || this.epgLoaded))) {
 
-            const fromLatest = [...this.latestEntries]
-            return this.dedupeFeaturedEntries(
-                fromLatest.sort((a, b) => {
-                    if (!a.programme || !b.programme) {
-                        return 0
-                    }
-                    return a.programme.start - b.programme.start
-                }).slice(0, amount),
-                topEntries
-            )
+            const fromLatest = this.orderByRelevance(this.latestEntries)
+            return this.dedupeFeaturedEntries(fromLatest.slice(0, amount), topEntries)
         }
 
         // SPECIAL CASE: For VOD, if no cache but lists are loaded, force generation once
@@ -875,16 +1433,162 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             return []        
         }
 
-        // Return requested amount from cached results (already filtered by availability)
-        return this.dedupeFeaturedEntries( 
-            results.sort((a, b) => {
-                if (!a.programme || !b.programme) {
-                    return 0
-                }
-                return a.programme.start - b.programme.start
-            }).slice(0, amount - topEntries.length),
+        // Cached entries are already ranked (profile + score): keep that order,
+        // sorting by programme start here would throw the relevance away.
+        let ranked = this.orderByRelevance(results)
+        if (this.shouldMixVODInHome()) {
+            ranked = await this.mixVODInEntries(ranked, amount - topEntries.length)
+        }
+        return this.dedupeFeaturedEntries(
+            ranked.slice(0, amount - topEntries.length),
             topEntries
         )
+    }
+
+    /**
+     * With `recommendations-type=auto` the home row follows the history, and until
+     * something is played that means live TV only. Narrow profiles (movies, series,
+     * kids, music...) are mostly VOD, so their home row mixes VOD in instead of
+     * showing live channels exclusively. News and sports stay live-first, and the
+     * general profile keeps the plain auto behaviour.
+     * @returns {boolean}
+     */
+    shouldMixVODInHome() {
+        if (this.getConfiguredRecommendationType() !== 'auto') {
+            return false
+        }
+        if (this.getEffectiveRecommendationType() === 'vod') {
+            return false // the row is already VOD
+        }
+        const profile = global.lists?.contentProfile
+        if (!profile || typeof profile.effective != 'function') {
+            return false
+        }
+        const code = profile.effective()
+        if (!code) {
+            return false
+        }
+        return !['news', 'sports'].includes(code)
+    }
+
+    /**
+     * Interleaves some VOD titles into a live list so the profile content shows up
+     * early without taking the row over. Live relevance weighs
+     * LIVE_RELEVANCE_WEIGHT times a VOD title, so VOD only gets
+     * `share / LIVE_RELEVANCE_WEIGHT` of the row (roughly one title every 3-4
+     * slots) and they are spread evenly instead of clustered.
+     * @param {Array} entries - Ranked live entries
+     * @param {number} limit - How many entries the caller is going to display
+     * @param {number} share - VOD share of the row before the live weight
+     * @returns {Array}
+     */
+    async mixVODInEntries(entries, limit, share = 0.35) {
+        const live = Array.isArray(entries) ? entries : []
+        const vod = await this.getVODCache().catch(() => null)
+        if (!Array.isArray(vod) || !vod.length) {
+            return live
+        }
+        const key = entry => String(entry?.url || entry?.originalName || entry?.name || '').toLowerCase()
+        const seen = new Set(live.map(key))
+        const pool = []
+        for (const entry of this.collapseVODSeries(vod)) {
+            const k = key(entry)
+            if (!k || seen.has(k)) continue
+            seen.add(k)
+            pool.push(entry)
+        }
+        if (!pool.length) {
+            return live
+        }
+        const vodShare = share / LIVE_RELEVANCE_WEIGHT
+        const slots = Math.min(
+            pool.length,
+            Math.max(1, Math.min(Math.max(1, limit - 1), Math.round(Math.max(1, limit) * vodShare)))
+        )
+        // Profile-aligned titles lead, so the row keeps the profile's flavour when
+        // the catalog has anything aligned with it.
+        const relevance = entry => {
+            try {
+                const profile = global.lists?.contentProfile
+                if (!profile || typeof profile.groupRelevance != 'function') return 0
+                return profile.groupRelevance({ name: entry?.originalName || entry?.name || '', group: entry?.group || '' }) || 0
+            } catch (err) {
+                return 0
+            }
+        }
+        const rankedPool = this.orderByRelevance(pool)
+            .map(entry => ({ entry, score: relevance(entry) }))
+            .sort((a, b) => b.score - a.score)
+            .map(item => item.entry)
+        const aligned = rankedPool.filter(entry => this.isProfileAligned(entry))
+        const picked = (aligned.length ? aligned : rankedPool).slice(0, aligned.length ? slots : 1)
+        // Evenly spread the picked titles: one VOD every `limit / slots` slots.
+        const positions = new Set()
+        for (let n = 1; n <= picked.length; n++) {
+            positions.add(Math.max(0, Math.round((n * Math.max(1, limit)) / picked.length) - 1))
+        }
+        const ret = []
+        let i = 0, v = 0
+        while (i < live.length || v < picked.length) {
+            if (v < picked.length && (i >= live.length || positions.has(ret.length))) {
+                ret.push(picked[v++])
+            } else {
+                ret.push(live[i++])
+            }
+        }
+        return ret
+    }
+
+    /**
+     * Keep the relevance order produced by the scorer, only pushing programmes
+     * that already ended behind the ones still running/upcoming.
+     * @param {Array} entries
+     * @returns {Array}
+     */
+    orderByRelevance(entries) {
+        if (!Array.isArray(entries)) return []
+        const now = Date.now() / 1000
+        const isExpired = e => typeof e?.programme?.end === 'number' && e.programme.end > 0 && e.programme.end < now
+        return [...entries].sort((a, b) => isExpired(a) - isExpired(b))
+    }
+
+    /**
+     * VOD lists describe episodes, not titles: a single series can fill the whole
+     * "Recommended for you" folder with "S01 E01..E08". Keep the best few episodes
+     * of each series (same group/season) and let the other titles surface.
+     * @param {Array} entries - VOD entries
+     * @param {number} perSeries - Episodes kept per series
+     * @returns {Array}
+     */
+    collapseVODSeries(entries, perSeries = 2) {
+        if (!Array.isArray(entries) || !entries.length) return entries || []
+        const episode = /(^|[^a-z0-9])(?:s\d{1,2}[\s._-]*e\d{1,3}|t\d{1,2}[\s._-]*e\d{1,3}|ep\.?\s?\d{1,3}|cap(?:[ií]tulo)?\s*\d{1,3})(?![a-z0-9])/i
+        const seasons = /(^|[^a-z0-9])(?:s\d{1,2}|t\d{1,2}|temporada|season)(?![a-z0-9])/i
+        const counter = new Map()
+        const kept = entries.filter(entry => {
+            const name = String(entry?.name || entry?.title || entry?.programme?.title || '')
+            const group = String(entry?.group || entry?.channel || entry?.programme?.channel || '')
+            // Key by the title without the episode/season marker so distinct
+            // series keep separate budgets and generic groups (e.g. "Movies")
+            // are not collapsed together.
+            let key = ''
+            if (episode.test(name)) {
+                // Usually the series name is in the title ("Show S01 E02"), but some
+                // lists put only "S01 E02" in the name and the series in the group.
+                key = name.replace(episode, ' ').replace(/[\s._-]+$/, '').trim().toLowerCase()
+            }
+            if (!key && (episode.test(name) || episode.test(group) || seasons.test(group))) {
+                key = group.trim().toLowerCase()
+            }
+            if (!key) return true
+            const seen = counter.get(key) || 0
+            if (seen >= perSeries) return false
+            counter.set(key, seen + 1)
+            return true
+        })
+        // A list laid out as "Show S01 E01" everywhere would be collapsed to a
+        // handful of titles: keep the original selection in that case.
+        return kept.length >= Math.min(8, Math.ceil(entries.length * 0.4)) ? kept : entries
     }
 
     dedupeFeaturedEntries(entries, topEntries=null) { // originalName, name, programme.channel
@@ -1542,7 +2246,7 @@ class SmartRecommendationsCompatibility extends EventEmitter {
      * @returns {Array} Transformed recommendations
      */
     transformRecommendations(recommendations) {
-        return recommendations.map((rec, index) => {
+        const entries = recommendations.map((rec, index) => {
             // VOD entries: return directly without toMetaEntry transformation
             if (rec.type === 'vod' && rec.entry) {
                 // Return the original entry directly, just add metadata
@@ -1686,6 +2390,266 @@ class SmartRecommendationsCompatibility extends EventEmitter {
 
             return entry
         }).filter(entry => entry !== null) // Remove any null entries (when toMetaEntry not available)
+
+        // A whole season/series must count as a single recommendation, not one
+        // slot per episode (e.g. 16 One Piece episodes used to fill the home)
+        return this.collapseSeriesEpisodes(entries)
+    }
+
+    /**
+     * Strip a trailing season marker from a group path leaf, so sibling groups
+     * ("X S01", "X S02", "X 1ª Temporada") all map back to the series name ("X").
+     * @param {string} groupPath - Group path, e.g. 'Série/ONE PIECE S01'
+     * @returns {string} Group path without the season marker
+     */
+    stripSeasonFromGroup(groupPath) {
+        const parts = String(groupPath || '').split('/').map(p => p.trim()).filter(p => p)
+        if (!parts.length) return ''
+        const leaf = parts[parts.length - 1]
+            .replace(/\b(?:s|t)\s*\d{1,3}\s*$/i, '') // ... S01 / T2
+            .replace(/\b\d{1,3}\s*[ªa°]?\s*temporada\s*$/i, '') // ... 1ª Temporada
+            .replace(/\btemporada\s*\d{1,3}\s*$/i, '') // ... Temporada 1
+            .replace(/\bseason\s*\d{1,3}\s*$/i, '') // ... Season 1
+            .replace(/[\s\-–—_:.]+$/, '')
+            .trim()
+        if (!leaf) {
+            // The whole segment was a season marker ('.../Série/Season 1'): use the parent
+            parts.pop()
+            return parts.length ? parts.join('/') : String(groupPath || '').trim()
+        }
+        parts[parts.length - 1] = leaf
+        return parts.join('/')
+    }
+
+    /**
+     * Strip season/episode markers from a name ("S01 E02", "1x02", "T1E2", "EP 3",
+     * including wrappers left empty like "()") so every episode of the same
+     * series maps to the same base name.
+     * @param {string} name
+     * @returns {string} Base name, lowercased
+     */
+    episodeBaseName(name) {
+        return String(name || '')
+            .replace(/\b(?:s\s*\d{1,3}\s*[-_. ]?\s*e\s*\d{1,4}|t\s*\d{1,3}\s*[-_. ]?\s*e\s*\d{1,4}|\d{1,3}\s*x\s*\d{1,4})\b/gi, ' ')
+            .replace(/[([{]\s*[)\]}]/g, ' ')
+            .replace(/\b(?:s|t)\s*\d{1,3}\s*$/i, ' ') // season left over from the name
+            .replace(/\s+/g, ' ')
+            .replace(/^[\s\-–—_:.]+|[\s\-–—_:.]+$/g, '') // leftover separators
+            .trim()
+            .toLowerCase()
+    }
+
+    /**
+     * Grouping key of a recommended VOD entry when it looks like an episode of
+     * a series (same series name + same base name, across seasons).
+     * @param {Object} entry - Menu entry
+     * @returns {Object|null} { key, path, group }
+     */
+    seriesEpisodeInfo(entry) {
+        if (!entry || typeof entry !== 'object') return null
+        if (entry.__seriesFolder) return null // already collapsed
+        if (entry.type && entry.type !== 'stream' && entry.type !== 'select') return null
+        if (entry.mediaType && entry.mediaType !== 'video') return null // VOD only
+        if (entry.programme) return null
+        const group = String(entry.group || '').trim()
+        if (!group) return null
+        const base = this.episodeBaseName(entry.name)
+        if (!base) return null
+        // Seasons are usually separate sibling groups ("X S01", "X S02"), so key
+        // on the series name to keep a single folder for the whole series
+        const path = this.stripSeasonFromGroup(group)
+        return { key: path.toLowerCase() + '|' + base, path, group, base }
+    }
+
+    /**
+     * Tell a real series bucket apart from look-alikes.
+     * - Same title repeated means duplicate content (mirrors), not episodes.
+     * - The base name only resolves to a title when the episode marker is the
+     *   last part of the name; otherwise it is a subtitle fragment
+     *   ("Episódio 3 - O Começo") and unrelated entries would be merged.
+     * @param {Object} bucket - { path, base, entries }
+     * @returns {boolean} True when the bucket holds episodes of one series
+     */
+    isSeriesEpisodesBucket(bucket) {
+        const names = new Set(bucket.entries.map(e => String(e.name || '').trim().toLowerCase()))
+        if (names.size < 2) return false
+        const base = String(bucket.base || '').trim()
+        if (!base) return false
+        const marker = /^(?:s\s*\d{1,3}\s*[-_. ]?\s*e\s*\d{1,4}|t\s*\d{1,3}\s*[-_. ]?\s*e\s*\d{1,4}|\d{1,3}\s*x\s*\d{1,4}|(?:ep|epi|epis[oó]dio|cap[ií]tulo|cap)\s*\.?\s*\d{1,4})\b/i
+        return bucket.entries.some(entry => {
+            const name = String(entry.name || '').toLowerCase().trim()
+            if (!name.startsWith(base)) return false // title must lead the name
+            const rest = name.slice(base.length).trim()
+            return rest === '' || marker.test(rest)
+        })
+    }
+
+    /**
+     * Collapse recommended series episodes into a single folder entry, so a
+     * series counts as one recommendation and its episodes live inside it.
+     * @param {Array} entries - Menu entries
+     * @returns {Array} Entries with collapsed series
+     */
+    collapseSeriesEpisodes(entries) {
+        if (!Array.isArray(entries) || entries.length < 2) return entries
+        const buckets = new Map()
+        for (const entry of entries) {
+            const info = this.seriesEpisodeInfo(entry)
+            if (!info) continue
+            if (!buckets.has(info.key)) buckets.set(info.key, { path: info.path, base: info.base, entries: [] })
+            buckets.get(info.key).entries.push(entry)
+        }
+        const collapsible = new Map()
+        buckets.forEach((bucket, key) => {
+            if (bucket.entries.length < 2) return
+            if (!this.isSeriesEpisodesBucket(bucket)) return
+            collapsible.set(key, bucket)
+        })
+        if (!collapsible.size) return entries
+        const emitted = new Set()
+        const result = []
+        for (const entry of entries) {
+            const info = this.seriesEpisodeInfo(entry)
+            if (!info || !collapsible.has(info.key)) {
+                result.push(entry)
+                continue
+            }
+            if (emitted.has(info.key)) continue
+            emitted.add(info.key)
+            result.push(this.buildSeriesFolderEntry(collapsible.get(info.key)))
+        }
+        return result
+    }
+
+    /**
+     * Build the folder entry that represents a whole series.
+     * Only serializable data is stored; the renderer is rebuilt on cache read.
+     * @param {Object} bucket - { path, entries }
+     * @returns {Object} Folder entry
+     */
+    buildSeriesFolderEntry(bucket) {
+        const episodes = bucket.entries
+        const first = episodes[0]
+        // Groups backing this folder (one per season), used when the folder opens
+        const groups = Array.from(new Set(episodes.map(e => String(e.group || '').trim()).filter(Boolean)))
+        const parts = bucket.path.split('/').map(p => p.trim()).filter(p => p)
+        const name = parts[parts.length - 1] || first.groupName || first.name
+        const details = parts.slice(0, -1).join(' &middot; ')
+        const maxOf = prop => episodes.reduce((max, e) => {
+            const value = e?.[prop]
+            return typeof value === 'number' && value > max ? value : max
+        }, 0)
+        const icon = (episodes.find(e => e.icon) || {}).icon
+        return {
+            name,
+            details,
+            type: 'group',
+            url: 'javascript:;',
+            icon,
+            class: 'entry-cover',
+            fa: 'fas fa-play-circle',
+            safe: true,
+            group: bucket.path,
+            groups: first.groups,
+            groupName: first.groupName || name,
+            groupTerms: first.groupTerms,
+            mediaType: 'video',
+            source: first.source,
+            score: maxOf('score'),
+            normalizedScore: maxOf('normalizedScore'),
+            timingScore: maxOf('timingScore'),
+            finalScore: maxOf('finalScore'),
+            // Persisted marker so the renderer can be restored from the cache
+            __seriesFolder: { group: bucket.path, groups, source: first.source || '' },
+            renderer: () => this.openSeriesFolder(bucket.path, groups, first.source)
+        }
+    }
+
+    /**
+     * Render the entries of a collapsed series folder.
+     * @param {string} seriesPath - Series group path, e.g. 'Série/ONE PIECE: A Série'
+     * @param {Array} groupPaths - Groups holding the episodes (one per season)
+     * @param {string} source - List URL the groups belong to
+     * @returns {Promise<Array>} Menu entries
+     */
+    async openSeriesFolder(seriesPath, groupPaths, source) {
+        const notFound = () => [global.menu?.emptyEntry ? global.menu.emptyEntry(global.lang?.NOT_FOUND) : { name: global.lang?.NOT_FOUND || 'Not found', type: 'action' }]
+        try {
+            if (!global.lists?.loaded?.()) {
+                return [global.lists.manager.updatingListsEntry()]
+            }
+            const groups = await this.findSeriesGroups(seriesPath, groupPaths, source)
+            if (!groups.length) return notFound()
+            const groupLeaf = p => String(p || '').trim().split('/').pop()
+            const seriesLeaf = groupLeaf(seriesPath).toLowerCase()
+            const multi = groups.length > 1
+            const output = []
+            for (const group of groups) {
+                let entries = []
+                if (typeof global.channels?.renderGroupEntries === 'function') {
+                    entries = await global.channels.renderGroupEntries(group, 'block', true)
+                } else {
+                    entries = await global.lists.group(group)
+                }
+                if (!Array.isArray(entries)) entries = []
+                if (!entries.length) continue
+                if (multi) {
+                    // Name the season/group on each episode so they are not mixed up
+                    entries = entries.map(entry => {
+                        const leaf = groupLeaf(entry.group)
+                        if (!leaf || leaf.toLowerCase() === seriesLeaf) return entry
+                        return Object.assign({}, entry, {
+                            details: (entry.details ? entry.details + ' &middot; ' : '') + leaf
+                        })
+                    })
+                }
+                output.push(...entries)
+            }
+            return output.length ? output : notFound()
+        } catch (error) {
+            ErrorHandler.warn('Failed to open series folder:', error?.message || error)
+            return notFound()
+        }
+    }
+
+    /**
+     * Resolve the lists groups behind a collapsed series folder.
+     * @param {string} seriesPath - Series group path
+     * @param {Array} groupPaths - Groups recorded when the folder was built
+     * @param {string} source - Preferred list URL
+     * @returns {Promise<Array>} Group objects ({ group, name, url, icon })
+     */
+    async findSeriesGroups(seriesPath, groupPaths, source) {
+        const all = await global.lists.groups(['series', 'vod']).catch(() => [])
+        if (!Array.isArray(all)) return []
+        const key = p => String(p || '').trim().toLowerCase()
+        const wanted = (Array.isArray(groupPaths) ? groupPaths : []).map(key).filter(p => p)
+        const seriesKey = key(seriesPath)
+        if (seriesKey && !wanted.includes(seriesKey)) wanted.push(seriesKey)
+        const result = []
+        const seen = new Set()
+        for (const path of wanted) {
+            let matches = all.filter(g => key(g.group) === path)
+            if (!matches.length && path === seriesKey) {
+                // The series itself has no group of its own, so collect its seasons
+                const prefix = seriesKey + '/'
+                matches = all.filter(g => {
+                    const groupKey = key(g.group)
+                    return groupKey.startsWith(prefix) && this.stripSeasonFromGroup(g.group).toLowerCase() === seriesKey
+                })
+            }
+            for (const match of matches) {
+                const matchKey = key(match.group) + '|' + String(match.url || '')
+                if (seen.has(matchKey)) continue
+                seen.add(matchKey)
+                result.push(match)
+            }
+        }
+        if (result.length > 1 && source) {
+            const preferred = result.filter(g => String(g.url || '') === String(source))
+            if (preferred.length) return preferred
+        }
+        return result
     }
 
     /**
@@ -2036,6 +3000,7 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             this.periodicUpdateInterval = null
             ErrorHandler.info('⏰ Stopped periodic updates')
         }
+        this.stopProfileRefresh()
         if (this.updateLimiter) {
             this.updateLimiter.destroy()
         }
@@ -2046,6 +3011,16 @@ class SmartRecommendationsCompatibility extends EventEmitter {
      */
     shouldUpdate() {
         const now = Date.now()
+
+        // A forced profile refresh must not be judged by the readiness heuristics
+        // below: the row it needs to rebuild was written seconds ago.
+        if (this._forceProfileRefresh) {
+            this._forceProfileRefresh = false
+            if (this.initialized) {
+                this.lastUpdateTime = now
+                return true
+            }
+        }
         
         // Minimum interval between updates (5 seconds)
         const minUpdateInterval = 5000
@@ -2105,7 +3080,8 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                 await global.menu?.updateHomeFilters().catch(err => global.menu?.displayError(err))
                 
                 // If we're on home screen and replacing busy placeholders, force a full refresh
-                // updateHomeFilters only updates pages[''] but doesn't re-render if already on home
+                // updateHomeFilters repaints the home only when it isn't navigating/suspended,
+                // so right after a page render the placeholders need an explicit refresh.
                 const isOnHome = !global.menu?.path
                 if (isOnHome && isBusy && busyOut) {
                     global.menu?.refreshNow()
@@ -2143,6 +3119,7 @@ class SmartRecommendationsCompatibility extends EventEmitter {
      */
     isCacheValid(cacheData) {
         return cacheData &&
+            cacheData.version === this.cacheVersion &&
             cacheData.featured &&
             cacheData.timestamp &&
             (Date.now() - cacheData.timestamp) < this.cacheMaxAge
@@ -2155,6 +3132,31 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             return cacheData.featured.some(e => e && (e.url || e.name))
         } else {
             return cacheData.featured.some(e => !!e?.programme?.channel)
+        }
+    }
+
+    /**
+     * Whether caching `entries` would replace richer persisted recommendations
+     * (with programmes) by programme-less channels. This is what happened on
+     * every boot while the EPG hadn't loaded yet, discarding what the previous
+     * session had learned/recommended.
+     * @param {Array} entries - Entries about to be cached
+     * @returns {Promise<boolean>} True if the write should be skipped
+     */
+    async wouldDowngradeCache(entries) {
+        try {
+            if (this.epgLoaded || !this.isEPGEnabled()) return false
+            if (this.getEffectiveRecommendationType() !== 'live') return false
+            if (!Array.isArray(entries) || !entries.length) return false
+            if (entries.some(e => e?.programme?.channel)) return false
+            // Profile picks are an upgrade even without programmes: they are the
+            // content the profile bundles, which the cached row never had.
+            if (this._profilePicksAdded) return false
+            const cacheData = await storage.get(this.cacheKey)
+            return this.isCacheRich(cacheData)
+        } catch (err) {
+            ErrorHandler.warn('Failed to check for cache downgrade:', err?.message || err)
+            return false
         }
     }
 
@@ -2186,6 +3188,31 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         try {
             const cacheData = await storage.get(this.cacheKey)
 
+            // Entries produced by an older scoring are dropped, including the stale
+            // ones: they would otherwise be served for up to 7 days after an upgrade.
+            if (cacheData && cacheData.version !== this.cacheVersion) {
+                ErrorHandler.debug(`getCache: discarding cache from scoring v${cacheData.version ?? 1}`)
+                return null
+            }
+
+            // Built under another content profile / parental age: rebuild.
+            const signature = this.profileSignature()
+            if (cacheData && signature && (cacheData.profile || '') !== signature) {
+                ErrorHandler.debug(`getCache: discarding cache from profile ${cacheData.profile || '(default)'}`)
+                return null
+            }
+
+            // Drop programmes that have already ended, otherwise a cache reused
+            // from a previous session would display outdated time slots.
+            if (Array.isArray(cacheData?.featured)) {
+                const now = Date.now() / 1000
+                cacheData.featured = cacheData.featured.filter(e => {
+                    const end = e?.programme?.end
+                    // end === 0 means "no end time" (e.g. VOD), so keep the entry
+                    return typeof end !== 'number' || end <= 0 || end >= now
+                })
+            }
+
             // Check if cache has entries (even if timestamp is stale)
             const hasEntries = cacheData?.featured && Array.isArray(cacheData.featured) && cacheData.featured.length > 0
             const isValid = this.isCacheValid(cacheData)
@@ -2213,6 +3240,16 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                         if (e && e.name === ' &nbsp;' && e.class && e.class.includes('entry-busy-x')) {
                             return e // Return placeholder entry as-is
                         }
+                        // Collapsed series folders are plain data in storage; restore
+                        // their behavior (toMetaEntry would turn them into a search page)
+                        if (e?.__seriesFolder?.group) {
+                            e.type = 'group'
+                            if (!e.url) e.url = 'javascript:;'
+                            if (!e.fa) e.fa = 'fas fa-play-circle'
+                            const seriesGroups = Array.isArray(e.__seriesFolder.groups) ? e.__seriesFolder.groups : []
+                            e.renderer = () => this.openSeriesFolder(e.__seriesFolder.group, seriesGroups, e.__seriesFolder.source)
+                            return e
+                        }
                         // Preserve icon and programme.icon before calling toMetaEntry
                         // toMetaEntry may overwrite these, so we need to restore them
                         const preservedIcon = e?.icon
@@ -2237,6 +3274,9 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                         return e // Return original entry if processing fails
                     }
                 })
+                // Caches written before the grouping existed still hold one entry
+                // per episode, so collapse them on read as well
+                cacheData.featured = this.collapseSeriesEpisodes(cacheData.featured)
                 return cacheData.featured
             }
 
@@ -2261,7 +3301,9 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             const channelNames = this.extractChannelNamesFromEntries(entries)
             const cacheData = {
                 featured: entries,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                version: this.cacheVersion,
+                profile: this.profileSignature()
             }
 
             await storage.set(this.cacheKey, cacheData, { ttl: this.cacheTTLSeconds })
@@ -2308,12 +3350,40 @@ class SmartRecommendationsCompatibility extends EventEmitter {
     }
 
     /**
+     * React to a content profile / parental age change: everything derived from the
+     * previous profile is stale, so drop the caches and rebuild the recommendations.
+     */
+    async handleContentProfileChange(state) {
+        ErrorHandler.info('🎯 Content profile changed, clearing recommendations caches', state || '')
+        this._profilePicksMissing = false
+        this._profilePicksAdded = false
+        this._profileRefreshTries = 0
+        this.stopProfileRefresh()
+        // The VOD folder cache was just dropped too: forget the in-flight warm
+        // promise so it is rebuilt for the new profile.
+        this.vodWarmPromise = null
+        this._vodGeneralPass = null
+        await this.clear('content-profile-changed').catch(err => {
+            ErrorHandler.warn('Content profile change: cache clear failed:', err?.message || err)
+        })
+        await this.scheduleUpdate().catch(err => {
+            ErrorHandler.warn('Content profile change: update scheduling failed:', err?.message || err)
+        })
+        await this.warmVODCache().catch(err => {
+            ErrorHandler.warn('Content profile change: VOD warm failed:', err?.message || err)
+        })
+        global.menu?.refreshNow?.()
+    }
+
+    /**
      * Clear cache from storage
      */
     async clearCache() {
         // Delete cache completely by setting to null with ttl 0
         await storage.set(this.cacheKey, null, { ttl: 0 })
         await storage.set(this.lastChannelsCacheKey, null, { ttl: 0 })
+        // Profile/interest changes must not keep serving the previous VOD picks
+        await storage.set(this.vodCacheKey, null, { ttl: 0 })
     }
 
     /**

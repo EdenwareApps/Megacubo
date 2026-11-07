@@ -66,6 +66,10 @@ class StreamerTools extends EventEmitter {
                 if (result.url != url) { // avoid opening cached URL from other stream
                     result.url = url;
                     result.directURL = url;
+                    // media details are content specific, never reuse them for another stream
+                    delete result.placeholder;
+                    delete result.media;
+                    delete result.segment;
                 }
                 return result;
             }
@@ -93,6 +97,11 @@ class StreamerTools extends EventEmitter {
         if (type && (!empty || type != 'ts')) {
             nfo.type = type;
             nfo.until = now + 600;
+            if (nfo.placeholder) {
+                // placeholder verdicts are content specific, they must not be shared
+                // with other channels living on the same domain
+                return nfo;
+            }
             this.streamInfoCaching[cachingKey] = nfo;
             return nfo;
         } else if (empty) {
@@ -254,7 +263,7 @@ class StreamerBase extends StreamerTools {
                     console.log('CANCEL');
                 }
                 intent.destroy();
-                reject('cancelled by user');
+                throw 'cancelled by user';
             } else {
                 if (this.opts.debug) {
                     console.log('COMMIT', intent);
@@ -348,6 +357,7 @@ class StreamerBase extends StreamerTools {
                     this.emit('streamer-long-watching', watchingDuration);
                 }
             }
+            this.active.stopping = true; // its failures are not to be reported anymore
             this.active.destroy();
             this.active = null;
             this.emit('stop', err, data, elapsed)
@@ -746,8 +756,16 @@ class Streamer extends StreamerTracks {
         return msg
     }
     handleFailureMessage(r) {
+        const msg = this.humanizeFailureMessage(r), now = (Date.now() / 1000);
+        const last = this.lastFailureMessage;
+        if (last && last.msg == msg && (now - last.time) < 30) {
+            // repeated alerts of the same failure are noise: the user has just been warned
+            console.warn('Suppressing repeated failure message:', msg);
+            return;
+        }
+        this.lastFailureMessage = { msg, time: now };
         process.nextTick(() => {
-            global.osd && global.osd.show(this.humanizeFailureMessage(r), 'fas fa-exclamation-triangle faclr-red', 'failure', 'normal');
+            global.osd && global.osd.show(msg, 'fas fa-exclamation-triangle faclr-red', 'failure', 'normal');
         })
     }
 }

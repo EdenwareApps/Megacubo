@@ -59,11 +59,12 @@ class ListsDiscovery extends EventEmitter {
         const data = await storage.get(this.key);
         Array.isArray(data) && this.add(data);
     }
-    async reset() {
+    async reset(force) {
         // Only reset discovery if necessary to avoid unnecessary network requests and processing
-        const shouldResetDiscovery = await this.shouldResetDiscovery();
+        const shouldResetDiscovery = force === true || await this.shouldResetDiscovery();
 
         if (shouldResetDiscovery) {
+            if (force === true) this.lastFullDiscovery = Date.now();
             console.log('🔄 Complete reset: clearing discovery cache and rediscovering lists');
             this.knownLists = [];
             await this.save();

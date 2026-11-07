@@ -6,11 +6,113 @@ import lists from "../lists/lists.js";
 import fs from "fs";
 import config from "../config/config.js"
 
+// cache of programme artwork found on other EPG sources, keyed by normalized title
+const artCache = new Map()
+const ART_CACHE_TTL = 6 * 60 * 60 * 1000
+const ART_CACHE_MISS_TTL = 10 * 60 * 1000
+const ART_CACHE_TIMEOUT_TTL = 2 * 60 * 1000
+const artCacheLimit = 500
+// EPG lookups are serialized so a screen full of missing artwork does not flood the worker
+const artLimit = pLimit(1)
+
 class IconFetcher extends EventEmitter {
     constructor() {
         super();
         this.isAlphaRegex = new RegExp('\\.(png|webp|gif)', 'i');
         this.isNonAlphaRegex = new RegExp('\\.(jpe?g)', 'i');
+    }
+    // EPG feeds often reuse the channel logo as the programme artwork; those are not
+    // real programme images and are frequently forbidden (403) for hotlinking
+    isChannelLogoURL(url) {
+        if (typeof (url) != 'string' || !url) return false;
+        return /\/channels\//i.test(url) || /_l\.(png|jpe?g|webp|gif)$/i.test(url);
+    }
+    normalizeTitle(title) {
+        return String(title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+    }
+    // Tries the URLs one by one and keeps the first usable one, so a single dead
+    // mirror does not hide the artwork that a sibling source may provide.
+    async fetchFirst(urls) {
+        for (const url of urls) {
+            if (this.destroyed) throw 'destroyed';
+            if (!url || typeof (url) != 'string') continue;
+            const bad = this.master.downloadErrors && this.master.downloadErrors[url];
+            if (bad && bad.ttl > (Date.now() / 1000)) continue;
+            let err, ret = await this.master.fetchURL(url).catch(e => err = e);
+            if (!err && ret && ret.key) return [ret.key, true, ret.alpha];
+        }
+    }
+    // Artwork for the programme itself, from any other EPG source that knows this title.
+    // Results are cached by title (including misses) to keep the lookup cheap.
+    async fetchProgrammeArt() {
+        const programme = this.entry && this.entry.programme;
+        const title = programme && typeof (programme.title) == 'string' ? programme.title : '';
+        const key = this.normalizeTitle(title);
+        if (!key) return;
+        const cached = artCache.get(key);
+        if (cached && cached.expires > Date.now()) {
+            return cached.urls.length ? this.fetchFirst(cached.urls) : undefined;
+        }
+        const epg = lists.epg;
+        // with no EPG loaded there is nothing to look for yet, so keep no negative cache
+        if (!epg || !Array.isArray(epg.loaded) || !epg.loaded.length) return;
+        let terms = Array.isArray(programme.terms) && programme.terms.length ? programme.terms : lists.tools.terms(title);
+        terms = terms.filter(t => typeof (t) == 'string' && t && !t.startsWith('-'));
+        if (!terms.length) return;
+        const lookup = artLimit(() => lists.epgSearch(terms, false).catch(() => []))
+        const found = await Promise.race([
+            lookup,
+            new Promise(resolve => setTimeout(() => resolve(null), 2000))
+        ])
+        if (!Array.isArray(found)) {
+            // a busy/lagging EPG worker must never hold back the usual fallbacks
+            artCache.set(key, { urls: [], expires: Date.now() + ART_CACHE_TIMEOUT_TTL })
+            if (artCache.size > artCacheLimit) artCache.delete(artCache.keys().next().value)
+            return
+        }
+        const urls = [];
+        for (const item of (Array.isArray(found) ? found : [])) {
+            if (!item || typeof (item.icon) != 'string' || !item.icon) continue;
+            if (item.icon == programme.icon || urls.includes(item.icon)) continue;
+            if (this.normalizeTitle(item.title) != key) continue;
+            if (this.isChannelLogoURL(item.icon)) continue;
+            urls.push(item.icon);
+            if (urls.length >= 4) break;
+        }
+        artCache.set(key, {
+            urls,
+            expires: Date.now() + (urls.length ? ART_CACHE_TTL : ART_CACHE_MISS_TTL)
+        });
+        if (artCache.size > artCacheLimit) {
+            artCache.delete(artCache.keys().next().value);
+        }
+        if (this.destroyed) throw 'destroyed';
+        if (urls.length) return this.fetchFirst(urls);
+    }
+    // Terms of the other channels the current one is also known by (regional stations,
+    // HD/alternative feeds...). Only variations sharing a term with this channel are
+    // kept to avoid returning an unrelated channel logo.
+    variationTerms() {
+        const ch = this.isChannel;
+        if (!ch || !ch.alts || !this.terms) return [];
+        const base = new Set(this.terms.filter(t => typeof (t) == 'string' && t && !t.startsWith('-')));
+        if (!base.size) return [];
+        const variations = [];
+        Object.keys(ch.alts).forEach(name => {
+            const terms = Array.isArray(ch.alts[name]) ? ch.alts[name] : lists.tools.terms(name);
+            if (!terms || !terms.length) return;
+            if (!terms.some(t => base.has(t))) return;
+            variations.push(terms);
+        });
+        return variations;
+    }
+    // Logos already cached for a name variation are free: no network involved
+    async cachedVariationLogo() {
+        for (const terms of this.variationTerms().slice(0, 6)) {
+            if (this.destroyed) throw 'destroyed';
+            const file = await this.master.getDefaultFile(terms).catch(() => false);
+            if (file) return [terms.join(','), false, true];
+        }
     }
     hasPriority(prevImage, nextImage, images) {
         if (!prevImage.alpha && nextImage.alpha) {
@@ -131,6 +233,17 @@ class IconFetcher extends EventEmitter {
             if (!err) {
                 return [ret.key, true, ret.alpha]
             }
+            // the EPG artwork did not work (offline mirror, expired URL): before falling
+            // back to a channel logo, try to find this programme on another EPG source
+            const art = await this.fetchProgrammeArt().catch(err => {
+                if (this.master.opts.debug) {
+                    console.log('Icon programme art error:', err)
+                }
+            });
+            if (art) return art
+        } else if (this.entry.programme && config.get('search-missing-logos')) {
+            const art = await this.fetchProgrammeArt().catch(() => {});
+            if (art) return art
         }
         if (this.entry.icon) {
             let err;
@@ -176,6 +289,10 @@ class IconFetcher extends EventEmitter {
                     }
                 }
             }
+            // no logo cached for this exact name: try the other names this channel is
+            // known by (regional feeds, HD variants) before hitting the network
+            const variation = await this.cachedVariationLogo().catch(() => {});
+            if (variation) return variation;
             if (config.get('search-missing-logos')) {
                 const ret = await this.fetchFromTerms();
                 if (this.master.opts.debug) {

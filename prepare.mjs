@@ -110,6 +110,9 @@ function restoreFromCache(entry, projectRoot) {
 // Set NODE_OPTIONS before running rollup to increase memory limit
 const originalNodeOptions = process.env.NODE_OPTIONS
 
+// Full node bundle rebuild can take ~10 minutes on slower machines, so allow 20 by default.
+const BUNDLE_TIMEOUT_MS = Number(process.env.ROLLUP_BUNDLE_TIMEOUT_MS) || 20 * 60 * 1000
+
 // Helper to run rollup as a promise
 const runRollupAsync = (configFile, description) => {
   return new Promise((resolve, reject) => {
@@ -143,9 +146,9 @@ const runRollupAsync = (configFile, description) => {
       }
     })
 
-    // Add timeout to detect hangs (10 minutes)
+    // Add timeout to detect hangs
     const timeout = setTimeout(() => {
-      console.error(`${description} appears to be hung (timeout after 10 minutes). Killing process...`)
+      console.error(`${description} appears to be hung (timeout after ${BUNDLE_TIMEOUT_MS / 60000} minutes). Killing process...`)
       rollupProcess.kill('SIGTERM')
       setTimeout(() => {
         if (!rollupProcess.killed) {
@@ -153,7 +156,7 @@ const runRollupAsync = (configFile, description) => {
         }
       }, 5000)
       reject(new Error(`${description} timed out after 10 minutes`))
-    }, 600000) // 10 minutes
+    }, BUNDLE_TIMEOUT_MS)
 
     rollupProcess.on('close', (code) => {
       clearTimeout(timeout)

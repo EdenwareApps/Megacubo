@@ -145,7 +145,8 @@
     {
       "name": "Catavisión",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://catavisionlive.com/"
     },
     {
       "name": "Ceibavisión Canal 36",
@@ -233,7 +234,8 @@
     {
       "name": "TV Copán",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://www.tvcopan.com/"
     },
     {
       "name": "TeleProgreso",
@@ -254,7 +256,8 @@
     {
       "name": "Waldivisión Internacional",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://tnnwaldivision.com/"
     },
     {
       "name": "Alfa & Omega Vision",
@@ -356,12 +359,6 @@
       "name": "Caribe TV Roatan",
       "isFree": true,
       "website": "http://caribetvroatan.com/",
-      "priority": 5
-    },
-    {
-      "name": "Catavision",
-      "isFree": true,
-      "website": "https://catavisionlive.com/",
       "priority": 5
     },
     {
@@ -744,12 +741,6 @@
       "priority": 5
     },
     {
-      "name": "TV Copan",
-      "isFree": true,
-      "website": "https://www.tvcopan.com/",
-      "priority": 5
-    },
-    {
       "name": "TVES",
       "isFree": true,
       "website": "https://www.tves.hn/",
@@ -795,19 +786,13 @@
     },
     {
       "name": "Viva TV Canal 45",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "VTV",
       "isFree": true,
       "website": "https://www.vtv.com.hn/",
-      "priority": 5
-    },
-    {
-      "name": "Waldivision Internacional",
-      "isFree": true,
-      "website": "https://tnnwaldivision.com/",
       "priority": 5
     },
     {

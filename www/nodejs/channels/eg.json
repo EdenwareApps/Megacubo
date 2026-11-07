@@ -185,6 +185,7 @@
   "Sports": [
     {
       "name": "Nile TV Sport",
+      "isFree": true,
       "priority": 10
     },
     {
@@ -538,6 +539,7 @@
   "Movies & Series": [
     {
       "name": "Nile TV Cinema",
+      "isFree": true,
       "priority": 5
     },
     {
@@ -565,7 +567,7 @@
     },
     {
       "name": "FOX Movies",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -625,7 +627,7 @@
     },
     {
       "name": "Rotana Cinema Egypt",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cinema.rotana.net/",
       "priority": 5
     },

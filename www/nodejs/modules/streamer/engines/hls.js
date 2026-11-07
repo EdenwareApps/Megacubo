@@ -11,8 +11,8 @@ class HLSTrackSelector {
     constructor() {
         this.tracks = {};
     }
-    async getPlaylistTracks(masterUrl) {
-        if (typeof(this.tracks[masterUrl]) != 'undefined') {
+    async getPlaylistTracks(masterUrl, force) {
+        if (!force && typeof(this.tracks[masterUrl]) != 'undefined') {
             return this.tracks[masterUrl];
         }
         const body = await Download.get({
@@ -68,8 +68,8 @@ class HLSTrackSelector {
         });
         return { url: chosen, bandwidth: chosenBandwidth };
     }
-    async select(masterUrl) {
-        let tracks = await this.getPlaylistTracks(masterUrl);
+    async select(masterUrl, force) {
+        let tracks = await this.getPlaylistTracks(masterUrl, force);
         if (tracks.length != 1) {
             const track = await this.selectTrackQualityByBandwidth(tracks, global.streamer ? global.streamer.downlink : undefined)
             tracks = [track]
@@ -114,19 +114,34 @@ class StreamerHLSIntent extends StreamerBaseIntent {
     setActiveQualityTrack(chosen, chosenBandwidth) {
         chosenBandwidth && this.prx && this.prx.bitrateChecker.reset(chosenBandwidth);
     }
+    async selectTrackForTranscode() {
+        // Live playlists hand out short-lived child playlist URLs on every master request,
+        // so prefer the master URL to get a fresh one: the probed URL may be expired by now.
+        const candidates = [this.data.url, this.info.url].filter((url, i, arr) => {
+            return url && arr.indexOf(url) == i;
+        });
+        let lastErr;
+        for (const url of candidates) {
+            const ret = await this.trackSelector.select(url, true).catch(e => lastErr = e);
+            if (ret && ret.url) {
+                return ret;
+            }
+        }
+        throw (lastErr || 'unable to resolve HLS track');
+    }
     async transcode() {
         this.resetTimeout();
         this.transcoderStarting = true;
-        this.disconnectAdapter(this.prx);
-        this.prx.destroy();
         let err;
-        const ret = await this.trackSelector.select(this.info.url || this.data.url).catch(e => err = e);
+        const ret = await this.selectTrackForTranscode().catch(e => err = e);
         if (err) {
             this.transcoderStarting = false;
             this.emit('transcode-failed', err);
             console.warn('COMMITERR', this.endpoint, err);
             throw (err || 'hls adapter failed');
         }
+        this.disconnectAdapter(this.prx);
+        this.prx.destroy();
         this.resetTimeout();
         let opts = this.getTranscodingOpts();
         this.trackUrl = ret.url;
@@ -150,7 +165,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
             this.disconnectAdapter(this.transcoder);
             this.transcoder.destroy();
         }
-        this.setFF(this.trackUrl, opts).catch(e => err = e);
+        await this.setFF(this.trackUrl, opts).catch(e => err = e);
         if (err) {
             this.transcoderStarting = false;
             this.emit('transcode-failed', err);
@@ -191,6 +206,18 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         this.mimetype = this.mimeTypes[this[type].opts.outputFormat];
         this.endpoint = this[type].endpoint;
     }
+    async resolvePlaylistUrl() {
+        // Live providers mint a brand new child playlist on every master request, so the URL the
+        // streamer probed a while ago may be expired by now. Handing the master to the player keeps
+        // the playlist fresh and lets the proxy know every variant, which enables its 404 fallback.
+        if (this.data.url && this.info.url && this.data.url != this.info.url) {
+            const tracks = await this.trackSelector.getPlaylistTracks(this.data.url, true).catch(err => console.error(err));
+            if (Array.isArray(tracks) && tracks.length) {
+                return this.data.url;
+            }
+        }
+        return this.info.url || this.data.url;
+    }
     async _start() {
         const useff = await this.useFF();
         this.prx = new StreamerHLSProxy(Object.assign({
@@ -200,7 +227,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         this.connectAdapter(this.prx);
         await this.prx.start();
         if (useff) {
-            const ret = await this.trackSelector.select(this.info.url || this.data.url).catch(err => console.error(err));
+            const ret = await this.trackSelector.select(this.data.url || this.info.url).catch(err => console.error(err));
             if (ret && ret.url) {
                 this.trackUrl = ret.url;
                 console.log('Track selected', this.trackUrl, ret, this.trackSelector.tracks);
@@ -209,7 +236,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
                 return { endpoint: this.endpoint, mimetype: this.mimetype };
             }
         }
-        this.endpoint = this.prx.proxify(this.info.url || this.data.url);
+        this.endpoint = this.prx.proxify(await this.resolvePlaylistUrl());
         return { endpoint: this.endpoint, mimetype: this.mimetype };
     }
 }

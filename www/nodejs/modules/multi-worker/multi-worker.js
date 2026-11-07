@@ -26,6 +26,7 @@ const getLangObject = () => {
     ret.countryCode = lang.countryCode || config.get('country', 'us')
     ret.folder = lang.folder || null
     ret.languageHint = lang.languageHint || config.get('locale', 'en')
+    ret.systemRegion = lang.systemRegion || null
     
     return ret
 }

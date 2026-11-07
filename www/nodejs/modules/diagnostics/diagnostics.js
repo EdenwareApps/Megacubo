@@ -57,7 +57,7 @@ class Diagnostics extends EventEmitter {
             for(const k in listsRequesting) {
                 listsRequesting[k] = String(listsRequesting[k])
             };
-            ['lists', 'parental-control-terms', 'parental-control-pw', 'premium-license'].forEach(k => delete configs[k]);
+            ['lists', 'parental-control-terms', 'parental-control-pw', 'parental-control-pin', 'premium-license'].forEach(k => delete configs[k]);
             for (const url in listsInfo) {
                 listsInfo[url].owned = myLists.includes(url);
                 if (listsInfo[url].private) {

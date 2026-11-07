@@ -61,7 +61,7 @@
     },
     {
       "name": "MTV Finland",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -86,78 +86,78 @@
     },
     {
       "name": "Eurosport 1",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "MTV Liiga 3",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "MTV Liiga 4",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "MTV Liiga 6",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "MTV Liiga UHD",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "V Sport 1",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "V Sport 1 Suomi",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "V Sport 2",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "V Sport Premium",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "V Sport Live 1",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "V Sport Live 2",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "V Sport Live 3",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "V Sport Live 4",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "V Sport Live 5",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Extreme Sports Channel",
       "isFree": true,
-      "priority": 10
+      "priority": 4
     },
     {
       "name": "TotoTV",
@@ -166,12 +166,12 @@
     },
     {
       "name": "V Sport Ultra HD",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "V Film Premiere",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -191,77 +191,77 @@
     },
     {
       "name": "Cartoon Network",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Disney Channel",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     }
   ],
   "Entertainment": [
     {
       "name": "AlfaTV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "YLE TV",
-      "isFree": true,
+      "isFree": null,
       "keywords": "yle tv 1 | yle tv1",
       "priority": 5
     },
     {
       "name": "YLE TV 2",
-      "isFree": true,
+      "isFree": null,
       "keywords": "yle tv 2 | yle tv2",
       "priority": 5
     },
     {
       "name": "YLE TV Teema & Fem",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ArvasTV",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.arvastv.fi/",
       "priority": 5
     },
     {
       "name": "Discovery",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.discovery.fi/",
       "priority": 7
     },
     {
       "name": "Eveo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.eveo.fi/",
       "priority": 5
     },
     {
       "name": "FOX",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.foxtv.fi/",
       "priority": 5
     },
     {
       "name": "Frii",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.discoveryplus.com/fi/channel/frii",
       "priority": 5
     },
     {
       "name": "INEZ",
-      "isFree": true,
+      "isFree": null,
       "website": "https://inez.fi/fi/",
       "priority": 5
     },
     {
       "name": "IskelmaTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://iskelmatv.fi/",
       "priority": 5
     },
@@ -285,13 +285,13 @@
     },
     {
       "name": "Kutonen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.discoveryplus.com/fi/channel/kutonen",
       "priority": 5
     },
     {
       "name": "Larsmo Nar-TV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.larsmonartv.com/",
       "priority": 5
     },
@@ -302,18 +302,18 @@
     },
     {
       "name": "Love Nature",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Malax Lokal-TV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://malaxtv.fi/",
       "priority": 5
     },
     {
       "name": "MTV",
-      "isFree": true,
+      "isFree": false,
       "keywords": "mtv -aitio -ava -juniori -max -sub -urheilu -1 -2 -uutiset -viihde",
       "website": "http://www.musictelevision.fi/",
       "priority": 5
@@ -326,34 +326,34 @@
     },
     {
       "name": "MTV Aitio",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Ava",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mtv.fi/",
       "priority": 5
     },
     {
       "name": "MTV Max",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cmore.fi/sport",
       "priority": 5
     },
     {
       "name": "MTV Sub",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Viihde",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Nar-TV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nartv.fi/",
       "priority": 5
     },
@@ -365,98 +365,98 @@
     },
     {
       "name": "Oho Live",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ohotv.fi/",
       "priority": 5
     },
     {
       "name": "Onni",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.onnitv.fi/",
       "priority": 5
     },
     {
       "name": "PeTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.petalaxtv.fi/",
       "priority": 5
     },
     {
       "name": "Pulsea",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.pulsea.fi/",
       "priority": 5
     },
     {
       "name": "SF-kanalen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "SkyShowtime",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "SkyShowtime 2",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "STAR",
-      "isFree": true,
+      "isFree": null,
       "website": "http://starchannel.fi/",
       "priority": 5
     },
     {
       "name": "Sundom",
-      "isFree": true,
+      "isFree": null,
       "website": "https://951.fi/",
       "priority": 5
     },
     {
       "name": "TLC",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryplus.com/fi/channel/tlc",
       "priority": 5
     },
     {
       "name": "TV 5",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dplay.fi/kanavat/tv5",
       "priority": 5
     },
     {
       "name": "TV Finland",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Viasat Explore",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viasatexplore.eu/",
       "priority": 5
     },
     {
       "name": "Viasat History",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viasathistory.eu/",
       "priority": 7
     },
     {
       "name": "Viasat Nature",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "WorTV",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.wortv.fi/",
       "priority": 5
     },
     {
       "name": "Yle Fem",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -475,13 +475,13 @@
   "Kids": [
     {
       "name": "C More Juniori",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cmore.fi/juniori",
       "priority": 5
     },
     {
       "name": "MTV Juniori",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mtv.fi/juniori",
       "priority": 5
     }
@@ -489,26 +489,26 @@
   "Movies & Series": [
     {
       "name": "Hero",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
   "Music Videos": [
     {
       "name": "JRTV Jarviradio",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.jarviradio.fi/",
       "priority": 5
     },
     {
       "name": "Navahang",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.navahang.com/",
       "priority": 5
     },
     {
       "name": "YleX",
-      "isFree": true,
+      "isFree": null,
       "website": "https://areena.yle.fi/podcastit/ohjelmat/ylex",
       "priority": 5
     }
@@ -522,14 +522,14 @@
     },
     {
       "name": "National Geographic",
-      "isFree": true,
+      "isFree": false,
       "keywords": "national geographic -wild",
       "website": "http://www.natgeotv.com/fi",
       "priority": 7
     },
     {
       "name": "National Geographic Wild",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.natgeotv.com/fi",
       "priority": 7
     }
@@ -537,19 +537,19 @@
   "Sports": [
     {
       "name": "MTV Urheilu",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cmore.fi/sport",
       "priority": 5
     },
     {
       "name": "MTV Urheilu 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cmore.fi/sport",
       "priority": 5
     },
     {
       "name": "Viaplay",
-      "isFree": true,
+      "isFree": false,
       "website": "https://viaplaytv.fi/",
       "priority": 5
     }
@@ -557,19 +557,19 @@
   "News": [
     {
       "name": "MTV Uutiset",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mtvuutiset.fi/",
       "priority": 5
     },
     {
       "name": "Nopola News",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nopolanews.fi/",
       "priority": 5
     },
     {
       "name": "Posi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://positv.fi/",
       "priority": 5
     }

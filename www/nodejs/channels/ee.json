@@ -27,81 +27,81 @@
     },
     {
       "name": "Life",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Riigikogu",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Alo",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.audiovideo.ee/",
       "priority": 5
     },
     {
       "name": "CTC Estonia",
-      "isFree": true,
+      "isFree": null,
       "website": "http://ctci.tv/",
       "priority": 5
     },
     {
       "name": "Discovery",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Duo 3",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Duo 4",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kanal11.postimees.ee/",
       "priority": 5
     },
     {
       "name": "Duo 5",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kanal12.postimees.ee/",
       "priority": 5
     },
     {
       "name": "Duo 6",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.duo6.ee/",
       "priority": 5
     },
     {
       "name": "Eesti Kanal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://jupiter.err.ee/etv",
       "priority": 5
     },
     {
       "name": "Entusiast",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "FX",
-      "isFree": true,
+      "isFree": false,
       "keywords": "fx -life",
       "website": "https://www.fxchannel.ee/",
       "priority": 5
     },
     {
       "name": "FX Life",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.fxchannel.ee/",
       "priority": 5
     },
     {
       "name": "Inspira",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.telia.ee/en/era/tv/inspira/",
       "priority": 5
     },
@@ -128,28 +128,28 @@
     },
     {
       "name": "PBK Estonia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "REN TV Estonia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Smartzone",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Tartu",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tartutv.ee/",
       "priority": 5
     },
     {
       "name": "TV 3",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tv3 -life",
       "website": "https://tv3.ee/",
       "priority": 5
@@ -168,14 +168,14 @@
     },
     {
       "name": "TVN",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     }
   ],
   "News": [
     {
       "name": "ARU.TV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://aru.tv/",
       "priority": 5
     }
@@ -183,67 +183,67 @@
   "Music Videos": [
     {
       "name": "Best of Dance",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dancetv.net/live",
       "priority": 5
     },
     {
       "name": "DanceTV Algorhythm",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dancetv.net/tech-house/",
       "priority": 5
     },
     {
       "name": "DanceTV Chill AF",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dancetv.net/downtempo",
       "priority": 5
     },
     {
       "name": "DanceTV Deep House District",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dancetv.net/deep-house/",
       "priority": 5
     },
     {
       "name": "DanceTV EDM Mainstage",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dancetv.net/edm/",
       "priority": 5
     },
     {
       "name": "DanceTV House Floor",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dancetv.net/house/",
       "priority": 5
     },
     {
       "name": "DanceTV Melodic Tech",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dancetv.net/melodic-tech",
       "priority": 5
     },
     {
       "name": "DanceTV Minimal Tech",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dancetv.net/minimal-tech",
       "priority": 5
     },
     {
       "name": "DanceTV Techno Warehouse",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dancetv.net/techno/",
       "priority": 5
     },
     {
       "name": "MyHits",
-      "isFree": true,
+      "isFree": null,
       "website": "https://myhits.pleier.ee/",
       "priority": 5
     },
     {
       "name": "Vantage Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://vantagetv.ee",
       "priority": 5
     }
@@ -251,19 +251,19 @@
   "Movies & Series": [
     {
       "name": "Filmzone",
-      "isFree": true,
+      "isFree": null,
       "website": "http://filmzonetv.eu/",
       "priority": 5
     },
     {
       "name": "Go3 Films",
-      "isFree": true,
+      "isFree": null,
       "website": "https://go3.tv",
       "priority": 5
     },
     {
       "name": "Kino 7",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kino7.ee/ru",
       "priority": 5
     }
@@ -271,32 +271,32 @@
   "Sports": [
     {
       "name": "Go3 Sport",
-      "isFree": true,
+      "isFree": null,
       "keywords": "go3 sport -1 -2 -3 -4 -open",
       "website": "https://go3.tv/",
       "priority": 10
     },
     {
       "name": "Go3 Sport 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://go3.tv/",
       "priority": 10
     },
     {
       "name": "Go3 Sport 3",
-      "isFree": true,
+      "isFree": null,
       "website": "https://go3.tv/",
       "priority": 10
     },
     {
       "name": "Go3 Sport 4",
-      "isFree": true,
+      "isFree": null,
       "website": "https://go3.tv/",
       "priority": 10
     },
     {
       "name": "Go3 Sport Open",
-      "isFree": true,
+      "isFree": null,
       "website": "https://go3.tv/",
       "priority": 10
     }
@@ -312,30 +312,30 @@
   "Kids": [
     {
       "name": "KidZone Max",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kidzonetv.ee/",
       "priority": 5
     },
     {
       "name": "KidZone Mini",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kidzonemini.ee/",
       "priority": 5
     },
     {
       "name": "Nickelodeon",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Pingviin",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.lolotv.lv/",
       "priority": 5
     },
     {
       "name": "Semejka",
-      "isFree": true,
+      "isFree": null,
       "website": "https://semejka.eu/ru",
       "priority": 5
     }

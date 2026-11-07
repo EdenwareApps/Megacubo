@@ -1,4 +1,5 @@
 import { main } from '../../../modules/bridge/renderer';
+import '../../../modules/updater/renderer';
 import { Menu } from '../../../modules/menu/renderer'
 import { OMNI } from '../../../modules/omni/renderer'
 import { AndroidWinActions, ElectronWinActions } from './window-actions'
@@ -63,6 +64,24 @@ function configUpdated() {
 
 function handleSwipe(e) {
     if (!main.menu || main.menu?.dialogs.inDialog()) return
+    const menu = main.menu
+    // Horizontal drag toggles the nav overlay: right opens it, left closes it.
+    // isVisible() without an element tells whether the browse area/nav is reachable
+    // (it is false only while playing with the overlay hidden).
+    if ((e.direction == 'right' || e.direction == 'left') && menu.isVisible() && !document.body.classList.contains('omni')) {
+        const open = menu.inSideMenu()
+        const navSwipeDist = Math.max(48, Math.min(innerWidth, innerHeight) * 0.08)
+        if (e.swipeLength >= navSwipeDist) {
+            if (e.direction == 'right' && !open) {
+                menu.sideMenu(true)
+                return
+            }
+            if (e.direction == 'left' && open) {
+                menu.sideMenu(false)
+                return
+            }
+        }
+    }
     console.log('swipey', e)
     let orientation = innerHeight > innerWidth ? 'portrait' : 'landscape'
     let swipeDist, swipeArea = ['up', 'down'].includes(e.direction) ? innerHeight : innerWidth
@@ -349,7 +368,6 @@ export const initApp = async () => {
     })
 
     menu.on('dialog-start', () => menu.reset())
-    menu.on('dialog-end', () => menu.reset())
     menu.on('x-select', (element) => {
         const key = element ? menu.getKey(element) : null;
         if (key == main.menu.lastSelectedKey) return;
@@ -406,20 +424,19 @@ export const initApp = async () => {
         }
     })
 
-    var toggle = document.querySelector('.side-menu-toggle')
-    if (toggle && window.capacitor) { // tapping
+    var toggle = document.getElementById('nav-toggle')
+    if (toggle) {
         toggle.addEventListener('click', () => {
-            menu.inSideMenu() || menu.dialogs.inDialog() || menu.sideMenu(true, 'smooth')
+            if (menu.dialogs.inDialog()) return
+            menu.sideMenu(!menu.inSideMenu())
         })
-        swipey.add(document.body, handleSwipe, { diagonal: false })
-    } else if (toggle) { // pc mouse hovering
-        toggle.addEventListener('mouseenter', () => {
-            menu.inSideMenu() || menu.dialogs.inDialog() || menu.sideMenu(true)
-        })
+    }
+    if (window.capacitor) {
+        swipey.add(document.body, handleSwipe, { diagonal: false, swipeDistance: 40 })
     }
 
     if (wrap) {
-        wrap.addEventListener('mouseenter', () => menu.sideMenu(false))
+        wrap.addEventListener('mousemove', e => menu.closeOnHover(e))
 
         let autoScrollInterval = 0, autoScrollDirection = 'down'
         const autoScrollFn = () => {

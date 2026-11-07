@@ -84,13 +84,14 @@ async function setupLanguage() {
         const locale = global.$lang.locale || 'en'
         const folder = global.$lang.folder
         const timezone = global.$lang.timezone
+        const systemRegion = global.$lang.systemRegion || null
         
         if (!folder) {
             console.error('❌ Language folder is undefined')
             return false
         }
         
-        await lang.load(languageHint, locale, folder, timezone)
+        await lang.load(languageHint, locale, folder, timezone, systemRegion)
         
         if (timezone && timezone.name) {
             moment.tz.setDefault(timezone.name)
@@ -195,7 +196,7 @@ const onMessage = msg => {
         config.reload(msg.args)
         config.on('change', changeListener)
     } else if (msg.method == 'langChange') {
-        global.lang.load(msg.data.languageHint, msg.data.locale, msg.data.folder, msg.data.timezone)
+        global.lang.load(msg.data.languageHint, msg.data.locale, msg.data.folder, msg.data.timezone, msg.data.systemRegion)
         global.lang.timezone && moment.tz.setDefault(global.lang.timezone.name)
         global.lang.locale && moment.locale([global.lang.locale + '-' + global.lang.countryCode, global.lang.locale])
 

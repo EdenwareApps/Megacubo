@@ -23,7 +23,7 @@
     },
     {
       "name": "Discovery",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
     },
     {

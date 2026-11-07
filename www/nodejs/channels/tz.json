@@ -476,7 +476,7 @@
     },
     {
       "name": "Star Movies ,",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {

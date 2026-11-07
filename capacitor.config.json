@@ -1,6 +1,6 @@
 {
   "android": {
-    "backgroundColor": "#160630"
+    "backgroundColor": "#0b0b0e"
   },
   "appId": "tv.megacubo.app",
   "appName": "Megacubo",
@@ -17,7 +17,7 @@
       "showSpinner": false,
       "launchAutoHide": true,
       "launchShowDuration": 0,
-      "backgroundColor": "#160630",
+      "backgroundColor": "#0b0b0e",
       "androidScaleType": "CENTER_INSIDE"
     }
   },

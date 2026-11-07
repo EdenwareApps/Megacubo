@@ -15,6 +15,7 @@ const FreeTVMap = {
     'al': ['playlist_albania.m3u8'],
     'ad': ['playlist_andorra.m3u8'],
     'ar': ['playlist_argentina.m3u8', 'playlist_zz_news_ar.m3u8', 'playlist_zz_documentaries_ar.m3u8'],
+    'am': ['playlist_armenia.m3u8'],
     'au': ['playlist_australia.m3u8'],
     'at': ['playlist_austria.m3u8'],
     'az': ['playlist_azerbaijan.m3u8'],
@@ -33,6 +34,7 @@ const FreeTVMap = {
     'cz': ['playlist_czech_republic.m3u8'],
     'dk': ['playlist_denmark.m3u8'],
     'do': ['playlist_dominican_republic.m3u8'],
+    'eg': ['playlist_egypt.m3u8'],
     'ee': ['playlist_estonia.m3u8'],
     'fo': ['playlist_faroe_islands.m3u8'],
     'fi': ['playlist_finland.m3u8'],
@@ -44,6 +46,7 @@ const FreeTVMap = {
     'hk': ['playlist_hong_kong.m3u8', 'playlist_hongkong.m3u8'],
     'hu': ['playlist_hungary.m3u8'],
     'is': ['playlist_iceland.m3u8'],
+    'id': ['playlist_indonesia.m3u8'],
     'in': ['playlist_india.m3u8'],
     'ir': ['playlist_iran.m3u8'],
     'iq': ['playlist_iraq.m3u8'],
@@ -51,9 +54,12 @@ const FreeTVMap = {
     'il': ['playlist_israel.m3u8'],
     'it': ['playlist_italy.m3u8'],
     'jp': ['playlist_japan.m3u8'],
+    'kz': ['playlist_kazakhstan.m3u8'],
+    'ke': ['playlist_kenya.m3u8'],
     'kr': ['playlist_korea.m3u8'],
     'xk': ['playlist_kosovo.m3u8'],
     'lv': ['playlist_latvia.m3u8'],
+    'lb': ['playlist_lebanon.m3u8'],
     'lt': ['playlist_lithuania.m3u8'],
     'lu': ['playlist_luxembourg.m3u8'],
     'mo': ['playlist_macau.m3u8'],
@@ -61,8 +67,10 @@ const FreeTVMap = {
     'mx': ['playlist_mexico.m3u8'],
     'md': ['playlist_moldova.m3u8'],
     'mc': ['playlist_monaco.m3u8'],
+    'mn': ['playlist_mongolia.m3u8'],
     'me': ['playlist_montenegro.m3u8'],
     'nl': ['playlist_netherlands.m3u8'],
+    'ng': ['playlist_nigeria.m3u8'],
     'kp': ['playlist_north_korea.m3u8'],
     'mk': ['playlist_north_macedonia.m3u8'],
     'no': ['playlist_norway.m3u8'],
@@ -85,6 +93,7 @@ const FreeTVMap = {
     'tw': ['playlist_taiwan.m3u8'],
     'tt': ['playlist_trinidad.m3u8'],
     'tr': ['playlist_turkey.m3u8'],
+    'tm': ['playlist_turkmenistan.m3u8'],
     'gb': ['playlist_uk.m3u8'],
     'ua': ['playlist_ukraine.m3u8'],
     'ae': ['playlist_united_arab_emirates.m3u8'],
@@ -138,6 +147,21 @@ class PublicLists extends EventEmitter {
         }
         this.ready.done()
     }
+    // Playlists that are not tied to a country (news, movies, documentaries...). They are
+    // used when none of the active countries has a playlist of its own.
+    genericLists() {
+        const base = 'https://github.com/Free-TV/IPTV/raw/master/playlists/'
+        const files = [
+            'playlist_zz_news_en.m3u8',
+            'playlist_zz_documentaries_en.m3u8',
+            'playlist_zz_movies.m3u8',
+            'playlist_zz_music_en.m3u8'
+        ]
+        if (lang.locale == 'es') files.push('playlist_zz_news_es.m3u8')
+        if (lang.locale == 'ar') files.push('playlist_zz_news_ar.m3u8', 'playlist_zz_documentaries_ar.m3u8')
+        if (lang.locale == 'it') files.push('playlist_zz_vod_it.m3u8')
+        return files.map(file => base + file)
+    }
     async discovery(adder) {
         await this.ready()
         let locs = await lang.getActiveCountries().catch(err => console.error(err));
@@ -145,6 +169,9 @@ class PublicLists extends EventEmitter {
             locs = [lang.countryCode]
         }
         let lists = locs.map(code => this.data[code]).flat().filter(c => c);
+        if (!lists.length) { // no playlist for these countries, fall back to the worldwide lists
+            lists = this.genericLists()
+        }
         if (lists.length) {
             const maxLists = 48, factor = 0.9 // factor here adds some gravity to grant higher priority to community lists instead
             if (lists.length > maxLists) {

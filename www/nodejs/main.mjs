@@ -23,6 +23,7 @@ import crashlog from './modules/crashlog/crashlog.js'
 import onexit from 'node-cleanup'
 import streamer from './modules/streamer/main.js'
 import lang from './modules/lang/lang.js'
+import { getSystemLocaleInfo } from './modules/lang/system-locale.js'
 import lists from './modules/lists/lists.js'
 import Theme from './modules/theme/theme.js'
 import options from './modules/options/options.js'
@@ -314,13 +315,62 @@ const callAction = (e, value) => {
     const ret = e.action?.(e, value)
     ret?.catch(err => console.error(err))
 }
+// Chromium/MSE refuses to decode some H.264 bitstreams (f.ex. interlaced streams that never emit
+// IDR frames), even though the demuxer accepts them and hls.js reports nothing wrong. The renderer
+// notices that not a single frame was rendered and reports DECODE_UNSUPPORTED. Reloading can't fix
+// it and re-encoding is expensive, so we only offer it as an option and let the user decide.
+const isDecodeUnsupported = errData => {
+    const details = typeof errData == 'string' ? errData : ((errData && errData.details) || '')
+    return typeof details == 'string' && details.indexOf('DECODE_UNSUPPORTED') !== -1
+}
+let decodeFailureDialogOpen = false
+const decodeFailureDialog = async () => {
+    const active = streamer.active
+    if (decodeFailureDialogOpen || !active) return
+    decodeFailureDialogOpen = true
+    if (showingSlowBroadcastDialog) {
+        // the missing frames are the real problem, don't stay queued behind the "slow broadcast" dialog
+        showingSlowBroadcastDialog = false
+        renderer.ui.emit('dialog-close', 'playback-timeout')
+    }
+    try {
+        const transcoding = active.isTranscoding()
+        let opts = [
+            { template: 'question', text: lang.PLAYBACK_UNSUPPORTED_STREAM, fa: 'fas fa-exclamation-triangle faclr-red' },
+            { template: 'message', text: lang.DECODE_UNSUPPORTED_HINT }
+        ], def = transcoding ? 'retry' : 'transcode'
+        const isCH = active.type != 'video' &&
+            (channels.isChannel(active.data.nameTerms || active.data.name)
+            || mega.isMega(active.data.originalUrl || active.data.url))
+        if (isCH) {
+            opts.push({ template: 'option', text: lang.PLAY_ALTERNATE, fa: config.get('tuning-icon'), id: 'try-other' })
+            def = 'try-other'
+        }
+        if (!transcoding && typeof active.transcode == 'function') {
+            opts.push({ template: 'option', text: lang.FIX_AUDIO_OR_VIDEO + ' &middot; ' + lang.TRANSCODE, fa: 'fas fa-wrench', id: 'transcode' })
+        }
+        opts.push({ template: 'option', text: lang.RELOAD_THIS_BROADCAST, fa: 'fas fa-redo', id: 'retry' })
+        if (!paths.android) {
+            opts.push({ template: 'option', text: lang.OPEN_EXTERNAL_PLAYER, fa: 'fas fa-window-restore', id: 'external' })
+        }
+        opts.push({ template: 'option', text: lang.STOP, fa: 'fas fa-stop', id: 'stop' })
+        const ret = await menu.dialog(opts, def, true)
+        videoErrorTimeoutCallback(ret, true)
+    } catch (err) {
+        console.error(err)
+    } finally {
+        decodeFailureDialogOpen = false
+    }
+}
 const handleVideoError = async (type, errData) => {
     console.error('VIDEO ERROR', { type, errData })
     if (streamer.zap.isZapping) {
         await streamer.zap.go()
+    } else if (streamer.active && !paths.android && isDecodeUnsupported(errData)) {
+        return decodeFailureDialog()
     } else if (streamer.active && !streamer.active.isTranscoding()) {
         if (type == 'timeout') {
-            if (!showingSlowBroadcastDialog) {
+            if (!showingSlowBroadcastDialog && !decodeFailureDialogOpen) {
                 let opts = [{ template: 'question', text: lang.SLOW_BROADCAST }], def = 'wait'
                 let isCH = streamer.active.type != 'video' && channels.isChannel(streamer.active.data.nameTerms || streamer.active.data.name)
                 if (isCH) {
@@ -333,7 +383,7 @@ const handleVideoError = async (type, errData) => {
                     opts.push({ template: 'option', text: lang.STOP, fa: 'fas fa-stop', id: 'stop' })
                 }
                 showingSlowBroadcastDialog = true
-                let ret = await menu.dialog(opts, def, true)
+                let ret = await menu.dialog(opts, def, true, 'playback-timeout')
                 showingSlowBroadcastDialog = false
                 videoErrorTimeoutCallback(ret)
             }
@@ -368,14 +418,20 @@ const handleVideoError = async (type, errData) => {
         }
     }
 }
-const videoErrorTimeoutCallback = ret => {
-    console.log('video-error-timeout-callback', ret)
+const videoErrorTimeoutCallback = (ret, reencode) => {
+    console.log('video-error-timeout-callback', ret, reencode)
     if (ret == 'try-other') {
         streamer.handleFailure(null, 'timeout', true, true).catch(e => menu.displayErr(e))
     } else if (ret == 'retry') {
         streamer.reload()
     } else if (ret == 'transcode') {
-        streamer.transcode()
+        if (reencode && streamer.active) {
+            // copying the video stream would keep the very bitstream the decoder rejects
+            streamer.active.opts.forceVideoReencode = true
+        }
+        if (streamer.transcode() !== true && reencode && streamer.active) {
+            streamer.active.opts.forceVideoReencode = false
+        }
     } else if (ret == 'external') {
         renderer.ui.emit('external-player')
     } else if (ret == 'stop') {
@@ -389,6 +445,32 @@ const setupRendererHandlers = () => {
     ui.on('menu-update-range', icons.renderRange.bind(icons))
     ui.on('config-set', (k, v) => config.set(k, v))
     ui.on('crash', (...args) => crashlog.save(...args))
+    if (process.platform == 'android') {
+        ui.on('android-update-available', info => {
+            androidUpdatePrompt(info || {}).catch(err => menu.displayErr(err))
+        })
+        ui.on('android-update-permission', async () => {
+            const chosen = await menu.dialog([
+                { template: 'question', text: lang.HOW_TO_UPDATE, fa: 'fas fa-question-circle' },
+                { template: 'message', text: lang.UPDATE_APP_INFO },
+                { template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle' },
+                { template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle' }
+            ], 'yes').catch(err => console.error(err))
+            if (chosen == 'yes') {
+                renderer.ui.emit('android-update-open-settings')
+            }
+        })
+        ui.on('android-update-progress', info => {
+            const percent = info && typeof info.percent == 'number' ? info.percent : -1
+            if (percent < 0) return
+            osd.show(lang.INSTALLING + ' ' + percent + '%', 'fas fa-download', 'app-update', 30000)
+        })
+        ui.on('android-update-error', info => {
+            osd.hide('app-update')
+            const message = info && info.message ? info.message : 'unknown'
+            menu.displayErr(lang.UPDATE_APP_INFO + ' (' + message + ')')
+        })
+    }
     ui.on('lists-manager', ret => {
         switch (ret) {
             case 'agree':
@@ -589,6 +671,41 @@ const updatePrompt = async (c) => {
         await updatePrompt(c)
     }
 }
+/**
+ * Android updates are downloaded and installed in-app by the native
+ * AppUpdater plugin, so the prompt only decides whether to start it.
+ */
+const androidUpdatePrompt = async (info) => {
+    const versionName = info.versionName || ''
+    const chosen = await menu.dialog([
+        { template: 'question', text: ucWords(paths.manifest.name) + ' v' + (info.currentVersionName || paths.manifest.version) + ' > v' + versionName, fa: 'fas fa-star' },
+        { template: 'message', text: lang.NEW_VERSION_AVAILABLE },
+        { template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle' },
+        { template: 'option', text: lang.WHATS_NEW, id: 'changelog', fa: 'fas fa-info-circle' },
+        { template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle' }
+    ], 'yes')
+    console.log('android update callback', chosen)
+    if (chosen == 'yes') {
+        osd.show(lang.INSTALLING + ' v' + versionName, 'fas fa-download', 'app-update', 30000)
+        renderer.ui.emit('android-update-install', {
+            url: info.url,
+            versionName: versionName,
+            versionCode: info.versionCode || 0,
+            sha256: info.sha256 || ''
+        })
+    } else if (chosen == 'changelog') {
+        if (info.notes) {
+            await menu.dialog([
+                { template: 'question', text: lang.WHATS_NEW, fa: 'fas fa-info-circle' },
+                { template: 'message', text: info.notes },
+                { template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle' }
+            ], 'submit')
+        } else if (info.releaseUrl) {
+            renderer.ui.emit('open-external-url', info.releaseUrl)
+        }
+        await androidUpdatePrompt(info)
+    }
+}
 const initElectronWindow = async () => {
     console.log('🪟 Starting Electron window initialization...')
     const { app, BrowserWindow, globalShortcut, Menu, shell } = electron
@@ -772,6 +889,9 @@ const initElectronWindow = async () => {
         maximizable: false,
         minimizable: false,
         titleBarStyle: 'hidden',
+        // Same tone as the renderer background (--nf-black) so the native window
+        // doesn't flash white/grey before the HTML paints.
+        backgroundColor: '#0b0b0e',
         minimized: true,  // Start minimized
         webPreferences: {
             cache: false,
@@ -843,7 +963,7 @@ const initElectronWindow = async () => {
     })
 }
 console.log('Main module loaded.')
-const init = async (locale, timezone) => {
+const init = async (locale, timezone, systemRegion) => {
     if (initialized) return
     
     // Check startup window configuration
@@ -862,7 +982,7 @@ const init = async (locale, timezone) => {
     }
     
     initialized = true
-    await lang.load(locale, config.get('locale'), paths.cwd + '/lang', timezone).catch(e => menu.displayErr(e))
+    await lang.load(locale, config.get('locale'), paths.cwd + '/lang', timezone, systemRegion).catch(e => menu.displayErr(e))
     console.log('Language loaded.')
     moment.locale([
         lang.locale +'-'+ lang.countryCode,
@@ -1056,7 +1176,7 @@ const init = async (locale, timezone) => {
         await Promise.allSettled(promises)
         console.log('WaitListsReady resolved!')
         console.log('checking update...')
-        if (!config.get('hide-updates')) {
+        if (!config.get('hide-updates') && process.platform != 'android') {
             if (c.version > paths.manifest.version) {
                 console.log('new version found', c.version)
                 await updatePrompt(c)
@@ -1070,7 +1190,46 @@ const init = async (locale, timezone) => {
     renderer.ui.emit('main-ready', config.all(), lang.getTexts())
     await storage.cleanup()
 }
-renderer.ui.once('get-lang-callback', (locale, timezone, ua, online) => {
+// Language hints reported by the OS through Electron. They are fresher than
+// navigator.languages, which Chromium caches in the user profile and can stay
+// stale after the system language is changed.
+const getSystemLanguageHints = () => {
+    const hints = []
+    const push = lng => {
+        if (typeof lng != 'string') return
+        lng = lng.trim().replace(/_/g, '-')
+        if (lng && !hints.includes(lng)) hints.push(lng)
+    }
+    const app = (electron && (electron.app || (electron.remote && electron.remote.app))) || null
+    if (app && typeof app.getPreferredSystemLanguages == 'function') {
+        const langs = app.getPreferredSystemLanguages()
+        if (Array.isArray(langs)) langs.forEach(push)
+    }
+    if (app && typeof app.getLocale == 'function') {
+        try { push(app.getLocale()) } catch (e) {}
+    }
+    return hints
+}
+const mergeLanguageHints = (primary, secondary) => {
+    const hints = []
+    const push = lng => {
+        if (typeof lng != 'string') return
+        lng = lng.trim()
+        if (lng && !hints.includes(lng)) hints.push(lng)
+    }
+    const toList = hint => Array.isArray(hint) ? hint : String(hint || '').split(',')
+    toList(primary).concat(toList(secondary)).forEach(push)
+    return hints
+}
+// The OS keeps the user country/region apart from the display language, so
+// reading it avoids guessing the country from the language list.
+const getOperatingSystemLocale = () => {
+    return getSystemLocaleInfo().catch(e => {
+        console.warn('[main] could not read the system locale:', e.message)
+        return { languages: [], region: null }
+    })
+}
+renderer.ui.once('get-lang-callback', async (locale, timezone, ua, online) => {
     console.log('[main] get-lang-callback', timezone, ua, online)
     if (timezone) {
         moment.tz.setDefault(timezone.name)
@@ -1082,8 +1241,10 @@ renderer.ui.once('get-lang-callback', (locale, timezone, ua, online) => {
         setNetworkConnectionState(online)
     }
     if (!initialized) {
-        console.log('get-lang-callback 1')
-        init(locale, timezone)
+        const sys = await getOperatingSystemLocale()
+        const hints = mergeLanguageHints(mergeLanguageHints(sys.languages, getSystemLanguageHints()), locale)
+        console.log('get-lang-callback 1', hints, sys.region)
+        init(hints, timezone, sys.region)
     } else {
         console.log('get-lang-callback 2')
         lang.ready().catch(e => menu.displayErr(e)).finally(() => {

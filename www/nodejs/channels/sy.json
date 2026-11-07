@@ -100,7 +100,8 @@
     {
       "name": "Ronahî",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "http://ronahi.tv/"
     },
     {
       "name": "Sama",
@@ -162,12 +163,6 @@
       "priority": 5
     },
     {
-      "name": "Ronahi",
-      "isFree": true,
-      "website": "http://ronahi.tv/",
-      "priority": 5
-    },
-    {
       "name": "Souryana",
       "isFree": true,
       "website": "http://www.ortas.online/RadioSouryana/",
@@ -196,6 +191,7 @@
   "Movies & Series": [
     {
       "name": "Syria Drama",
+      "isFree": true,
       "priority": 5
     },
     {

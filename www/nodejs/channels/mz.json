@@ -175,7 +175,8 @@
     {
       "name": "TV Maná Moçambique",
       "isFree": true,
-      "priority": 4
+      "priority": 4,
+      "website": "https://tvmana-mocambique.com/"
     },
     {
       "name": "Ebenezer",
@@ -225,12 +226,6 @@
       "name": "TV Accao",
       "isFree": true,
       "website": "http://www.radioaccao.co.mz/",
-      "priority": 4
-    },
-    {
-      "name": "TV Mana Mocambique",
-      "isFree": true,
-      "website": "https://tvmana-mocambique.com/",
       "priority": 4
     }
   ],

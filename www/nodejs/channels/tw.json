@@ -373,13 +373,13 @@
     },
     {
       "name": "Amazing",
-      "isFree": null,
+      "isFree": true,
       "website": "https://www.ourshdtv.com/",
       "priority": 5
     },
     {
       "name": "Asian Food Network",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tlc-tw.com/afn.php",
       "priority": 5
     },
@@ -391,7 +391,7 @@
     },
     {
       "name": "Banana",
-      "isFree": null,
+      "isFree": true,
       "website": "https://www.ourshdtv.com/",
       "priority": 5
     },
@@ -459,7 +459,7 @@
     },
     {
       "name": "CTV Bravo",
-      "isFree": true,
+      "isFree": false,
       "website": "http://new.ctv.com.tw/",
       "priority": 5
     },
@@ -488,7 +488,7 @@
     },
     {
       "name": "Discovery Asia Taiwan",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoverychannel.com.tw/asia_index.php",
       "priority": 7
     },
@@ -543,7 +543,7 @@
     },
     {
       "name": "Food Network",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tlc-tw.com/fn.php",
       "priority": 5
     },
@@ -586,7 +586,7 @@
     },
     {
       "name": "Gorgeous Space",
-      "isFree": true,
+      "isFree": false,
       "website": "https://hhh.com.tw/",
       "priority": 5
     },
@@ -610,31 +610,31 @@
     },
     {
       "name": "Happy",
-      "isFree": null,
+      "isFree": true,
       "website": "http://www.star-winged.com.tw/happy/",
       "priority": 5
     },
     {
       "name": "HGTV",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tlc-tw.com/hgtv.php",
       "priority": 5
     },
     {
       "name": "Hi-Play",
-      "isFree": null,
+      "isFree": true,
       "website": "http://www.star-winged.com.tw/hi/",
       "priority": 5
     },
     {
       "name": "Hot",
-      "isFree": null,
+      "isFree": true,
       "website": "http://www.star-winged.com.tw/hot/",
       "priority": 5
     },
     {
       "name": "Lohas",
-      "isFree": null,
+      "isFree": true,
       "website": "http://www.goldentv.com.tw/index.php?m=Product&a=index&pc_code=1080113&pop=false",
       "priority": 5
     },
@@ -652,31 +652,31 @@
     },
     {
       "name": "MTV",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.mtv.com.tw/",
       "priority": 5
     },
     {
       "name": "Ours HD",
-      "isFree": null,
+      "isFree": true,
       "website": "https://www.ourshdtv.com/",
       "priority": 5
     },
     {
       "name": "Ours HD 2",
-      "isFree": null,
+      "isFree": true,
       "website": "https://www.ourshdtv.com/",
       "priority": 5
     },
     {
       "name": "Ours HD 3",
-      "isFree": null,
+      "isFree": true,
       "website": "https://www.ourshdtv.com/",
       "priority": 5
     },
     {
       "name": "Pandora Perfect",
-      "isFree": null,
+      "isFree": true,
       "website": "https://www.pandoramove.tw/",
       "priority": 5
     },
@@ -713,7 +713,7 @@
     },
     {
       "name": "Rainbow",
-      "isFree": null,
+      "isFree": true,
       "website": "http://www.rtv.com.tw/main.php?ch=bang",
       "priority": 5
     },
@@ -754,25 +754,25 @@
     },
     {
       "name": "Sonsee TV",
-      "isFree": null,
+      "isFree": true,
       "website": "http://www.sonseetv.com",
       "priority": 5
     },
     {
       "name": "Sonsee TV 2",
-      "isFree": null,
+      "isFree": true,
       "website": "http://www.sonseetv.com/",
       "priority": 5
     },
     {
       "name": "Sonsee TV 3",
-      "isFree": null,
+      "isFree": true,
       "website": "http://www.sonseetv.com/",
       "priority": 5
     },
     {
       "name": "Sonsee TV 4",
-      "isFree": null,
+      "isFree": true,
       "website": "http://www.sonseetv.com/",
       "priority": 5
     },
@@ -795,7 +795,7 @@
     },
     {
       "name": "TLC",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tlc-tw.com/index.php",
       "priority": 5
     },
@@ -893,12 +893,12 @@
   "Education & Culture": [
     {
       "name": "GSTV Gorgeous Space",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Animal Planet",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoverychannel.com.tw/ap_index.php",
       "priority": 5
     },
@@ -916,7 +916,7 @@
     },
     {
       "name": "National Geographic",
-      "isFree": true,
+      "isFree": false,
       "website": "http://natgeotv.com/asia",
       "priority": 7
     }
@@ -924,7 +924,7 @@
   "Kids": [
     {
       "name": "Cartoon Network",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cartoonnetwork.com.tw/",
       "priority": 5
     },
@@ -1097,7 +1097,7 @@
     },
     {
       "name": "ViVa",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.vivatv.com.tw/",
       "priority": 4
     }

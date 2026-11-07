@@ -18,13 +18,8 @@
     {
       "name": "TeleCuraçao",
       "isFree": true,
-      "priority": 5
-    },
-    {
-      "name": "TeleCuracao",
-      "isFree": true,
-      "website": "https://xn--telecuraao-v6a.com/",
-      "priority": 5
+      "priority": 5,
+      "website": "https://xn--telecuraao-v6a.com/"
     }
   ],
   "Music Videos": [

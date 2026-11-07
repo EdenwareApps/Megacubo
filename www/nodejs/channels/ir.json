@@ -680,13 +680,13 @@
     },
     {
       "name": "FX",
-      "isFree": true,
+      "isFree": false,
       "website": "https://fxtv.wns.live/",
       "priority": 5
     },
     {
       "name": "FX 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://fxtv2.wns.live/",
       "priority": 5
     },
@@ -1175,10 +1175,12 @@
   "Sports": [
     {
       "name": "GEM Fit",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Persiana Varzesh",
+      "isFree": false,
       "priority": 5
     },
     {
@@ -1308,94 +1310,117 @@
   "Movies & Series": [
     {
       "name": "AVA Series",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Faraz",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "GEM Academy",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "GEM Comedy",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "GEM Drama",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "GEM Onyx",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "GEM Series",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "GEM",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Khatereh",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "PERSIANA CINEMA",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Parsiland",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Persian Film",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Persiana Family Plus",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Persiana Korea",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Persiana Plus",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "SL",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "SL 2",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sepanj",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Tapesh 2 Movies",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "TehranTV 24",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "iFILM Arabic",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "iFILM English",
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "iFILM Persian 2",
+      "isFree": false,
       "priority": 5
     },
     {

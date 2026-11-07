@@ -772,4 +772,111 @@ body.casting span.status {
 body.casting.video-playing #cast-layer {
     visibility: visible;
 }
+
+/*------------------------------------------------------------------
+   Netflix-like player chrome.
+   Only presentation: the seekbar keeps its signal-quality colours
+   (faclr-*) and every control keeps its existing behaviour.
+------------------------------------------------------------------ */
+body.video controls {
+    background: none;
+}
+
+/* Tall cinematic scrim that fades the video into the control bar. */
+body.video controls::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc((var(--controls-height) + var(--seekbar-height)) * 3.4);
+    background: linear-gradient(to top,
+        rgba(0, 0, 0, 0.94) 0%,
+        rgba(0, 0, 0, 0.8) 24%,
+        rgba(0, 0, 0, 0.36) 58%,
+        rgba(0, 0, 0, 0) 100%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+body.video controls button:not(#info):not(.recording) i.fas,
+body.video controls button:not(#info):not(.recording) i.fab {
+    color: #ffffff;
+}
+
+seekbar > div {
+    height: clamp(3px, 0.5vw, 7px);
+    background-color: rgba(255, 255, 255, 0.26);
+    border-radius: 999px;
+    box-shadow: 0 0 1.2vmin rgba(0, 0, 0, 0.45);
+}
+
+seekbar > div > div {
+    border-radius: 999px;
+    position: relative;
+}
+
+seekbar.faclr-green > div > div,
+seekbar.faclr-orange > div > div,
+seekbar.faclr-red > div > div {
+    box-shadow: none;
+}
+
+/* Healthy stream keeps the brand accent; only degraded streams warn in
+   orange/red, so the signal-quality feature is preserved. */
+body.video seekbar.faclr-green > div > div {
+    background: var(--nf-accent, #8b5cf6);
+}
+
+seekbar > div > div::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 55%);
+    pointer-events: none;
+}
+
+controls button {
+    border-radius: 8px;
+    transition: transform 0.12s ease-out 0s, opacity 0.12s ease-out 0s, background-color 0.12s ease-out 0s,
+        box-shadow 0.12s ease-out 0s;
+}
+
+body.video controls button.selected:not(#info),
+body.video controls button:hover:not(#info) {
+    background-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 2.4vmin rgba(139, 92, 246, 0.5);
+    transform: scale(1.06);
+}
+
+controls button span.button-label > span > span {
+    background: var(--nf-surface-2, #181818);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: var(--nf-radius, 6px);
+    box-shadow: 0 1vmin 2.6vmin rgba(0, 0, 0, 0.7);
+    filter: none;
+    color: #ffffff;
+}
+
+div#streamer-info > div {
+    background-color: var(--nf-surface-2, #181818);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--nf-radius, 6px);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    box-shadow: 0 -0.6vmin 2.6vmin rgba(0, 0, 0, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    controls button,
+    seekbar > div,
+    seekbar > div > div {
+        transition: none !important;
+    }
+    body.video controls button.selected:not(#info),
+    body.video controls button:hover:not(#info) {
+        transform: none;
+    }
+}
 </style>

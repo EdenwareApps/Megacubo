@@ -16,7 +16,7 @@
       "retransmits": "Canal Diputados",
       "shortName": "Cámara",
       "website": "https://www.camara.cl",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "Campo Abierto",
@@ -48,7 +48,8 @@
       "name": "Canal 9 Bío Bío Televisión",
       "isFree": true,
       "shortName": "C9BBT",
-      "priority": 5
+      "priority": 5,
+      "website": "https://www.canal9.cl/"
     },
     {
       "name": "Canal Diputados",
@@ -91,7 +92,8 @@
     {
       "name": "Estación",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "http://estaciontv.cl/"
     },
     {
       "name": "Eva Stream",
@@ -212,7 +214,7 @@
     },
     {
       "name": "TVN",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tvn.cl",
       "priority": 5
     },
@@ -224,7 +226,8 @@
     {
       "name": "Thema Televisión",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://www.thematelevision.cl/"
     },
     {
       "name": "U Los Lagos",
@@ -323,7 +326,7 @@
     },
     {
       "name": "AMC",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.amcmedios.cl/",
       "priority": 5
     },
@@ -335,7 +338,7 @@
     },
     {
       "name": "Astro",
-      "isFree": true,
+      "isFree": false,
       "website": "https://astrotv.cl/",
       "priority": 5
     },
@@ -458,12 +461,6 @@
       "priority": 5
     },
     {
-      "name": "Canal 9 Bio Bio Television",
-      "isFree": true,
-      "website": "https://www.canal9.cl/",
-      "priority": 5
-    },
-    {
       "name": "Canal Alta Frontera",
       "isFree": true,
       "website": "https://www.canalaltafrontera.cl/",
@@ -559,12 +556,6 @@
       "name": "Chile",
       "isFree": true,
       "website": "https://chilechanneltv.cl/",
-      "priority": 5
-    },
-    {
-      "name": "ChileVision",
-      "isFree": true,
-      "website": "https://www.chilevision.cl/",
       "priority": 5
     },
     {
@@ -698,12 +689,6 @@
       "priority": 5
     },
     {
-      "name": "Estacion",
-      "isFree": true,
-      "website": "http://estaciontv.cl/",
-      "priority": 5
-    },
-    {
       "name": "Estudio",
       "isFree": true,
       "website": "http://estudiotv.cl/",
@@ -730,7 +715,7 @@
     },
     {
       "name": "FX",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.canalfx.tv/",
       "priority": 5
     },
@@ -1278,12 +1263,6 @@
       "priority": 6
     },
     {
-      "name": "Thema Television",
-      "isFree": true,
-      "website": "https://www.thematelevision.cl/",
-      "priority": 5
-    },
-    {
       "name": "TMN",
       "isFree": true,
       "website": "http://tmntv.cl/",
@@ -1543,232 +1522,232 @@
     },
     {
       "name": "Paramount Skydance",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Mega Media",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Albavisión",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "NTV",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "PBS Chile/Public Broadcasting Services",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "ARTV",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "TVI Chile",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "El Mostrador",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "CDtv S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Carey Media Holdings",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Canal 24 Horas",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Canal 13 S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "RTM",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Arica TV S",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Tarapaca Televisión S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "NorTv S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Antofagasta TV S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "VLP S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Digital Channel S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Siete S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Holvoet S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "STM S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Andacollo Televisión S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "TV2 Choapa S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Thema Comunicaciones",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Canal 4 S",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "QU",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Girovisual television S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Valle Televisión S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Canal 2 San Antonio S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Bio Bio Comunicaciones",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Canal 21 S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "TV8 S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "NCC S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "U. Autónoma Chile Televisión",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Pucón TV S",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "ATV S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Canal 5 S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "TVA de Ancud S",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Telesur S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "TV Allakintuy S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Magallanes Region",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "ITV S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Patagónica Publicaciones S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Polar TV S.A",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Media of Chile",
-      "isFree": null,
+      "isFree": true,
       "priority": 5
     }
   ],
@@ -2241,16 +2220,20 @@
   "Sports": [
     {
       "name": "RedBull Batalla de Gallos",
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Teletrak",
+      "isFree": true,
       "website": "https://www.teletrak.cl/",
       "priority": 5
     },
     {
       "name": "Turf Móvil",
-      "priority": 5
+      "isFree": true,
+      "priority": 5,
+      "website": "https://tvturf.cl/"
     },
     {
       "name": "CDF Basico",
@@ -2285,7 +2268,7 @@
     },
     {
       "name": "Claro Sports Chile",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.marca.com/claro-mx/",
       "priority": 10
     },
@@ -2297,12 +2280,12 @@
     },
     {
       "name": "ESPN Premium",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "FOX Sports",
-      "isFree": true,
+      "isFree": false,
       "website": "http://foxsportspremium.cl/",
       "priority": 10
     },
@@ -2314,28 +2297,22 @@
     },
     {
       "name": "TNT Sports",
-      "isFree": true,
+      "isFree": false,
       "keywords": "tnt sports -2 -3",
       "website": "https://www.tntsports.cl/",
       "priority": 10
     },
     {
       "name": "TNT Sports 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tntsports.cl/",
       "priority": 10
     },
     {
       "name": "TNT Sports 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tntsports.cl/",
       "priority": 10
-    },
-    {
-      "name": "Turf Movil",
-      "isFree": true,
-      "website": "https://tvturf.cl/",
-      "priority": 5
     }
   ],
   "Education & Culture": [
@@ -2385,7 +2362,7 @@
     },
     {
       "name": "History",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.historyplay.tv/",
       "priority": 7
     },
@@ -2475,7 +2452,8 @@
     {
       "name": "Mundo de la Música",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://mundodelamusicachile.cl/"
     },
     {
       "name": "Portalfoxmix",
@@ -2631,12 +2609,6 @@
       "priority": 5
     },
     {
-      "name": "Mundo de la Musica",
-      "isFree": true,
-      "website": "https://mundodelamusicachile.cl/",
-      "priority": 5
-    },
-    {
       "name": "Patagonia Radio",
       "isFree": true,
       "website": "https://patagoniaradio.cl/",
@@ -2735,10 +2707,12 @@
   "Movies & Series": [
     {
       "name": "Planetatv Movie",
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Retro Plus 3",
+      "isFree": true,
       "priority": 5
     },
     {
@@ -2767,7 +2741,7 @@
     },
     {
       "name": "TVN 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tvn.cl/tvn3",
       "priority": 5
     },

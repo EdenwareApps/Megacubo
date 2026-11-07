@@ -32,45 +32,4 @@ div#background > div {
     display: block;
     top: 0;
 }
-body.animate-background-slow div#background {
-    animation-name: background-breathing;
-    animation-duration: 30s;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-}
-body.animate-background-fast div#background {
-    animation-name: background-breathing;
-    animation-duration: 15s;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-}
-body.animate-background-slow div#background, body.animate-background-fast div#background {
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    perspective: 1000;
-    will-change: transform;
-}
-@keyframes background-breathing {
-    0% {
-        transform: scale(1.1) rotateZ(0deg);
-    }
-    5% {
-        transform: scale(1.1) rotateZ(-0.8deg);
-    }
-    45% {
-        transform: scale(1.2) rotateZ(-0.8deg);
-    }
-    50% {
-        transform: scale(1.2) rotateZ(0deg);
-    }
-    55% {
-        transform: scale(1.2) rotateZ(0.8deg);
-    }
-    95% {
-        transform: scale(1.1) rotateZ(0.8deg);
-    }
-    100% {
-        transform: scale(1.1) rotateZ(0deg);
-    }
-}
 </style>

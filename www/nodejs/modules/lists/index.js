@@ -177,9 +177,37 @@ class Index extends Common {
                 if (uncached.length > 0) {
                     const queryArray = uncached.map(item => item.criterion);
                     res = await db.multiExists(queryArray);
+
+                    // Second chance: the same words written with a different spacing,
+                    // e.g. 'band news' should also find 'bandnews' (and vice-versa)
+                    const missing = uncached.filter(item => !res[item.criterion.id]);
+                    if (missing.length) {
+                        const altCriteria = [], altOwner = {};
+                        for (const item of missing) {
+                            const variants = this.tools.spaceInsensitiveVariants(item.criterion.terms, { max: 6 });
+                            variants.forEach((variant, i) => {
+                                const altId = item.criterion.id + '\u0000' + i;
+                                altOwner[altId] = item.criterion.id;
+                                altCriteria.push({
+                                    id: altId,
+                                    field: item.criterion.field,
+                                    terms: variant,
+                                    options: item.criterion.options
+                                });
+                            });
+                        }
+                        if (altCriteria.length) {
+                            const altRes = await db.multiExists(altCriteria);
+                            for (const [altId, value] of Object.entries(altRes)) {
+                                if (value && altOwner[altId]) {
+                                    res[altOwner[altId]] = true;
+                                }
+                            }
+                        }
+                    }
+
                     for (const item of uncached) {
-                        const value = !!res[item.criterion.id];
-                        this.setPerListCache(url, item.termKey, value);
+                        this.setPerListCache(url, item.termKey, !!res[item.criterion.id]);
                     }
                 }
 
@@ -319,6 +347,11 @@ class Index extends Common {
                     scoreMap[term] = (scoreMap[term] || 0) + score;
                 }
             }
+            // Spacing-insensitive: also score the words written together ('band news' -> 'bandnews')
+            const joined = this.tools.joinTerms(termArray);
+            if (joined) {
+                scoreMap[joined] = (scoreMap[joined] || 0) + score;
+            }
         }
         
         // Search in all lists using score() method
@@ -343,7 +376,20 @@ class Index extends Common {
                     
                     // Also check groupTerms if group search is enabled
                     if (opts.group) {
-                        const groupScoredResults = await this.lists[url].indexer.db.score('groupTerms', scoreMap, {
+                        // Group hits are a weaker signal than name hits, so they can be
+                        // down-weighted by the caller (recommendations use this to keep
+                        // title matches ahead of plain "same category" matches).
+                        const groupWeight = (typeof opts.groupWeight === 'number' && opts.groupWeight > 0)
+                            ? opts.groupWeight
+                            : 1
+                        let groupScoreMap = scoreMap
+                        if (groupWeight !== 1) {
+                            groupScoreMap = {}
+                            for (const [term, weight] of Object.entries(scoreMap)) {
+                                groupScoreMap[term] = weight * groupWeight
+                            }
+                        }
+                        const groupScoredResults = await this.lists[url].indexer.db.score('groupTerms', groupScoreMap, {
                             limit: limitPerList,
                             sort: 'desc',
                             includeScore: true
@@ -553,6 +599,19 @@ class Index extends Common {
                 }
             }
             
+            // Spacing-insensitive alternatives, so 'band news' also finds 'bandnews'
+            // and 'bandnews' also finds 'band news'. Kept as flat $or branches so
+            // search() can run each one separately.
+            const variantFields = useGroup ? ['nameTerms', 'groupTerms'] : ['nameTerms'];
+            const variantConditions = this.tools.spaceInsensitiveConditions(terms, variantFields, isPartial, { max: 6 });
+            if (variantConditions.length) {
+                if (searchCondition.$or) {
+                    searchCondition.$or.push(...variantConditions);
+                } else {
+                    searchCondition = { $or: [searchCondition, ...variantConditions] };
+                }
+            }
+
             // Apply excludes to this search condition if any
             if (excludes.length > 0) {
                 const { excludeConditions } = createExcludeConditions(excludes, { partial: isPartial });
@@ -609,7 +668,14 @@ class Index extends Common {
                 }
             } else {
                 // Multiple valid groups
-                const orConditions = validGroups.map(g => createSearchConditions(g, opts.group, opts.partial, uniqueExcludes));
+                // Flatten pure $or groups so search() can run each branch as its own query
+                const orConditions = validGroups.flatMap(g => {
+                    const condition = createSearchConditions(g, opts.group, opts.partial, uniqueExcludes);
+                    if (condition && condition.$or && Object.keys(condition).length === 1) {
+                        return condition.$or;
+                    }
+                    return [condition];
+                });
                 // Ensure $or has at least 2 conditions
                 if (orConditions.length >= 2) {
                     query.$or = orConditions;
@@ -842,6 +908,9 @@ class Index extends Common {
                             }                        
                             
                             r.source = url
+                            if (!this.contentProfile.allowsEntry(r, url)) {
+                                continue;
+                            }
                             if (already.has(r.url)) {
                                 continue;
                             }
@@ -1084,6 +1153,7 @@ class Index extends Common {
         }
 
         entries = this.parentalControl.filter(entries, true);
+        entries = this.contentProfile.filter(entries, group.url);
         return this.tools.sort(entries);
     }
 }

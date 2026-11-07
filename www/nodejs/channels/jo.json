@@ -20,12 +20,12 @@
   "Kids": [
     {
       "name": "Toyor Al-Jannah",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Karameesh",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -55,7 +55,7 @@
     },
     {
       "name": "Tala Kids Club",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.talakidsclub.com/",
       "priority": 5
     }
@@ -63,17 +63,17 @@
   "Entertainment": [
     {
       "name": "Al Mamlaka",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Amman",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Jordan",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -83,22 +83,22 @@
     },
     {
       "name": "7 Stars",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "A One",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Awdeh",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Azhari",
-      "isFree": true,
+      "isFree": null,
       "website": "http://azharitv.net/",
       "priority": 5
     },
@@ -110,124 +110,124 @@
     },
     {
       "name": "Deretna",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.deretna.net/",
       "priority": 5
     },
     {
       "name": "Fact International",
-      "isFree": true,
+      "isFree": null,
       "website": "http://factjo.com/",
       "priority": 5
     },
     {
       "name": "Hala",
-      "isFree": true,
+      "isFree": null,
       "keywords": "hala -control -studio",
       "website": "https://www.hala.jo/",
       "priority": 5
     },
     {
       "name": "Ismaoona",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ismaoona.com/",
       "priority": 5
     },
     {
       "name": "Jordan Archive",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Jordan Comedy",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Jordan Drama",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Jordan Kitchen",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Jordan Tourism",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Josat",
-      "isFree": true,
+      "isFree": null,
       "website": "https://josat.tv/",
       "priority": 5
     },
     {
       "name": "Kaifa",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.kaifatv.com/",
       "priority": 5
     },
     {
       "name": "Qudaah",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Radio Fann Jordan City View",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Radio Fann Jordan Control Studio",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Radio Fann Jordan Studio",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Radio Yaqeen Jordan City View",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Radio Yaqeen Jordan Control Studio",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Radio Yaqeen Jordan Studio",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rotana Radio Jordan City View",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Rotana Radio Jordan Control Studio",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Rotana Radio Jordan Studio",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Rotana Tarab Jordan City View",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Rotana Tarab Jordan Control Studio",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -244,46 +244,46 @@
     },
     {
       "name": "Yarmouk",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
   "Music Videos": [
     {
       "name": "Nojoum",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rotana Tarab Jordan: City View",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Rotana Tarab Jordan: Control Studio",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Amen FM",
-      "isFree": true,
+      "isFree": null,
       "website": "http://amenfm.jo/",
       "priority": 5
     },
     {
       "name": "Jeish FM",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.jeishfm.jo/",
       "priority": 5
     },
     {
       "name": "Jordan Songs",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Melody FM",
-      "isFree": true,
+      "isFree": null,
       "keywords": "melody fm -jordan",
       "website": "https://melody-fm.com/",
       "priority": 5
@@ -338,47 +338,47 @@
     },
     {
       "name": "Rotana Radio Jordan: City View",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Rotana Radio Jordan: Control Studio",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Rotana Radio Jordan: Studio",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     }
   ],
   "News": [
     {
       "name": "Alhaqeqa Aldawlia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.factjo.com/Pages.aspx?id=6",
       "priority": 5
     },
     {
       "name": "Altaghier",
-      "isFree": true,
+      "isFree": null,
       "website": "https://altaghier.tv/",
       "priority": 5
     },
     {
       "name": "ANB",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Hala Control Studio",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.hala.jo/",
       "priority": 5
     },
     {
       "name": "Jordan Now",
-      "isFree": true,
+      "isFree": null,
       "website": "https://jordannowtv.net/",
       "priority": 5
     },
@@ -406,19 +406,19 @@
   "Sports": [
     {
       "name": "Jordan Sport",
-      "isFree": true,
+      "isFree": null,
       "keywords": "jordan sport -2",
       "priority": 10
     },
     {
       "name": "Jordan Sport 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.jrtv.gov.jo/",
       "priority": 10
     },
     {
       "name": "Sport",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.jrtv.gov.jo/",
       "priority": 10
     }

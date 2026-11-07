@@ -8,7 +8,8 @@
     {
       "name": "Amé 47",
       "isFree": true,
-      "priority": 5
+      "priority": 5,
+      "website": "https://www.rdmusica.com/"
     },
     {
       "name": "CDN 2",
@@ -183,7 +184,8 @@
       "name": "TV Montaña Canal 10",
       "isFree": true,
       "shortName": "TMC",
-      "priority": 5
+      "priority": 5,
+      "website": "https://tvmontana.com/"
     },
     {
       "name": "TV Plata",
@@ -319,11 +321,6 @@
       "priority": 5
     },
     {
-      "name": "AkiTV",
-      "isFree": true,
-      "priority": 5
-    },
-    {
       "name": "Alcarrizos",
       "isFree": true,
       "website": "https://alcarrizostv.com/",
@@ -339,12 +336,6 @@
       "name": "Altanto",
       "isFree": true,
       "website": "https://altanto.com.do/",
-      "priority": 5
-    },
-    {
-      "name": "Ame 47",
-      "isFree": true,
-      "website": "https://www.rdmusica.com/",
       "priority": 5
     },
     {
@@ -1524,12 +1515,6 @@
       "priority": 5
     },
     {
-      "name": "TV Montana Canal 10",
-      "isFree": true,
-      "website": "https://tvmontana.com/",
-      "priority": 5
-    },
-    {
       "name": "TVO",
       "isFree": true,
       "website": "https://tvo.com.do/",
@@ -1752,6 +1737,7 @@
   "Movies & Series": [
     {
       "name": "Cinevision Canal 19",
+      "isFree": true,
       "shortName": "CC",
       "priority": 5
     },

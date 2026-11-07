@@ -2,6 +2,7 @@
   "Sports": [
     {
       "name": "Bahrain Sports",
+      "isFree": true,
       "priority": 10
     },
     {

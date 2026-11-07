@@ -72,11 +72,6 @@
       "priority": 5
     },
     {
-      "name": "La Télé",
-      "isFree": true,
-      "priority": 5
-    },
-    {
       "name": "Leman Bleu",
       "isFree": true,
       "priority": 5
@@ -303,7 +298,7 @@
     },
     {
       "name": "Comedy Central",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.comedycentral.ch/",
       "priority": 5
     },
@@ -670,6 +665,7 @@
   "Sports": [
     {
       "name": "Motorvision",
+      "isFree": false,
       "priority": 5
     },
     {
@@ -835,10 +831,12 @@
   "Movies & Series": [
     {
       "name": "Action Movies -",
+      "isFree": true,
       "priority": 5
     },
     {
       "name": "Comedy Movies -",
+      "isFree": true,
       "priority": 5
     },
     {

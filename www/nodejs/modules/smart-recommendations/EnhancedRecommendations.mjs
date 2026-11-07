@@ -1,6 +1,9 @@
 import { EventEmitter } from 'node:events'
 import { ErrorHandler } from './ErrorHandler.mjs'
 import { SmartCache } from './SmartCache.mjs'
+import { terms } from '../lists/tools.js'
+import { stripFalseFriends } from '../profiles/content-profile.js'
+import StreamClassifier from '../lists/stream-classifier.js'
 
 /**
  * Enhanced Recommendations System
@@ -115,8 +118,10 @@ export class EnhancedRecommendations extends EventEmitter {
             // 2. Get data with filtering (EPG for live, multiSearch for VOD)
             let epgData
             if (options.type === 'vod') {
-                // Use multiSearch for VOD content
-                epgData = await this.getSemanticVODData(expandedTags, userContext, {...options, group: false, typeStrict: true})
+                // Use multiSearch for VOD content. Group search must stay on: VOD
+                // titles never contain the profile vocabulary ("filme", "infantil",
+                // "adultos"), it only appears in the group names of the lists.
+                epgData = await this.getSemanticVODData(expandedTags, userContext, {...options, group: true, typeStrict: true})
             } else {
                 // Use EPG for live content
                 epgData = await this.getSemanticEPGData(expandedTags, userContext)
@@ -233,6 +238,60 @@ export class EnhancedRecommendations extends EventEmitter {
     }
 
     /**
+     * Rescore EPG programmes by where the tags were found.
+     *
+     * The programme index scores every metadata field with the same weight, so a
+     * profile word inside a channel name ("Adult Swim") or a genre label
+     * ("Young Adult") promotes content that means something else entirely. Here the
+     * title and categories keep their full weight and the channel name — which
+     * describes the broadcaster, not the programme — counts for less.
+     * @param {Array} programmes - EPG programmes with raw metadata
+     * @param {Object} categories - Tag -> weight map used for the query
+     * @param {number} channelWeight - Weight applied to channel-name matches
+     * @returns {Array} Programmes with the refined score
+     */
+    rescoreEPGProgrammes(programmes, categories, channelWeight = 0.6) {
+        const weights = {}
+        for (const [tag, weight] of Object.entries(categories || {})) {
+            for (const term of terms(stripFalseFriends(tag))) {
+                if (!(term in weights) || weight > weights[term]) {
+                    weights[term] = weight
+                }
+            }
+        }
+
+        const scoreCache = new Map()
+        const scoreOf = (text) => {
+            if (!text) {
+                return 0
+            }
+            if (scoreCache.has(text)) {
+                return scoreCache.get(text)
+            }
+            let score = 0
+            const seen = new Set()
+            for (const term of terms(stripFalseFriends(text))) {
+                if (seen.has(term)) {
+                    continue
+                }
+                seen.add(term)
+                if (weights[term]) {
+                    score += weights[term]
+                }
+            }
+            scoreCache.set(text, score)
+            return score
+        }
+
+        return programmes.map(programme => {
+            const programmeCategories = Array.isArray(programme.categories) ? programme.categories : []
+            const textScore = scoreOf([programme.title || '', ...programmeCategories].join(' '))
+            const channelScore = scoreOf(programme.channel || '')
+            return { ...programme, score: textScore + (channelScore * channelWeight) }
+        })
+    }
+
+    /**
      * Get semantic EPG data
      * @param {Object} expandedTags - Expanded tags
      * @param {Object} userContext - User context
@@ -282,21 +341,28 @@ export class EnhancedRecommendations extends EventEmitter {
             const epgRecommendations = await global.lists.epg.getRecommendations(
                 categories,
                 null, // until - use default (6 hours from now)
-                256  // limit - get more results for better selection
+                400  // limit - the scoring inside uses limit * 10 candidates, we rescore them below
             )
 
-            // Transform EPG recommendations to our format
-            const programmes = epgRecommendations.map(programme => ({
+            // The EPG index scores every metadata field alike, so rescore by where the
+            // tags were actually found before ranking (see rescoreEPGProgrammes).
+            const programmes = this.rescoreEPGProgrammes(epgRecommendations.map(programme => ({
                 ...programme,
                 channel: programme.channel,
-                start: programme.start,
-                score: typeof programme.score === 'number' ? programme.score : 0
-            }))
+                start: programme.start
+            })), categories)
 
             if (this.debug) {
                 console.log(`Found ${programmes.length} programmes from EPG system using ${Object.keys(categories).length} categories`);
             }
-            return this.applyAdvancedFilters(programmes, userContext, this.config.defaultLimit)
+
+            // Keep only programmes that actually matched a tag; filling the row with
+            // arbitrary programmes is what made unrelated content (e.g. kids shows for
+            // an adult profile) reach the top positions.
+            const matched = programmes.filter(programme => programme.score > 0)
+            const pool = matched.length >= this.config.defaultLimit ? matched : programmes
+
+            return this.applyAdvancedFilters(pool, userContext, this.config.defaultLimit)
 
         } catch (error) {
             if (this.debug) {
@@ -304,6 +370,104 @@ export class EnhancedRecommendations extends EventEmitter {
             }
             return []
         }
+    }
+
+    /**
+     * VOD titles taken from the lists the content profile bundles (e.g. the adult
+     * list). The vocabulary filter cannot find them: their groups are named after
+     * niches ("Brunette", "MILF") and their titles are proper names, so a tag
+     * search over name/group only ever matched the few groups carrying a profile
+     * word. Here one or two titles of *every* group of those lists are taken.
+     * @param {Object} options - `limit` (how many titles) and unused `groupWeight`
+     * @returns {Promise<Array>} list entries with `source` and `group` set
+     */
+    async getProfileSourceVOD(options = {}) {
+        const lists = global.lists
+        const profile = lists?.contentProfile
+        if (!lists || !profile || typeof profile.listsForDiscovery != 'function' || !profile.effective?.()) {
+            return []
+        }
+        if (typeof lists.groups != 'function' || typeof lists.group != 'function') {
+            return []
+        }
+        const sources = profile.listsForDiscovery()
+        if (!Array.isArray(sources) || !sources.length) {
+            return []
+        }
+        let groups = []
+        try {
+            groups = await lists.groups(['vod', 'series'])
+        } catch (err) {
+            return []
+        }
+        const own = (Array.isArray(groups) ? groups : []).filter(item => item && sources.includes(item.url))
+        if (!own.length) {
+            return []
+        }
+        const limit = Math.max(1, parseInt(options.limit, 10) || this.config.defaultLimit)
+        // Two titles per group already covers the folder; sampling groups with a
+        // stride avoids rebuilding the whole catalog and keeps the folders that
+        // come first alphabetically from taking the folder over.
+        const perGroup = 2
+        const maxGroups = Math.min(own.length, 24, Math.max(4, Math.ceil(limit / perGroup)))
+        const stride = Math.max(1, Math.floor(own.length / maxGroups))
+        const sample = own.filter((item, i) => i % stride === 0).slice(0, maxGroups)
+        const entries = []
+        for (const item of sample) {
+            let found = []
+            try {
+                found = await lists.group({ url: item.url, group: item.group })
+            } catch (err) {
+                continue // list being updated / group gone
+            }
+            if (!Array.isArray(found) || !found.length) continue
+            // The groups come from the VOD/series index, so their entries are VOD by
+            // origin: only drop what the URL clearly marks as a live channel. A
+            // VOD filter would discard them, since HLS titles classify as "seems-live".
+            const vod = found.filter(entry => entry && entry.url && !StreamClassifier.clearlyLive(entry))
+            // Picking the first two entries of a group usually means two episodes of
+            // the same series, so the picks are spread over the whole group instead.
+            for (let n = 0; n < Math.min(perGroup, vod.length); n++) {
+                const index = vod.length > perGroup ? Math.floor((n * vod.length) / perGroup) : n
+                const entry = vod[index]
+                if (!entry || !entry.url) continue
+                entries.push({ ...entry, source: item.url, group: entry.group || item.group })
+            }
+        }
+        if (this.debug) {
+            console.log(`Profile source VOD: ${entries.length} entries from ${own.length} groups`)
+        }
+        return entries
+    }
+
+    /**
+     * Put the profile's own catalog first and drop duplicates of the tag hits.
+     * Those titles are relevant by origin, so they get the score of the best tag
+     * hit - otherwise normalizing would rank them last and the folder would cut
+     * them off.
+     * @param {Array} ownEntries - Entries from the profile's own lists
+     * @param {Array} vodEntries - Entries found by tag search
+     * @returns {Array}
+     */
+    mergeVODSources(ownEntries, vodEntries) {
+        const hits = Array.isArray(vodEntries) ? vodEntries : []
+        const own = Array.isArray(ownEntries) ? ownEntries : []
+        if (!own.length) {
+            return hits
+        }
+        const top = hits.reduce((max, entry) => Math.max(max, typeof entry?.score == 'number' ? entry.score : 0), 0)
+        const score = top > 0 ? top : 1
+        const seen = new Set()
+        const merged = []
+        const push = (entry, withScore) => {
+            const key = entry?.url || entry?.name
+            if (!key || seen.has(key)) return
+            seen.add(key)
+            merged.push(withScore ? { ...entry, score } : entry)
+        }
+        own.forEach(entry => push(entry, true))
+        hits.forEach(entry => push(entry, false))
+        return merged
     }
 
     /**
@@ -365,7 +529,12 @@ export class EnhancedRecommendations extends EventEmitter {
             const searchOpts = {
                 limit: options.limit || 256,
                 type: 'vod', // VOD content
-                group: options.group === true, // Search in groups if group is true
+                // Search the group names too: for VOD they are the only place where
+                // the profile vocabulary (genre/audience) shows up, since titles are
+                // proper names ("Moana 2") and never match tags like "infantil".
+                group: options.group !== false,
+                // A group hit is a weaker signal than a name hit, so it scores lower
+                groupWeight: options.groupWeight ?? 0.85,
                 typeStrict: options.typeStrict !== false // Search strictly if typeStrict is not false
             }
 
@@ -377,9 +546,16 @@ export class EnhancedRecommendations extends EventEmitter {
             if (this.debug) {
                 console.log(`Found ${vodEntries.length} VOD entries from lists using ${Object.keys(scoreMap).length} tags`);
             }
-            
+
+            // Titles of the lists the profile bundles are relevant by origin, even
+            // when neither their name nor their group carries the profile
+            // vocabulary. One title per group is taken so the whole profile shows
+            // up instead of the two or three groups whose names happen to match.
+            const ownEntries = await this.getProfileSourceVOD({ limit: searchOpts.limit, groupWeight: searchOpts.groupWeight })
+            const merged = this.mergeVODSources(ownEntries, vodEntries)
+
             // Transform to EPG-compatible format (similar to EPG programmes format)
-            const programmes = vodEntries.map(entry => ({
+            const programmes = merged.map(entry => ({
                 title: entry.name || '',
                 desc: entry.description || '',
                 channel: entry.group || '',

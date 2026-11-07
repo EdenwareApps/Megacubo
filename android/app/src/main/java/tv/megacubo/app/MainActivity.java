@@ -3,6 +3,7 @@ package tv.megacubo.app;
 import com.getcapacitor.BridgeActivity;
 import android.util.Log;
 import android.content.res.Configuration;
+import android.os.Bundle;
 import android.os.Handler;
 import tv.megacubo.pip.PIPPlugin;
 
@@ -10,6 +11,13 @@ public class MainActivity extends BridgeActivity {
     private static final String TAG = "MainActivity";
     private Runnable onUserLeaveHintCallback;
     private boolean isInPipMode = false;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        // Must be registered before the bridge is created in super.onCreate()
+        registerPlugin(AppUpdaterPlugin.class);
+        super.onCreate(savedInstanceState);
+    }
 
     public void setOnUserLeaveHintCallback(Runnable callback) {
         this.onUserLeaveHintCallback = callback;

@@ -226,6 +226,115 @@ class TermsHandler {
             return true;
         });
     }
+
+    /**
+     * Terms that can take part in a spacing-insensitive comparison
+     * (plain words only, no modifiers/excludes).
+     * @private
+     */
+    plainTerms(terms) {
+        if (!Array.isArray(terms)) return [];
+        return terms.filter(t => typeof t === 'string' && t && !t.startsWith('-') && t !== '|');
+    }
+
+    /**
+     * Terms joined without spaces, e.g. ['band','news'] -> 'bandnews'.
+     * Returns '' when there's nothing to join.
+     */
+    joinTerms(terms) {
+        const plain = this.plainTerms(terms).filter(t => !this.isStopWord(t));
+        return plain.length > 1 ? plain.join('') : '';
+    }
+
+    /**
+     * Spacing-insensitive alternatives for a term set, i.e. ways of writing the
+     * same words with a different spacing:
+     * - ['band','news'] -> [['bandnews']]
+     * - ['bandnews']    -> [['band','news'], ['ban','dnews'], ...]
+     * Used so searching 'band news' also finds 'bandnews' and vice-versa.
+     * @param {Array<string>} terms
+     * @param {Object} opts
+     * @param {number} opts.minPartLength - minimum length of a split part (default 3)
+     * @param {number} opts.max - maximum number of alternatives (default 16)
+     * @returns {Array<Array<string>>}
+     */
+    spaceInsensitiveVariants(terms, opts = {}) {
+        if (!Array.isArray(terms) || !terms.length) return [];
+        if (this.plainTerms(terms).length !== terms.length) return []; // modifiers/excludes present
+        const minPart = opts.minPartLength || 3;
+        const max = opts.max || 16;
+        const plain = terms.filter(t => !this.isStopWord(t));
+        if (!plain.length) return [];
+        const variants = [], seen = new Set();
+        const push = v => {
+            const key = v.join(' ');
+            if (!seen.has(key)) {
+                seen.add(key);
+                variants.push(v);
+            }
+        };
+        if (plain.length === 1) {
+            const term = plain[0];
+            if (term.length >= minPart * 2) {
+                for (let i = minPart; i <= term.length - minPart; i++) {
+                    push([term.slice(0, i), term.slice(i)]);
+                }
+            }
+        } else {
+            push([plain.join('')]);
+            // also accept one of the words written concatenated with the others
+            for (let i = 0; i < plain.length; i++) {
+                const term = plain[i];
+                if (term.length < minPart * 2) continue;
+                const others = plain.filter((_, j) => j !== i);
+                for (let k = minPart; k <= term.length - minPart; k++) {
+                    push([...others, term.slice(0, k), term.slice(k)]);
+                }
+            }
+        }
+        return variants.slice(0, max);
+    }
+
+    /**
+     * Index conditions for the spacing-insensitive variants of `terms`,
+     * so 'band news' also finds 'bandnews' and vice-versa.
+     * @param {Array<string>} terms
+     * @param {Array<string>} fields - indexed term fields to test ('nameTerms', 'groupTerms')
+     * @param {boolean} isPartial - also accept the joined form as a prefix
+     * @param {Object} opts - forwarded to spaceInsensitiveVariants()
+     * @returns {Array<Object>} query conditions (flat, meant to be used inside an $or)
+     */
+    spaceInsensitiveConditions(terms, fields, isPartial = false, opts = {}) {
+        const conditions = [];
+        for (const variant of this.spaceInsensitiveVariants(terms, opts)) {
+            for (const field of fields) {
+                conditions.push(variant.length === 1 ? { [field]: variant[0] } : { [field]: { $all: variant } });
+                // On partial searches the joined form should also match as a prefix
+                // (e.g. 'band ne' -> 'bandnews'); regex on the term indexes is index-resolved.
+                if (isPartial && variant.length === 1) {
+                    conditions.push({ [field]: new RegExp(variant[0], 'i') });
+                }
+            }
+        }
+        return conditions;
+    }
+
+    /**
+     * Check whether `joined` equals the concatenation of a contiguous run of `terms`.
+     * @private
+     */
+    hasJoinedRun(joined, terms) {
+        if (!joined || !Array.isArray(terms) || !terms.length) return false;
+        for (let i = 0; i < terms.length; i++) {
+            let acc = '';
+            for (let j = i; j < terms.length; j++) {
+                acc += terms[j];
+                if (acc === joined) return true;
+                if (acc.length >= joined.length) break;
+            }
+        }
+        return false;
+    }
     
     match(needleTerms, stackTerms, partial = false) {
         if (!Array.isArray(needleTerms) || !Array.isArray(stackTerms)) return 0;
@@ -267,8 +376,29 @@ class TermsHandler {
             }
         }
 
-        // If all matched terms are weak, ignore the match
-        if ([...matchedTerms].every(t => weakTerms.has(t))) return 0;
+        // Spacing-insensitive fallback: 'band news' should match 'bandnews' and vice-versa
+        let spacingScore = 0;
+        const nJoin = nTerms.filter(t => !weakTerms.has(t)).join('');
+        const sJoin = sTerms.filter(t => !weakTerms.has(t)).join('');
+        if (nJoin && sJoin) {
+            if (nJoin === sJoin || this.hasJoinedRun(nJoin, sTerms) || this.hasJoinedRun(sJoin, nTerms)) {
+                spacingScore = 2;
+            } else if (partial && (nJoin.startsWith(sJoin) || sJoin.startsWith(nJoin))) {
+                spacingScore = 1;
+            }
+        }
+
+        if ([...matchedTerms].every(t => weakTerms.has(t))) {
+            // Nothing else matched: rely on the spacing-equivalent match (if any)
+            return spacingScore;
+        }
+        if (spacingScore >= 2 || (!partial && spacingScore)) {
+            score = Math.max(score, Math.min(spacingScore, nTerms.length));
+        } else if (spacingScore && nTerms.length > 1) {
+            // Partial search where the words run together are a prefix of the
+            // candidate name (e.g. 'band ne' -> 'bandnews'): almost full match.
+            return 1;
+        }
 
         if (score) {
             if (score === nTerms.length) {

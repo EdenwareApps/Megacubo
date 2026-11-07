@@ -45,8 +45,8 @@ if (!process.env.JAVA_HOME) {
     const content = fs.readFileSync(localPropertiesPath, "utf-8");
     const sdkDirMatch = content.match(/sdk\.dir=(.+)/);
     if (sdkDirMatch) {
-      // Unescape the path (convert C:\\\\ to C:\\)
-      const sdkPath = sdkDirMatch[1].replace(/\\/g, path.sep);
+      // local.properties escapes special chars (D\:\\android-sdk -> D:\android-sdk)
+      const sdkPath = sdkDirMatch[1].trim().replace(/\\(.)/g, '$1');
       possibleAndroidPaths.push(sdkPath);
     }
   }
@@ -168,11 +168,17 @@ const updateBuildGradleWithABI = (abi) => {
 // Execute shell command with error handling
 const executeCommand = (command, args = [], cwd) => {
   try {
-    // execFileSync passes args separately, avoiding shell interpretation of paths/values
-    execFileSync(command, args, { stdio: "inherit", cwd });
+    // Node refuses to spawn .cmd/.bat directly, so batch files go through cmd.exe
+    if (os.platform() === 'win32' && /\.(cmd|bat)$/i.test(command)) {
+      const quoted = [command, ...args].map(arg => `"${arg}"`).join(' ');
+      execFileSync(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', quoted], { stdio: "inherit", cwd, windowsVerbatimArguments: true });
+    } else {
+      // execFileSync passes args separately, avoiding shell interpretation of paths/values
+      execFileSync(command, args, { stdio: "inherit", cwd });
+    }
   } catch (error) {
     console.error(`Command failed: ${command} ${args.join(' ')}`);
-    process.exit(error.status);
+    process.exit(typeof error.status == 'number' ? error.status : 1);
   }
 };
 
@@ -280,7 +286,7 @@ const buildApplication = async () => {
     const gradlewCmd = os.platform() === 'win32' ? 'gradlew.bat' : './gradlew';
     executeCommand(gradlewCmd, ['assembleDebug'], path.join(__dirname, 'android'));
   } else {
-    const capArgs = ['cap', 'build', 'android'];
+    const capArgs = ['build', 'android'];
     if (signingProperties.storeFile && signingProperties.storePassword && signingProperties.keyAlias && signingProperties.keyPassword) {
       console.log("Signing properties found. Signing APK...");
       capArgs.push('--keystorepath', signingProperties.storeFile, '--keystorepass', signingProperties.storePassword, '--keystorealias', signingProperties.keyAlias, '--keystorealiaspass', signingProperties.keyPassword);
@@ -288,7 +294,8 @@ const buildApplication = async () => {
       console.log("Signing properties not found. Building unsigned APK...");
     }
     capArgs.push('--androidreleasetype', 'APK', '--signing-type', 'apksigner');
-    executeCommand('npx', capArgs);
+    // call the CLI entrypoint directly so no shell/npx shim is involved
+    executeCommand(process.execPath, [path.join(__dirname, 'node_modules', '@capacitor', 'cli', 'bin', 'capacitor'), ...capArgs], __dirname);
   }
 
   // For debug builds, the APK is in a different location with a different name

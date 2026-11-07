@@ -5,6 +5,10 @@ import MediaURLInfo from "./media-url-info.js";
 import fs from "fs";
 import config from "../../config/config.js"
 import { distinguishM3UType } from '../../lists/tools.js';
+import { analyzeMediaSample, detectPlaceholderStream, segmentDurationFromPlaylist } from './media-stream-info.js';
+
+// bytes needed to read the PAT/PMT (elementary stream map) and the first H.264 SPS of a segment
+const MEDIA_SAMPLE_SIZE = 16384;
 
 export default class StreamInfo {
     constructor() {
@@ -24,11 +28,15 @@ export default class StreamInfo {
         let i = Math.ceil(arr.length / 2);
         return arr[i];
     }
-    _probe(url, timeoutSecs, retries = 0, opts = {}, recursion = 10) {
+    _probe(url, timeoutSecs, retries = 0, opts = {}, recursion = 10, isSegment = false) {
         return new Promise((resolve, reject) => {
             let sampleSize = typeof(opts.probeSampleSize) == 'number' ?
                 opts.probeSampleSize :
                 (opts.skipSample ? 0 : this.opts.probeSampleSize);
+            if (isSegment) {
+                // always grab enough of the media segment to inspect its elementary streams
+                sampleSize = Math.max(sampleSize, MEDIA_SAMPLE_SIZE);
+            }
             let status = 0, timer = 0, headers = {}, sample = [], start = (Date.now() / 1000);
             if (validateURL(url)) {
                 if (typeof(timeoutSecs) != 'number') {
@@ -58,10 +66,24 @@ export default class StreamInfo {
                         ended = true;
                         clearTimeout(timer);
                         const ping = (Date.now() / 1000) - start;
-                        const done = () => {
+                        const done = (extra) => {
                             const received = JSON.stringify(headers).length + this.len(sample);
                             const speed = received / ping;
                             const ret = { status, headers, sample, ping, speed, url, directURL: download.currentURL };
+                            if (extra && extra.segment) {
+                                // keep a compact description of the sampled segment, its buffer is discarded
+                                const segment = extra.segment, segmentHeaders = segment.headers || {};
+                                ret.segment = {
+                                    url: segment.directURL || segment.url,
+                                    status: segment.status,
+                                    contentType: String(segmentHeaders['content-type'] || '').split(',')[0].split(';')[0].trim().toLowerCase(),
+                                    contentLength: parseInt(segmentHeaders['content-length'], 10) || 0
+                                };
+                                const media = analyzeMediaSample(segment.sample);
+                                if (media) {
+                                    ret.segment.media = media;
+                                }
+                            }
                             resolve(ret);
                         };
                         if (download) {
@@ -96,9 +118,9 @@ export default class StreamInfo {
                             if (recursion <= 0) {
                                 return reject('Max recursion reached.');
                             }
-                            return this._probe(segmentUrl, timeoutSecs, retries, opts, recursion).then(ret => {
+                            return this._probe(segmentUrl, timeoutSecs, retries, opts, recursion, true).then(ret => {
                                 if (ret && ret.status && ret.status >= 200 && ret.status < 300) {
-                                    done(); // send data from m3u8
+                                    done({ segment: ret }); // send data from m3u8, media details from ts
                                 } else {
                                     resolve(ret); // send bad data from ts
                                 }
@@ -234,6 +256,13 @@ export default class StreamInfo {
                 ret.directURL = ret.url;
             }
             ret.ext = this.mi.ext(ret.directURL) || this.mi.ext(url);
+            if (ret.segment && ret.segment.media) {
+                ret.media = ret.segment.media;
+                const placeholder = this.detectPlaceholder(ret);
+                if (placeholder) {
+                    ret.placeholder = placeholder;
+                }
+            }
             return ret;
         } else if (validateURL(url)) { // maybe rtmp
             let ret = {};
@@ -266,6 +295,28 @@ export default class StreamInfo {
         } else {
             throw lang.INVALID_URL;
         }
+    }
+    /**
+     * Checks if a probed HLS stream is actually a frozen "expired list" card.
+     * Providers serve those as a valid live playlist whose segments are a single
+     * still image, so the only reliable signal is a bitrate far too low for the
+     * resolution being delivered.
+     */
+    detectPlaceholder(nfo) {
+        const segment = nfo.segment;
+        if (!segment || !segment.media || !segment.contentLength || segment.status !== 200) {
+            return null;
+        }
+        if (config.get('detect-expired-streams') === false) {
+            return null;
+        }
+        const maxBpp = parseFloat(config.get('expired-stream-max-bpp'));
+        return detectPlaceholderStream({
+            media: segment.media,
+            contentLength: segment.contentLength,
+            duration: segmentDurationFromPlaylist(nfo.sample),
+            maxBpp: isNaN(maxBpp) ? undefined : maxBpp
+        });
     }
     proto(url, len) {
         var ret = '', res = url.split(':');

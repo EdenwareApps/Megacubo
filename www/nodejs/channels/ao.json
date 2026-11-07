@@ -12,13 +12,13 @@
     },
     {
       "name": "TPA",
-      "isFree": true,
+      "isFree": null,
       "keywords": "tpa 1 | tpa1",
       "priority": 5
     },
     {
       "name": "TPA TV Angola",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -28,62 +28,62 @@
     },
     {
       "name": "TV Aguia Marinha",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Zimbo",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Atlantico",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Banda",
-      "isFree": true,
+      "isFree": null,
       "website": "https://coyotelandmedia.com/",
       "priority": 10
     },
     {
       "name": "Canal Multivisao",
-      "isFree": true,
+      "isFree": null,
       "website": "https://multivisao.ao/",
       "priority": 5
     },
     {
       "name": "Canal Programacao",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.zap.co.ao/",
       "priority": 5
     },
     {
       "name": "Kaluanda",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kwenda Magic",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.dstv.com/kwendamagic/pt-ao/home",
       "priority": 5
     },
     {
       "name": "My Channel Africa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mychannelafrica.com/",
       "priority": 5
     },
     {
       "name": "NXT",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Palanca",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -94,72 +94,72 @@
     },
     {
       "name": "Sttop",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sttopfm.com/",
       "priority": 5
     },
     {
       "name": "TPA 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tpaonline.ao/",
       "priority": 5
     },
     {
       "name": "TPAi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tpa.ao/",
       "priority": 5
     },
     {
       "name": "TV Belas",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvbelas.com/",
       "priority": 5
     },
     {
       "name": "TV Girassol",
-      "isFree": true,
+      "isFree": null,
       "website": "https://redegirassol.com/",
       "priority": 5
     },
     {
       "name": "TV Marcal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvmarcal.wixsite.com/co-ao-pt",
       "priority": 5
     },
     {
       "name": "TV Parlamento",
-      "isFree": true,
+      "isFree": null,
       "website": "https://parlamento.ao/",
       "priority": 5
     },
     {
       "name": "TV Raiar",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Zimbo Internacional",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvzimbo.ao/",
       "priority": 5
     },
     {
       "name": "VERA",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Zap Viva",
-      "isFree": true,
+      "isFree": false,
       "keywords": "zap viva -internacional",
       "website": "https://www.zap.co.ao/",
       "priority": 5
     },
     {
       "name": "Zap Viva Internacional",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.zap.co.ao/",
       "priority": 5
     }
@@ -167,63 +167,63 @@
   "Music Videos": [
     {
       "name": "Afro Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://coyotelandmedia.com/",
       "priority": 5
     },
     {
       "name": "Afro Music Concert",
-      "isFree": true,
+      "isFree": null,
       "website": "https://coyotelandmedia.com/",
       "priority": 5
     },
     {
       "name": "Afro Music Pop",
-      "isFree": true,
+      "isFree": null,
       "website": "https://coyotelandmedia.com/",
       "priority": 5
     },
     {
       "name": "Ango",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Be Kuduro",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Bom Som",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Muzangala",
-      "isFree": true,
+      "isFree": null,
       "website": "https://muzangala.tv/",
       "priority": 5
     },
     {
       "name": "My Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://coyotelandmedia.com/",
       "priority": 5
     },
     {
       "name": "+Hits Africa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://coyotelandmedia.com/",
       "priority": 5
     },
     {
       "name": "Yame",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Zap Musica",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.zap.co.ao/",
       "priority": 5
     }
@@ -231,31 +231,31 @@
   "Sports": [
     {
       "name": "Arena X",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.arenaxtv.com/",
       "priority": 5
     },
     {
       "name": "LaLiga na Zap",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.zap.co.ao/",
       "priority": 5
     },
     {
       "name": "Zap Ligue",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.zap.co.ao/",
       "priority": 5
     },
     {
       "name": "Z Sports",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.zap.co.ao/",
       "priority": 10
     },
     {
       "name": "Z Sports 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.zap.co.ao/",
       "priority": 10
     }
@@ -263,13 +263,13 @@
   "Kids": [
     {
       "name": "Cartoon",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.zap.co.ao/",
       "priority": 5
     },
     {
       "name": "Kanuca",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kanuca.ao/",
       "priority": 5
     }
@@ -313,30 +313,30 @@
     },
     {
       "name": "Luta Pela Fama",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Zap Filmes",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.zap.co.ao/",
       "priority": 5
     },
     {
       "name": "Zap Filmes 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.zap.co.ao/",
       "priority": 5
     },
     {
       "name": "Zap Filmes 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.zap.co.ao/",
       "priority": 5
     },
     {
       "name": "Zap Novelas",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.zap.co.ao/",
       "priority": 5
     }
@@ -344,7 +344,7 @@
   "News": [
     {
       "name": "TPA Noticias",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tpaonline.ao/",
       "priority": 5
     }

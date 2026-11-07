@@ -53,7 +53,7 @@
 </script>
 
 <div id="menubar">
-  <span class="menu-location" aria-hidden="true">
+  <span class="menu-location" class:menu-location-empty={!path && display === 'none'} aria-hidden="true">
     <span class="menu-location-anchor">
       <span class="menu-location-icon">
       </span>
@@ -76,19 +76,52 @@
 #menubar {
   position: absolute;
   width: var(--menu-width);
-  color: var(--font-color);
+  color: var(--nf-text-dim);
   display: flex;
   flex-direction: row;
   font-size: var(--menu-entry-name-font-size);
+  font-weight: 500;
+  letter-spacing: 0.01em;
   box-sizing: border-box;
+  isolation: isolate;
+}
+#menubar::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--padding) * -1);
+  right: calc(var(--padding) * -1);
+  bottom: calc(var(--padding) * -1);
+  height: calc(100% + var(--menu-entry-name-font-size) * 3);
+  background: linear-gradient(180deg, rgba(11, 11, 14, 0) 0%, rgba(11, 11, 14, 0.75) 55%, var(--nf-black) 100%);
+  pointer-events: none;
+  z-index: -1;
 }  
 .menu-location {
-  background: var(--background-color);
-  padding: var(--padding-quarter) var(--padding) var(--padding-quarter) var(--padding-quarter);
-  border-top-right-radius: var(--radius);
+  border-radius: var(--nf-radius) var(--nf-radius) 0 0;
+  padding: var(--padding-quarter) var(--padding) var(--padding-quarter) var(--padding);
+  -webkit-backdrop-filter: blur(8px) saturate(1.15);
+  backdrop-filter: blur(8px) saturate(1.15);
+}
+body.side-menu #menubar .menu-location,
+body.omni #menubar .menu-location {
+  opacity: 0;
+  visibility: hidden;
+}
+#menubar .menu-location-empty {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease-in;
+}
+.menu-location-text {
+  color: var(--nf-text);
 }
 .menu-location-pagination {
   padding-left: var(--padding-2x);
+  color: var(--nf-accent);
+}
+.menu-location-pagination > span {
+  color: var(--nf-text-dim);
+  padding-left: var(--padding-half);
 }
 .menu-location-icon img {
   max-width: var(--padding-2x);

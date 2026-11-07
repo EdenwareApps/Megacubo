@@ -442,7 +442,7 @@
     },
     {
       "name": "Sony",
-      "isFree": true,
+      "isFree": false,
       "website": "https://la.sonychannel.com/",
       "priority": 5
     },
@@ -736,7 +736,7 @@
     },
     {
       "name": "Canal Informativo Movistar",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.movistar.com.ve/Particulares/home-particulares.html",
       "priority": 5
     },
@@ -905,7 +905,7 @@
     },
     {
       "name": "Animax Latin America",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.animaxtv.com/",
       "priority": 5
     },
@@ -1069,7 +1069,7 @@
     },
     {
       "name": "History",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.historyplay.tv/",
       "priority": 7
     },

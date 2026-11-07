@@ -2,12 +2,12 @@
   "News": [
     {
       "name": "CNN Philippines",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DZRH News",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -17,38 +17,38 @@
     },
     {
       "name": "Abante",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.abante.com.ph/",
       "priority": 5
     },
     {
       "name": "ANC",
-      "isFree": true,
+      "isFree": null,
       "keywords": "anc -global",
       "website": "https://news.abs-cbn.com/anc",
       "priority": 5
     },
     {
       "name": "ANC Global",
-      "isFree": true,
+      "isFree": null,
       "website": "https://news.abs-cbn.com/anc",
       "priority": 5
     },
     {
       "name": "Bandera News",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bandera.inquirer.net/",
       "priority": 10
     },
     {
       "name": "Bilyonaryo News",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bnc.ph/",
       "priority": 5
     },
     {
       "name": "Brigada News",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.brigadanews.ph/brigada-news-tv/",
       "priority": 5
     },
@@ -65,36 +65,36 @@
     },
     {
       "name": "Media Pilipinas",
-      "isFree": true,
+      "isFree": null,
       "website": "https://cignal.tv/channels/250/mptv",
       "priority": 5
     },
     {
       "name": "News 5",
-      "isFree": true,
+      "isFree": null,
       "website": "https://news.tv5.com.ph/",
       "priority": 5
     },
     {
       "name": "Nueva Ecija TV 48",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "One News",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.onenews.ph/",
       "priority": 5
     },
     {
       "name": "One",
-      "isFree": true,
+      "isFree": null,
       "website": "https://cignal.tv/channels/174/one-ph",
       "priority": 5
     },
     {
       "name": "RNG Luzon",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rngph.com/",
       "priority": 5
     },
@@ -111,42 +111,42 @@
     },
     {
       "name": "VHFBand I",
-      "isFree": true,
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "VHFBand III",
-      "isFree": true,
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "UHFBands IV and V",
-      "isFree": true,
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "DYSS",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DYPT",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DYET",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DYLS",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DYPR",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -156,92 +156,92 @@
     },
     {
       "name": "DXMK",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DXRV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DXGM",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DXAL",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DXCC",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DXTE",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DXCO",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DXJC",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DXET",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DXMJ",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DXWW",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DXNP",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DXTV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DXRA",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DXAN",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Premier Sports 1",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Tap Actionflix",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "The Filipino Channel",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -256,18 +256,73 @@
     },
     {
       "name": "AXN",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Crime and Investigation",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "History Channel",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
+    },
+    {
+      "name": "France 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DW",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NHK World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CGTN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CCTV-4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABC Australia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNBC",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Euronews",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV5 Monde",
+      "isFree": true,
+      "priority": 5
     }
   ],
   "Religious": [
@@ -350,22 +405,22 @@
     },
     {
       "name": "DepEd",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Great Commission",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "INC",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Life TV Asia",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -375,12 +430,12 @@
     },
     {
       "name": "PEP",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Pilipinas",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -390,12 +445,12 @@
     },
     {
       "name": "Super Radyo DZBB",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "A2Z",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -406,51 +461,51 @@
     },
     {
       "name": "Aliw Channel 23",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "All",
-      "isFree": true,
+      "isFree": null,
       "website": "https://alltv.ph/",
       "priority": 5
     },
     {
       "name": "Bee TV 7 Butuan",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "BuKo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://cignal.tv/channels/223/buko",
       "priority": 5
     },
     {
       "name": "Colours",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "CongressTV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "DZBB DT",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.gmanetwork.com/",
       "priority": 5
     },
     {
       "name": "DZRJ DTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rjplanet.com/",
       "priority": 5
     },
     {
       "name": "ETC",
-      "isFree": true,
+      "isFree": null,
       "website": "https://etc.com.ph/",
       "priority": 5
     },
@@ -493,107 +548,107 @@
     },
     {
       "name": "Hallypop",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.gmanetwork.com/entertainment/tv/gma_hallypop/",
       "priority": 5
     },
     {
       "name": "Heart of Asia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.gmanetwork.com/entertainment/tv/heart_of_asia_channel",
       "priority": 5
     },
     {
       "name": "IBC 13",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ibctv.com.ph/",
       "priority": 5
     },
     {
       "name": "Jeepney",
-      "isFree": true,
+      "isFree": null,
       "website": "https://cablechannels.abs-cbn.com/jeepneytv",
       "priority": 5
     },
     {
       "name": "Kapamilya",
-      "isFree": true,
+      "isFree": null,
       "website": "https://ent.abs-cbn.com/articles-news/everything-you-need-to-know-about-kapamilya-channel-12340",
       "priority": 5
     },
     {
       "name": "Kapatid TV 5",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.kapatidinternational.com/",
       "priority": 5
     },
     {
       "name": "Lifestyle Network",
-      "isFree": true,
+      "isFree": null,
       "website": "http://lifestylenetwork.tv/",
       "priority": 5
     },
     {
       "name": "Lifetime",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.lifetimeasia.com/",
       "priority": 5
     },
     {
       "name": "Metro",
-      "isFree": true,
+      "isFree": null,
       "website": "https://metro.style/",
       "priority": 5
     },
     {
       "name": "Mindanow Network",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mindanownetwork.com/",
       "priority": 5
     },
     {
       "name": "One Media Network",
-      "isFree": true,
+      "isFree": null,
       "website": "https://onemedianetwork9.godaddysites.com/",
       "priority": 5
     },
     {
       "name": "One Screen",
-      "isFree": true,
+      "isFree": null,
       "website": "https://cignal.tv/channels/182/one-screen",
       "priority": 5
     },
     {
       "name": "PBO",
-      "isFree": true,
+      "isFree": null,
       "website": "https://pbo.com.ph/",
       "priority": 5
     },
     {
       "name": "PIE",
-      "isFree": true,
+      "isFree": null,
       "website": "https://pie.com.ph/",
       "priority": 5
     },
     {
       "name": "Pinoy Box Office Global",
-      "isFree": true,
+      "isFree": null,
       "website": "https://pbo.com.ph/",
       "priority": 5
     },
     {
       "name": "Pinoy Xtreme",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "PRTV Prime Media",
-      "isFree": true,
+      "isFree": null,
       "priority": 6
     },
     {
       "name": "PRTV Tacloban",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -605,105 +660,175 @@
     },
     {
       "name": "Radyo Bandido",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rjplanet.com/",
       "priority": 10
     },
     {
       "name": "RPTV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sari Sari",
-      "isFree": true,
+      "isFree": null,
       "website": "https://viva.com.ph/media/paytvs/domestic",
       "priority": 5
     },
     {
       "name": "SolarFlix",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Solar Learning",
-      "isFree": true,
+      "isFree": null,
       "website": "https://solarlearning.ph/",
       "priority": 5
     },
     {
       "name": "Tagalized Movie",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.viva.com.ph/",
       "priority": 5
     },
     {
       "name": "TAP",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tapdmv.com/TapTV.html",
       "priority": 5
     },
     {
       "name": "TeleRadyo",
-      "isFree": true,
+      "isFree": null,
       "keywords": "teleradyo -global",
       "website": "http://news.abs-cbn.com/dzmm/",
       "priority": 5
     },
     {
       "name": "TeleRadyo Global",
-      "isFree": true,
+      "isFree": null,
       "website": "http://news.abs-cbn.com/dzmm/",
       "priority": 5
     },
     {
       "name": "TV 5",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tv5.com.ph/",
       "priority": 5
     },
     {
       "name": "TV Maria",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvmaria.ph/",
       "priority": 5
     },
     {
       "name": "UNTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.untvweb.com/",
+      "priority": 5
+    },
+    {
+      "name": "Arirang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KBS World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "tvN",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "BBC Earth",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Channel",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Food Network",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "HGTV",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "GMA Life TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kapamilya Channel",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Yey!",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "One PH",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Knowledge Channel",
+      "isFree": true,
       "priority": 5
     }
   ],
   "Music Videos": [
     {
       "name": "Dreamstar",
-      "isFree": true,
+      "isFree": null,
       "website": "https://dreamstartv.com/",
       "priority": 5
     },
     {
       "name": "Myx",
-      "isFree": true,
+      "isFree": null,
       "keywords": "myx -middle -east",
       "website": "https://myx.global/",
       "priority": 5
     },
     {
       "name": "Myx Middle East",
-      "isFree": true,
+      "isFree": null,
       "website": "https://myx.global/",
       "priority": 5
     },
     {
       "name": "Pinoy Hits",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.gmanetwork.com/entertainment/tv/pinoy_hits/",
       "priority": 5
     },
     {
       "name": "Rock of Manila",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.rjplanet.com/",
       "priority": 5
     }
@@ -717,31 +842,31 @@
     },
     {
       "name": "Blast Sports",
-      "isFree": true,
+      "isFree": null,
       "website": "https://app.blasttv.ph/",
       "priority": 10
     },
     {
       "name": "Horse Racing",
-      "isFree": true,
+      "isFree": null,
       "website": "https://cignal.tv/channels/157/horse-racing",
       "priority": 5
     },
     {
       "name": "Liga",
-      "isFree": true,
+      "isFree": null,
       "website": "http://sports.abs-cbn.com/",
       "priority": 5
     },
     {
       "name": "NBA TV Philippines",
-      "isFree": true,
+      "isFree": false,
       "website": "https://cignal.tv/channels/190/nba-tv-philippines",
       "priority": 5
     },
     {
       "name": "One Sports",
-      "isFree": true,
+      "isFree": null,
       "website": "http://plus.tv5.com.ph/",
       "priority": 10,
       "_altWebsites": [
@@ -750,154 +875,179 @@
     },
     {
       "name": "PBA Rush",
-      "isFree": true,
+      "isFree": null,
       "website": "https://cignal.tv/channels/145/pba-rush",
       "priority": 5
     },
     {
       "name": "Premier Football",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tapdmv.com/PremierFootball.html",
       "priority": 5
     },
     {
       "name": "Premier Sports",
-      "isFree": true,
+      "isFree": false,
       "keywords": "premier sports -2",
       "website": "http://www.tapdmv.com/PremierSports/index.html",
       "priority": 10
     },
     {
       "name": "Premier Sports 2",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tapdmv.com/PremierSports/index.html",
       "priority": 10
     },
     {
       "name": "Premier Tennis",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tapdmv.com/PremierTennis.html",
       "priority": 5
     },
     {
       "name": "Solar Sports",
-      "isFree": true,
+      "isFree": null,
       "website": "http://solarsports.com.ph/",
       "priority": 10
     },
     {
       "name": "TAP Edge",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tapdmv.com/tap-edge.html",
       "priority": 5
     },
     {
       "name": "TAP Sports",
-      "isFree": true,
+      "isFree": null,
       "website": "http://tapdmv.com/tap-sports.html",
       "priority": 10
     },
     {
       "name": "UAAP Varsity",
-      "isFree": true,
+      "isFree": null,
       "website": "https://cignal.tv/channels/232/uaap-varsity-channel",
+      "priority": 5
+    },
+    {
+      "name": "beIN Sports",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "SPOTV",
+      "isFree": false,
       "priority": 5
     }
   ],
   "Kids": [
     {
       "name": "Cartoon Network",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cartoonnetwork.com.ph/",
       "priority": 5
     },
     {
       "name": "Nickelodeon",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.nick-asia.com/",
+      "priority": 5
+    },
+    {
+      "name": "CBeebies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Baby TV",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Disney Channel",
+      "isFree": false,
       "priority": 5
     }
   ],
   "Movies & Series": [
     {
       "name": "Celestial Classic Movies",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cmclassic.tv/index.php?location/PH",
       "priority": 5
     },
     {
       "name": "Cinema One",
-      "isFree": true,
+      "isFree": null,
       "keywords": "cinema one -global",
       "website": "http://cablechannels.abs-cbn.com/cinemaone",
       "priority": 5
     },
     {
       "name": "Cinema One Global",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Cine Mo!",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "FOX Life",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.foxlife.tv/",
       "priority": 5
     },
     {
       "name": "I Heart Movies",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.gmanetwork.com/entertainment/tv/i_heart_movies/",
       "priority": 5
     },
     {
       "name": "K Movies Pinoy",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Paramount Network",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.paramountnetwork.com/",
       "priority": 5
     },
     {
       "name": "TAP Action Flix",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tapdmv.com/TapActionFlix/index.html",
       "priority": 5
     },
     {
       "name": "TAP Movies",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tapdmv.com/TapMovies/index.html",
       "priority": 5
     },
     {
       "name": "TeleNovela",
-      "isFree": true,
+      "isFree": null,
       "website": "http://telenovelachannel.com/",
       "priority": 5
     },
     {
       "name": "Universal",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.universalchannel.asia/",
       "priority": 5
     },
     {
       "name": "Viva Cinema",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.viva.com.ph/",
       "priority": 5
     },
     {
       "name": "Warner",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.warnertvasia.com/",
       "priority": 5
     }
@@ -905,7 +1055,7 @@
   "Education & Culture": [
     {
       "name": "History",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.historyasia.com/",
       "priority": 7
     },
@@ -917,7 +1067,7 @@
     },
     {
       "name": "National Geographic",
-      "isFree": true,
+      "isFree": false,
       "website": "http://natgeotv.com/asia",
       "priority": 7
     },

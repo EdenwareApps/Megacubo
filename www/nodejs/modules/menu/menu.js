@@ -28,6 +28,7 @@ class Menu extends EventEmitter {
         this.outputFilters = []
         this.posFilters = []
         this.currentEntries = []
+        this.pendingHomeRepaint = false
         this.openToken = 0
         this.backIcon = 'fas fa-chevron-left'
         this.lastRecommendationsRefresh = 0
@@ -163,6 +164,15 @@ class Menu extends EventEmitter {
             await this.withBusy(path, async () => {
                 await this.select(path, tabindex).catch(e => this.displayErr(e))
             })
+        })
+        renderer.ui.on('menu-affiliates', async entry => {
+            const label = this.path + '/' + lang.AFFILIATES
+            await this.withBusy(label, async () => {
+                await this.openAffiliates(entry).catch(e => this.displayErr(e))
+            })
+        })
+        renderer.ui.on('parental-age', async () => {
+            await this.changeParentalAge().catch(e => this.displayErr(e))
         })
         this.on('open', async path => {
             if (path === this.liveSectionPath) return
@@ -326,7 +336,22 @@ class Menu extends EventEmitter {
         this.pages[''] = entries
         // Após atualizar, verifica entradas revogadas
         this.retainStaleHomeEntries(oldEntries, this.pages[''])
-        this.path || this.refresh()
+        // The home currently painted still holds these entries, so it must be
+        // repainted or clicks on it would reference entries no longer in memory.
+        if (this.path) return
+        if (this.rendering && !this.navigating) {
+            this.refresh()
+        } else {
+            this.pendingHomeRepaint = true
+        }
+    }
+    // Repaints the home page when a pending update could not be applied right
+    // away (rendering suspended or another navigation in flight).
+    flushPendingHomeRepaint() {
+        if (!this.pendingHomeRepaint) return
+        if (this.path || !this.rendering || this.navigating) return
+        this.pendingHomeRepaint = false
+        this.refresh()
     }
     async dialog(opts, def, mandatory, dialogId = null) {
         let uid = dialogId || ('ac-' + Date.now())
@@ -339,6 +364,16 @@ class Menu extends EventEmitter {
         if (!atts.callback)
             atts.callback = 'ac-' + Date.now()
         renderer.ui.emit('prompt', atts)
+        return new Promise(resolve => renderer.ui.once(atts.callback, resolve))
+    }
+    /**
+     * Numeric PIN dialog: masked dots and a keypad, submitting as soon as the
+     * configured amount of digits is typed (no confirm button, no text field).
+     */
+    async pin(atts) {
+        if (!atts.callback)
+            atts.callback = 'ac-' + Date.now()
+        renderer.ui.emit('pin', atts)
         return new Promise(resolve => renderer.ui.once(atts.callback, resolve))
     }
     info(question, message, fa) {
@@ -381,6 +416,24 @@ class Menu extends EventEmitter {
     }
     start() {
         this.open('').catch(e => this.displayErr(e))
+    }
+    /**
+     * Keyboard shortcut flow: ask for the age rating, apply it and go back home
+     * so the freshly filtered content is visible.
+     */
+    async changeParentalAge() {
+        const parentalControl = global.lists && global.lists.parentalControl
+        if (!parentalControl) {
+            return
+        }
+        const age = await parentalControl.promptAge()
+        if (age === false) {
+            return
+        }
+        if (global.streamer && global.streamer.active) {
+            global.streamer.stop()
+        }
+        await this.open('')
     }
     refresh(deep=false, p) {
         if (typeof(p) != 'string') p = this.path
@@ -922,8 +975,18 @@ class Menu extends EventEmitter {
             return finish(this.pages[parentPath])
         }
         let i = this.findEntryIndex(this.pages[parentPath], basePath, tabindex)
-        if(typeof(i) == 'number') {
-            const e = this.pages[parentPath][i]
+        let entry = typeof(i) == 'number' ? this.pages[parentPath][i] : null
+        if (!entry && parentPath === this.path) {
+            // The page on screen may still be showing entries that were replaced
+            // meanwhile (e.g. the home entries swapped by a recommendations refresh).
+            // Resolve the click against what the user is actually seeing.
+            entry = this.findRenderedEntry(basePath, tabindex)
+            if (entry && this.opts.debug) {
+                console.log('path not found on page, resolved from rendered entries', basePath)
+            }
+        }
+        if(entry) {
+            const e = entry
             if (['group', 'select'].includes(e.type)) {
                 if (allowCache && typeof(this.pages[destPath]) != 'undefined') {
                     return finish(this.pages[destPath], e)
@@ -940,13 +1003,6 @@ class Menu extends EventEmitter {
                 return finish(this.pages[destPath], e)
             }
         } else {
-            // Busca em staleHomeEntries se for home
-            if (parentPath === '') {
-                const stale = this.findEntry(this.pages[parentPath], basePath, {tabindex, isFolder: false, path: ''})
-                if (stale) {
-                    return finish([stale])
-                }
-            }
             // maybe it's a 'ghost' page like search results, which is not linked on navigation
             // but shown directly via render() instead
             if (typeof(this.pages[destPath]) != 'undefined') { // fallback
@@ -1117,6 +1173,7 @@ class Menu extends EventEmitter {
             // Delay 2 seconds before allowing new refresh to avoid rapid refresh cycles
             setTimeout(() => {
                 this.navigating = false
+                this.flushPendingHomeRepaint()
             }, 2000)
         })
     }
@@ -1223,6 +1280,19 @@ class Menu extends EventEmitter {
         }
         return ret
     }
+    // Entry resolver for clicks coming from a page that is already painted but
+    // whose entries were replaced in memory afterwards (the DOM still holds the
+    // previous ones). Falls back to recently revoked home entries.
+    findRenderedEntry(name, tabindex) {
+        const sources = [this.currentEntries, this.staleHomeEntries]
+        for (const entries of sources) {
+            if (!Array.isArray(entries) || !entries.length) continue
+            const i = this.findEntryIndex(entries, name, tabindex, false)
+            if (typeof(i) == 'number') return entries[i]
+            const e = entries.find(e => e && e.name === name)
+            if (e) return e
+        }
+    }
     findEntry(entries, name, opts={}) {
         const i = this.findEntryIndex(entries, name, opts.tabindex, opts.isFolder)
         if(i !== false) return entries[i]
@@ -1280,12 +1350,102 @@ class Menu extends EventEmitter {
             if (ret.entries && ret.entries.length > 1) {
                 let d = this.dirname(destPath)
                 let icon = ret.parent ? ret.fa : ''
-                renderer.ui.emit('menu-select', ret.entries, destPath, icon)
+                // entries backed by an URL (channels, movies...) get the artwork landing page layout,
+                // plus the current programme as a subtitle when the EPG has one
+                const parent = ret.parent
+                const hero = !!(parent && parent.url)
+                // both lookups are raced against their own timeout, so run them together
+                const [programme, affiliateCount] = hero ? await Promise.all([
+                    this.getLiveProgramme(parent),
+                    this.getAffiliateCount(parent)
+                ]) : [null, 0]
+                const info = {
+                    hero,
+                    name: (parent && (parent.originalName || parent.name)) || null,
+                    programme,
+                    affiliates: affiliateCount
+                }
+                renderer.ui.emit('menu-select', ret.entries, destPath, icon, info)
             } else {
                 await this.open(destPath, tabindex, undefined, undefined, true) // set backInSelect to prevent looping
             }
         }
         return ret
+    }
+    // Programme currently on air for a channel entry. List entries usually carry
+    // it already, but the EPG enrichment is not guaranteed (posfilter timing,
+    // smart sorting policy), so fall back to a direct EPG lookup. The lookup is
+    // raced against a short timeout so a busy EPG worker never delays the dialog.
+    async getLiveProgramme(entry, timeout = 1500) {
+        if (!entry) return null
+        if (entry.programme && entry.programme.title) {
+            return { title: entry.programme.title }
+        }
+        const url = typeof entry.url == 'string' ? entry.url : ''
+        if (!entry.isChannel && !/mediaType=live/i.test(url)) {
+            return null // only channels have a programme guide
+        }
+        const channels = global.channels
+        if (!channels || typeof channels.epgChannelLiveNow != 'function') return null
+        const lookup = channels.epgChannelLiveNow(entry).catch(() => null)
+        const title = await Promise.race([
+            lookup,
+            new Promise(resolve => setTimeout(() => resolve(null), timeout))
+        ])
+        if (typeof title == 'string' && title.trim()) {
+            return { title: title.trim() }
+        }
+        return null
+    }
+    // How many regional stations retransmit this channel. Raced against a timeout
+    // so the dialog is never held back by the channel list lookup.
+    async getAffiliateCount(entry, timeout = 1200) {
+        if (!entry) return 0
+        const channels = global.channels
+        if (!channels || typeof channels.getAffiliates != 'function') return 0
+        const lookup = channels.getAffiliates(entry).catch(() => null)
+        const list = await Promise.race([
+            lookup,
+            new Promise(resolve => setTimeout(() => resolve(null), timeout))
+        ])
+        return Array.isArray(list) ? list.length : 0
+    }
+    // Affiliate stations are listed as a regular menu page (alphabetical, all of
+    // them) instead of a second dialog: every entry is a live mega:// stream, so it
+    // plays straight away and gets the usual artwork/now-playing posfilter.
+    async openAffiliates(entry) {
+        const base = this.path || ''
+        const channels = global.channels
+        if (!channels || typeof channels.getAffiliates != 'function') return false
+        const list = await channels.getAffiliates(entry).catch(err => {
+            this.opts.debug && console.error('openAffiliates error', err)
+            return null
+        })
+        if (!Array.isArray(list) || !list.length) {
+            renderer.ui.emit('display-error', lang.NOT_FOUND)
+            return false
+        }
+        const entries = list.map(affiliate => {
+            const terms = Array.isArray(affiliate.terms) ? affiliate.terms : []
+            const params = { mediaType: 'live' }
+            if (terms.length) {
+                params.terms = terms.join(',')
+            }
+            return {
+                name: affiliate.name,
+                type: 'stream',
+                fa: 'fas fa-play',
+                terms,
+                url: mega.build(affiliate.name, params)
+            }
+        })
+        const path = base + '/' + lang.AFFILIATES
+        await this.render(entries, path, {
+            parent: { name: lang.AFFILIATES, fa: 'fas fa-satellite-dish' },
+            icon: 'fas fa-satellite-dish',
+            backTo: this.dirname(path)
+        })
+        return true
     }
     canApplyStreamTesting(entries) {
         return entries.length && entries.some(e => e.url && (!e.type || e.type == 'stream') && !mega.isMega(e.url))
@@ -1529,6 +1689,7 @@ class Menu extends EventEmitter {
     resumeRendering() {
         this.emit('rendered')
         this.rendering = true
+        this.flushPendingHomeRepaint()
     }
     async waitRendering() {
         if(!this.rendering) {

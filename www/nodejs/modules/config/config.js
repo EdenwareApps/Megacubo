@@ -14,6 +14,7 @@ class Config extends EventEmitter {
         this.loaded = false
         this.file = paths.data +'/config.json'
         this.defaults = defaults
+        this.userKeys = new Set() // keys explicitly set by the user
         this.data = Object.assign({}, this.defaults) // keep defaults object for reference
         for (var key in this.data) {
             let def = typeof(this.defaults[key])
@@ -41,6 +42,7 @@ class Config extends EventEmitter {
                         if (typeof(data) == 'object' && data) {
                             this.data = Object.assign({}, this.defaults)
                             this.data = Object.assign(this.data, data)
+                            Object.keys(data).forEach(k => this.userKeys.add(k))
                             if (typeof(this.data['community-mode-lists-amount']) === 'undefined' && typeof(this.data['communitary-mode-lists-amount']) === 'number') {
                                 this.data['community-mode-lists-amount'] = this.data['communitary-mode-lists-amount']
                             }
@@ -92,6 +94,14 @@ class Config extends EventEmitter {
     keys() {
         return Object.keys(this.defaults).concat(Object.keys(this.data)).sort().unique()
     }
+    /**
+     * Whether the key was explicitly set by the user (persisted in config.json)
+     * instead of coming from defaults.
+     */
+    userSet(key) {
+        this.load()
+        return this.userKeys.has(key)
+    }
     all() {
         this.load()
         var data = {}
@@ -130,6 +140,7 @@ class Config extends EventEmitter {
             this.save()
             this.emit('change', [key], this.data)
         }
+        this.userKeys.add(key)
     }
     setMulti(atts) {
         this.load()
@@ -140,6 +151,7 @@ class Config extends EventEmitter {
                 this.data[k] = atts[k]
                 changed.push(k)
             }
+            this.userKeys.add(k)
         })
         if (changed.length) {
             this.save()

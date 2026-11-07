@@ -156,7 +156,9 @@ class MenuIcons extends MenuBase {
             let changed
             const isCover = !data.alpha
             if (!data.force) {
-                if (this.icons[fullPath].cover === false && isCover) return
+                // artwork (EPG cover) must not be replaced by a plain logo on a later repaint,
+                // otherwise thumbnails vanish as soon as the enrichment result changes
+                if (this.icons[fullPath].cover === true && !isCover) return
                 if (this.icons[fullPath].cover === isCover) return
             }
             if (this.icons[fullPath].cover != isCover) {
@@ -219,7 +221,6 @@ class MenuScrolling extends MenuIcons {
         const verticalLayout = main.config['view-size'][portrait ? 'portrait' : 'landscape'].x == 1
         document.body.classList[wide ? 'add' : 'remove']('menu-wide')
         document.body.classList[verticalLayout ? 'add' : 'remove']('portrait')
-        this.sideMenuSync(true)
     }
     scrollTop(y, animate, suspendSnap) {
         // Ensure y is a valid number
@@ -474,6 +475,8 @@ class MenuStatusFlags extends MenuFx {
                     content = '<i class="fas fa-layer-group"></i>'
                 } else if (status == 'folder') {
                     content = '<i class="fas fa-box-open"></i>'
+                } else if (status == 'search') {
+                    content = '<i class="fas fa-search"></i>';
                 } else if (status == 'waiting') {
                     content = '<i class="fas fa-clock"></i>'
                 } else {
@@ -514,24 +517,15 @@ class MenuStatusFlags extends MenuFx {
 class MenuNav extends MenuStatusFlags {
     constructor(container) {
         super(container)
-        this.sideMenuWidthCache = null
-        this.sideMenuSyncTimer = 0
+        this.sideMenuTransitionTimer = 0
+        this.sideMenuOpenedAt = 0
         this.scrollendPolyfillElement(this.container)
-        this.container.addEventListener('scrollend', () => this.sideMenuSync())
-        screen.orientation?.addEventListener('change', () => setTimeout(() => this.sideMenuSync(true), 400))
-        window.addEventListener('resize', () => this.sideMenuSync(true))
 		this.on('before-navigate', () => this.sideMenu(false, 'instant'))
         this.sideMenu(false, 'instant')
     }
     
     destroy() {
-        if (this.sideMenuSyncTimer) {
-            clearTimeout(this.sideMenuSyncTimer);
-            this.sideMenuSyncTimer = 0;
-        }
-        this.container.removeEventListener('scrollend', this.sideMenuSync);
-        screen.orientation?.removeEventListener('change', this.sideMenuSync);
-        window.removeEventListener('resize', this.sideMenuSync);
+        clearTimeout(this.sideMenuTransitionTimer)
         this.removeAllListeners();
     }
     
@@ -547,61 +541,40 @@ class MenuNav extends MenuStatusFlags {
             isScrolling = setTimeout(dispatchScrollEndEvent, 150)
         }, false)
     }
-    inSideMenu(strict = false) {
-        const w = this.getSideMenuWidth()
-        const classList = document.body.classList
-        const watching = classList.contains('video') && !classList.contains('menu-playing')
-        if (watching) return false
-        return strict ? this.container.scrollLeft < 10 : (this.container.scrollLeft <= (w / 2))
+    inSideMenu() {
+        return document.body.classList.contains('side-menu')
     }
-    sideMenuSync(resized, inSideMenu) {
-        if (resized === true) this.sideMenuWidthCache = null
-        const c = typeof(inSideMenu) == 'boolean' ? inSideMenu : this.inSideMenu()
-        const n = document.body.classList.contains('side-menu')
-        if (c != n) {
-            document.body.classList[c ? 'add' : 'remove']('side-menu')
-            this.emit('side-menu', c)
-        }
-    }
-    sideMenuTransition() {
-        if (!this.sideMenuTransitionCache) {
-            this.sideMenuTransitionCache = window.getComputedStyle(this.container).getPropertyValue('transition') || 
-                'transform var(--menu-fx-nav-duration) ease-in-out 0s, top var(--menu-fx-nav-duration) ease-in-out 0s'
-        }
-        return this.sideMenuTransitionCache
-    }
+    // The nav is an overlay panel that floats above the browse area, so opening
+    // it never resizes or re-measures the grid. `behavior` only picks whether the
+    // slide animation runs: 'instant' is used on navigation and player events.
     sideMenu(enable, behavior = 'smooth') {
-        const transition = this.sideMenuTransition()
-        const left = enable ? 0 : this.getSideMenuWidth()
-        if (left == Math.round(this.container.scrollLeft)) {
+        const open = typeof enable == 'boolean' ? enable : !this.inSideMenu()
+        if (open === this.inSideMenu()) return
+        const instant = behavior == 'instant'
+        clearTimeout(this.sideMenuTransitionTimer)
+        document.body.classList[instant ? 'add' : 'remove']('side-menu-instant')
+        document.body.classList[open ? 'add' : 'remove']('side-menu')
+        this.sideMenuTransitioning = !instant
+        this.sideMenuTransitionTimer = setTimeout(() => {
+            document.body.classList.remove('side-menu-instant')
             this.sideMenuTransitioning = false
-            return
-        }
-        this.sideMenuTransitioning = left
-        //this.container.style.transition = 'none'
-        this.container.addEventListener(behavior == 'smooth' ? 'scrollend' : 'scroll', () => {
-            this.container.style.transition = transition
-            this.sideMenuTransitioning = false
-        }, {once: true})
-        if (behavior == 'smooth') {
-            this.container.scroll({ top: 0, left, behavior })
-        } else {
-            this.container.scrollLeft = left
-        }
+        }, instant ? 0 : 150)
+        if (open) this.sideMenuOpenedAt = Date.now()
+        this.emit('side-menu', open)
     }
-    getSideMenuWidth() {
-        if (this.sideMenuWidthCache) return this.sideMenuWidthCache
-        const l = document.createElement('div')
-        l.style.visibility = 'hidden'
-        l.style.boxSize = 'content-box'
-        l.style.position = 'absolute'
-        l.style.maxHeight = 'none'
-        l.style.display = 'inline-block'
-        l.style.height = 'var(--nav-width)'
-        document.body.appendChild(l)
-        this.sideMenuWidthCache = Math.ceil(l.clientHeight)
-        document.body.removeChild(l)
-        return this.sideMenuWidthCache
+    // Closes the overlay nav once the pointer really moves over the browse area.
+    // A plain `mouseenter` is not enough: the panel sliding in changes what sits
+    // under a stationary pointer, and Chromium then dispatches a boundary event
+    // that would close the panel right after it was opened.
+    closeOnHover(e) {
+        if (!this.inSideMenu() || !e) return
+        // A quick click on the toggle comes with a few pixels of pointer jitter
+        // while the panel is still sliding in; without this grace period the
+        // pointer would already sit past the panel's right edge and close it.
+        if (Date.now() - (this.sideMenuOpenedAt || 0) < 400) return
+        const panel = this.container.querySelector('.side-menu-out')
+        if (panel && e.clientX < panel.getBoundingClientRect().right) return
+        this.sideMenu(false)
     }
 }
 
@@ -614,8 +587,8 @@ export class Menu extends MenuNav {
         main.on('render', (entries, path, icon) => {
             this.render(entries, path, icon);
         })
-        main.on('menu-select', (entries, path, icon) => {
-            this.setupSelect(entries, path, icon);
+        main.on('menu-select', (entries, path, icon, info) => {
+            this.setupSelect(entries, path, icon, info);
         })
         main.on('trigger', data => {
             this.get(data).forEach(e => e.click())
@@ -638,6 +611,12 @@ export class Menu extends MenuNav {
             }
         })
         main.on('scroll-to-top', () => {
+            // The virtualized grid has to render the first rows before scrolling, so the
+            // scroll is delegated to the view when it provides a handler for it; scrolling
+            // blindly makes the mandatory scroll-snap snap back to the nearest rendered row.
+            if (typeof this.scrollToTop == 'function') {
+                return this.scrollToTop()
+            }
             if (this.scrollContainer) {
                 this.scrollTop(0, false, true)
             }
@@ -718,24 +697,44 @@ export class Menu extends MenuNav {
         main.emit('menu-check', path, value)
         this.emit('updated')
     }
-    setupSelect(entries, path, fa) {
+    setupSelect(entries, path, fa, info) {
         if (!Array.isArray(entries)) return;
+        const hero = (info && typeof info == 'object') ? !!info.hero : !!info
+        const programme = (info && typeof info == 'object' && info.programme) || null
+        // the entry name can be the programme title when the list uses EPG sorting,
+        // so prefer the channel name sent along with the select info
+        const name = (info && typeof info == 'object' && info.name) || path.split('/').pop()
         let def, element
         try {
             element = this.wrap.querySelector('[data-path="'+ path +'"]')
             if (element) {
-                const icon = element.querySelector('img')
-                if (icon) {
-                    const src = window.getComputedStyle(icon).getPropertyValue('background-image')
-                    if (src) {
-                        const match = src.match(new RegExp('url\\([\'"]*([^\\)\'"]*)', 'i'))
-                        if (match) fa = match[1]
-                    }
-                }
                 def = this.currentEntries[element.tabIndex]?.value
             }
         } catch (e) {
             console.error('Error setting up select', e);
+        }
+        // the icon map is the most reliable artwork source: the DOM scrape below
+        // fails whenever the entry is virtualized or its logo is still missing
+        const mapped = this.icons[path]?.url
+        if (typeof mapped == 'string' && mapped && !mapped.startsWith('fa')) {
+            fa = mapped
+        } else if (element) {
+            try {
+                const icon = element.querySelector('img')
+                if (icon) {
+                    const src = window.getComputedStyle(icon).getPropertyValue('background-image')
+                    const match = src && src.match(new RegExp('url\\([\'"]*([^\\)\'"]*)', 'i'))
+                    if (match && match[1]) {
+                        fa = match[1]
+                    } else {
+                        // cover entries carry the artwork in the img src instead
+                        const attr = icon.getAttribute('src') || ''
+                        if (attr && !attr.startsWith('data:')) fa = attr
+                    }
+                }
+            } catch (e) {
+                console.error('Error setting up select', e);
+            }
         }
         console.log('setupSelect', {entries, def});
         if (!def) {
@@ -749,7 +748,17 @@ export class Menu extends MenuNav {
             }
         }
         console.log('setupSelect after', {entries, def});
-        this.dialogs.select(path.split('/').pop(), entries, fa, def, ret => {
+        const hasAffiliates = !!(info && typeof info == 'object' && info.affiliates)
+        this.dialogs.select(name, entries, fa, def, ret => {
+            if (ret === '__affiliates') {
+                // the list is opened as a regular menu page, see menu.openAffiliates()
+                main.emit('menu-affiliates', { name })
+                this.lastSelectTriggerer && setTimeout(() => {
+                    this.emit('focus', this.lastSelectTriggerer)
+                    this.lastSelectTriggerer = null
+                }, 50)
+                return
+            }
             if (ret) {
                 const entry = entries.find(e => e.id == ret)
                 if (entry) {
@@ -763,7 +772,7 @@ export class Menu extends MenuNav {
                 this.emit('focus', this.lastSelectTriggerer)
                 this.lastSelectTriggerer = null
             }, 50)
-        })
+        }, hero, programme, hasAffiliates)
     }
     setupSlider(element) {
         const path = element.getAttribute('data-path')

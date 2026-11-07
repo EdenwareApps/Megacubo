@@ -320,27 +320,27 @@
     },
     {
       "name": "MTV",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Nickelodeon",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Nick Jr",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Nicktoons",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Comedy Central",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -350,12 +350,12 @@
     },
     {
       "name": "Legend",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Legend Xtra",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -370,22 +370,22 @@
     },
     {
       "name": "Sky Kids",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky History",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky History 2",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Crime & Investigation",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -395,142 +395,142 @@
     },
     {
       "name": "Sky Cinema Premiere",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Cinema Select",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Cinema Hits",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Cinema Greats",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Cinema Animation",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Cinema Family",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Cinema Action",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Cinema Comedy",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Cinema Drama",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Cinema Thriller",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Cinema Sci Fi Horror",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Sports Box Office",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports Main Event",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports Premier League",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports Football",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports Cricket",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports Golf",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports Tennis",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports Action",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports +",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports Mix",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Discovery",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Animal Planet",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "TLC",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Investigation Discovery",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Discovery Science",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "DMAX",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Food Network",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -545,32 +545,32 @@
     },
     {
       "name": "Boomerang",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Cartoon Network",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Cartoonito",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "TNT Sports",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "TNT Sports 3",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Disney Jr",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -605,12 +605,12 @@
     },
     {
       "name": "National Geographic",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Nat Geo Wild",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -630,8 +630,8 @@
     },
     {
       "name": "Premier Sports",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Racing UK Ltd",
@@ -646,7 +646,7 @@
     {
       "name": "GINX eSports",
       "isFree": true,
-      "priority": 10
+      "priority": 4
     },
     {
       "name": "Extreme",
@@ -725,7 +725,7 @@
     },
     {
       "name": "India Today",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -860,7 +860,7 @@
     },
     {
       "name": "Sony Entertainment Television Asia",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -905,7 +905,7 @@
     },
     {
       "name": "Tiny Pop UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -950,33 +950,33 @@
     },
     {
       "name": "TNT Sports 5 UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "TNT Sports 6 UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "TNT Sports 7 UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "TNT Sports 8 UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "TNT Sports 9 UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "TNT Sports 10 UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Inspiration TV UK",
@@ -986,16 +986,16 @@
     {
       "name": "Trace Sport Stars UK",
       "isFree": true,
-      "priority": 10
+      "priority": 4
     },
     {
       "name": "MTV 00's UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "MTV 80s UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1005,12 +1005,12 @@
     },
     {
       "name": "MTV 90's UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Club MTV Europe UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1020,7 +1020,7 @@
     },
     {
       "name": "Smithsonian Channel UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1035,33 +1035,33 @@
     },
     {
       "name": "Viasat Nature UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Viasat History UK",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Viasat Explore UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Sports Main Event UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sci Fi UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Investigation Discovery UK",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "ITV 1 UK",
@@ -1095,17 +1095,17 @@
     },
     {
       "name": "Nat Geo Wild UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "National Geographic UK",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Nick Jr UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1115,13 +1115,13 @@
     },
     {
       "name": "Premier Sports 1 UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Premier Sports 2 UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Quest UK",
@@ -1135,7 +1135,7 @@
     },
     {
       "name": "Sky Crime UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1145,22 +1145,22 @@
     },
     {
       "name": "Sky Arts UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Witness UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Sci Fi & Horror UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Cinema Thriller UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1170,23 +1170,23 @@
     },
     {
       "name": "Sky Sports F1 UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports Football UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports Cricket UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports Golf UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Talking Pictures UK",
@@ -1195,7 +1195,7 @@
     },
     {
       "name": "TLC UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1210,8 +1210,8 @@
     },
     {
       "name": "Sky Sports Mix UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "PBS America UK",
@@ -1240,27 +1240,27 @@
     },
     {
       "name": "Sky Cinema Hits UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Cinema Greats UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Action UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Family UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Cinema Premiere UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1280,13 +1280,13 @@
     },
     {
       "name": "TNT Sport Box Office 1 UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "TNT Sport Box Office 2 UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "STV UK",
@@ -1320,7 +1320,7 @@
     },
     {
       "name": "Nicktoons UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1375,23 +1375,23 @@
     },
     {
       "name": "Sky Atlantic UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Cinema Select UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Sports Premiere League UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports Racing UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Great! Movies UK",
@@ -1400,7 +1400,7 @@
     },
     {
       "name": "Sony Entertainment UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1420,7 +1420,7 @@
     },
     {
       "name": "Crime & Investigation UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1495,7 +1495,7 @@
     },
     {
       "name": "Sony Max 2 UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1510,12 +1510,12 @@
     },
     {
       "name": "Sky Cinema Comedy UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Comedy UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1540,12 +1540,12 @@
     },
     {
       "name": "Sky Showcase UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Max UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1560,18 +1560,18 @@
     },
     {
       "name": "Nickelodeon UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "DAZN UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Sports NFL UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Channel 5 UK",
@@ -1585,23 +1585,23 @@
     },
     {
       "name": "Sky Sports+ UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports Action UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports Box Office UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky Sports News UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "At the races UK",
@@ -1610,7 +1610,7 @@
     },
     {
       "name": "Baby TV UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1630,27 +1630,27 @@
     },
     {
       "name": "MTV UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "MTV Base UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "MTV Hits UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "MTV Music UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "MTV Classic UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1690,7 +1690,7 @@
     },
     {
       "name": "Animal Planet UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1725,37 +1725,37 @@
     },
     {
       "name": "Boomerang UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "TNT Sports 1 UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "TNT Sports 2 UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "TNT Sports 3 UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "TNT Sports 4 UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Cartoon Network UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Cartoonito UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1785,12 +1785,12 @@
     },
     {
       "name": "Comedy Central UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Comedy Central Extra UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1810,33 +1810,33 @@
     },
     {
       "name": "Discovery Channel UK",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Discovery History UK",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Discovery Home & Health UK",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Discovery Science UK",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Discovery Shed UK",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Discovery Turbo UK",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "D Max UK",
@@ -1860,7 +1860,7 @@
     },
     {
       "name": "Food Network UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1870,13 +1870,13 @@
     },
     {
       "name": "Sky History 2 UK",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Sky History UK",
-      "isFree": true,
-      "priority": 7
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "Home UK",
@@ -1885,7 +1885,7 @@
     },
     {
       "name": "Legend Xtra UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1900,12 +1900,12 @@
     },
     {
       "name": "Star Plus UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Star Gold UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1935,7 +1935,7 @@
     },
     {
       "name": "Sony Max UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -1985,7 +1985,7 @@
     },
     {
       "name": "Sony SAB UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -2000,7 +2000,7 @@
     },
     {
       "name": "HGTV UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -2015,12 +2015,12 @@
     },
     {
       "name": "Sky Nature UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Documentaries UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -2090,7 +2090,7 @@
     },
     {
       "name": "Sky Cinema Animation UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -2105,7 +2105,7 @@
     },
     {
       "name": "Sky Replay UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -2115,7 +2115,7 @@
     },
     {
       "name": "Sky Cinema Drama UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
@@ -2150,18 +2150,18 @@
     },
     {
       "name": "Legend UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Kids UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "Sky Sports Tennis UK",
-      "isFree": true,
-      "priority": 10
+      "isFree": false,
+      "priority": 4
     },
     {
       "name": "BBC News Europe UK",
@@ -2241,7 +2241,7 @@
     {
       "name": "GINX eSportsTV UK",
       "isFree": true,
-      "priority": 10
+      "priority": 4
     },
     {
       "name": "Birmingham TV UK",
@@ -2250,22 +2250,22 @@
     },
     {
       "name": "JimJam UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
       "name": "TNT Sports Ultimate UK",
-      "isFree": true,
-      "priority": 10
-    },
-    {
-      "name": "Sky Soports 1 UHD UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 4
     },
     {
-      "name": "Sky Soports 2 UHD UK",
-      "isFree": true,
+      "name": "Sky Sports 1 UHD UK",
+      "isFree": false,
+      "priority": 4
+    },
+    {
+      "name": "Sky Sports 2 UHD UK",
+      "isFree": false,
       "priority": 4
     }
   ],
@@ -2277,7 +2277,7 @@
     },
     {
       "name": "Arise News",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -2298,7 +2298,7 @@
     },
     {
       "name": "CNN International",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -2315,12 +2315,12 @@
     },
     {
       "name": "Iran International",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "RT UK",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -2337,25 +2337,25 @@
     },
     {
       "name": "Afghanistan International",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.afintl.com/",
       "priority": 5
     },
     {
       "name": "Almadaria",
-      "isFree": true,
+      "isFree": null,
       "website": "https://en.almadariatv.com/",
       "priority": 5
     },
     {
       "name": "Almagharibia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://almagharibia.tv/",
       "priority": 5
     },
     {
       "name": "Al Mustakillah",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.almustakillah.com/",
       "priority": 5
     },
@@ -2379,19 +2379,19 @@
     },
     {
       "name": "CNBC Europe",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cnbc.com/europe-television/",
       "priority": 5
     },
     {
       "name": "CNBC UK",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cnbc.com/europe-television/",
       "priority": 5
     },
     {
       "name": "DM News",
-      "isFree": true,
+      "isFree": null,
       "website": "https://dmnews.co.uk/",
       "priority": 5
     },
@@ -2403,43 +2403,43 @@
     },
     {
       "name": "Euro Genc",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.eurogenctv.com/",
       "priority": 5
     },
     {
       "name": "IraneFarda",
-      "isFree": true,
+      "isFree": null,
       "website": "http://iranefardalive.com/",
       "priority": 5
     },
     {
       "name": "LuaLua",
-      "isFree": true,
+      "isFree": null,
       "website": "https://lualuatv.net/",
       "priority": 5
     },
     {
       "name": "New Vision",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.skymedia.co.uk/channels/new-vision/",
       "priority": 5
     },
     {
       "name": "Ocean News Network",
-      "isFree": true,
+      "isFree": null,
       "website": "https://onntv.tv/live/",
       "priority": 5
     },
     {
       "name": "Shabelle",
-      "isFree": true,
+      "isFree": null,
       "website": "https://shabellemedia.com/",
       "priority": 5
     },
     {
       "name": "Siraj",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sabeelfoundation.org/",
       "priority": 5
     },
@@ -2457,17 +2457,22 @@
     },
     {
       "name": "SMS Somali",
-      "isFree": true,
+      "isFree": null,
       "website": "https://somalisms.com/",
       "priority": 5
     },
     {
       "name": "SomNews",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "The Guardian",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TRT World",
       "isFree": true,
       "priority": 5
     }
@@ -2482,7 +2487,7 @@
   "Comedy": [
     {
       "name": "Comedy",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     }
   ],
@@ -2619,348 +2624,354 @@
   "Sports": [
     {
       "name": "EDGESport",
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "FreeSports",
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "Horse & Country",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "SKI",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sports Tonight",
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "Sporty Stuff",
+      "isFree": null,
       "keywords": "sporty stuff tv | sportystuff tv",
       "priority": 10
     },
     {
       "name": "BFBS Sport",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bfbs.com/",
       "priority": 10
     },
     {
       "name": "BoxNation",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.boxnation.com/",
       "priority": 5
     },
     {
       "name": "BT Sport Mosaic",
-      "isFree": true,
+      "isFree": false,
       "keywords": "bt sport mosaic -2",
       "website": "https://sport.bt.com/",
       "priority": 10
     },
     {
       "name": "BT Sport Mosaic 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://sport.bt.com/",
       "priority": 10
     },
     {
       "name": "DAZN",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "DAZN 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.elevensports.pt/",
       "priority": 5
     },
     {
       "name": "DAZN 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.elevensports.pt/",
       "priority": 5
     },
     {
       "name": "DAZN 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.elevensports.pt/",
       "priority": 5
     },
     {
       "name": "DAZN 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.elevensports.pt/",
       "priority": 5
     },
     {
       "name": "DAZN 6",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.elevensports.pt/",
       "priority": 5
     },
     {
       "name": "DAZN Combat",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.dazn.com/",
       "priority": 5
     },
     {
       "name": "DAZN F",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.dazn.com/es-ES/l/sports/",
       "priority": 5
     },
     {
       "name": "DAZN LaLiga",
-      "isFree": true,
+      "isFree": false,
       "keywords": "dazn laliga -2 -3 -4 -5",
       "website": "https://www.dazn.com/es-ES/l/sports/",
       "priority": 5
     },
     {
       "name": "DAZN LaLiga 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.dazn.com/es-ES/l/sports/",
       "priority": 5
     },
     {
       "name": "DAZN LaLiga 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.dazn.com/es-ES/l/sports/",
       "priority": 5
     },
     {
       "name": "DAZN LaLiga 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.dazn.com/es-ES/l/sports/",
       "priority": 5
     },
     {
       "name": "DAZN LaLiga 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.dazn.com/es-ES/l/sports/",
       "priority": 5
     },
     {
       "name": "DAZN Pro League",
-      "isFree": true,
+      "isFree": false,
       "website": "https://elevensports.be/",
       "priority": 5
     },
     {
       "name": "DAZN Pro League 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://elevensports.be/",
       "priority": 5
     },
     {
       "name": "DAZN Pro League 3",
-      "isFree": true,
+      "isFree": false,
       "website": "https://elevensports.be/",
       "priority": 5
     },
     {
       "name": "ESPN Classic Europe",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.espnclassic.com/",
       "priority": 10
     },
     {
       "name": "FIFA+",
-      "isFree": true,
+      "isFree": null,
       "keywords": "fifaplus -women",
       "website": "https://www.plus.fifa.com/",
       "priority": 5
     },
     {
       "name": "FIFA+ Women",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.plus.fifa.com/",
       "priority": 5
     },
     {
       "name": "Fight Factor",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "GINX",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ginx.tv/en/",
       "priority": 5
     },
     {
       "name": "Intense",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "LA Muscle",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.lamuscle.com/lamuscletv/",
       "priority": 5
     },
     {
       "name": "LFCTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.liverpoolfc.com/lfctv/",
       "priority": 5
     },
     {
       "name": "Racing",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.racingtv.com/",
       "priority": 5
     },
     {
       "name": "Sky Sports Arena",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.skysports.com/",
       "priority": 10
     },
     {
       "name": "Sky Sports F",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.skysports.com/f1",
       "priority": 10
     },
     {
       "name": "Sky Sports News",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.skysports.com/",
       "priority": 10
     },
     {
       "name": "Sky Sports NFL",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.skysports.com/",
       "priority": 10
     },
     {
       "name": "Sky Sports Premier League ROI",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.skysports.com/",
       "priority": 10
     },
     {
       "name": "Sky Sports Racing",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.skysports.com/racing",
       "priority": 10
     },
     {
       "name": "Speed Factor",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Sport 24",
-      "isFree": true,
+      "isFree": null,
       "keywords": "sport 24 -extra",
       "website": "https://sport24live.com/",
       "priority": 10
     },
     {
       "name": "Sport 24 Extra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sport24live.com/",
       "priority": 10
     },
     {
       "name": "Sportyfy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 10
     },
     {
       "name": "talkSPORT",
-      "isFree": true,
+      "isFree": null,
       "website": "https://talksport.com/",
       "priority": 10
     },
     {
       "name": "TNT Sports 10",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tntsports.co.uk/",
       "priority": 10
     },
     {
       "name": "TNT Sports 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tntsports.co.uk/",
       "priority": 10
     },
     {
       "name": "TNT Sports 4",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tntsports.co.uk/",
       "priority": 10
     },
     {
       "name": "TNT Sports 5",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tntsports.co.uk/",
       "priority": 10
     },
     {
       "name": "TNT Sports 6",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tntsports.co.uk/",
       "priority": 10
     },
     {
       "name": "TNT Sports 7",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tntsports.co.uk/",
       "priority": 10
     },
     {
       "name": "TNT Sports 8",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tntsports.co.uk/",
       "priority": 10
     },
     {
       "name": "TNT Sports 9",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tntsports.co.uk/",
       "priority": 10
     },
     {
       "name": "TNT Sports Box Office",
-      "isFree": true,
+      "isFree": false,
       "keywords": "tnt sports box office -2",
       "website": "https://sport.bt.com/",
       "priority": 10
     },
     {
       "name": "TNT Sports Box Office 2",
-      "isFree": true,
+      "isFree": false,
       "website": "https://sport.bt.com/",
       "priority": 10
     },
     {
       "name": "TNT Sports Ultimate",
-      "isFree": true,
+      "isFree": false,
       "website": "https://sport.bt.com/",
       "priority": 10
     },
     {
       "name": "Viaplay Xtra",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.premiersports.com/",
       "priority": 5
     },
     {
       "name": "Wow",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     }
@@ -2968,28 +2979,28 @@
   "Kids": [
     {
       "name": "IGN",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Moonbug Kids",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Nick Jr Too UK",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "A+ Kids",
-      "isFree": true,
+      "isFree": null,
       "website": "https://apluskidstv.com/",
       "priority": 5
     },
     {
       "name": "BabyTV",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.babytv.com/",
       "priority": 5
     },
@@ -3007,58 +3018,58 @@
     },
     {
       "name": "Boomerang Nordic",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.cartoonnetwork.se/boomerang",
       "priority": 5
     },
     {
       "name": "Carlton Kids",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Cartoonito CEE",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.boomerangtv.co.uk/",
       "priority": 5
     },
     {
       "name": "Cartoonito MENA",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cartoonitomena.com/",
       "priority": 5
     },
     {
       "name": "Cartoonito Nordic",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Cartoonito Western Europe",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.boomeranghq.net/",
       "priority": 5
     },
     {
       "name": "Cartoon Network Africa",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cartoonnetworkhq.com/",
       "priority": 5
     },
     {
       "name": "Cartoon Network CEE",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Cartoon Network MENA",
-      "isFree": true,
+      "isFree": false,
       "website": "https://cartoonnetworkmena.com/",
       "priority": 5
     },
     {
       "name": "Cartoon Network Western Europe",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -3087,19 +3098,19 @@
     },
     {
       "name": "Cinemachi Family",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Cinemachi Junior",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Cinemachi Kids",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
@@ -3111,95 +3122,95 @@
     },
     {
       "name": "Discovery Kids",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Disney Channel EMEA",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.disneyme.com/",
       "priority": 5
     },
     {
       "name": "Disney Channel Scandinavia",
-      "isFree": true,
+      "isFree": false,
       "website": "https://disney.se/",
       "priority": 5
     },
     {
       "name": "Disney Junior MENA",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.disneyme.com/",
       "priority": 5
     },
     {
       "name": "Disney Junior Scandinavia",
-      "isFree": true,
+      "isFree": false,
       "website": "http://disneyinternational.com/disney-junior/",
       "priority": 5
     },
     {
       "name": "Hala London TV Cartoon",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.hunalondon.net/ar/live-tv?live-channel=23464",
       "priority": 5
     },
     {
       "name": "JimJam Europe",
-      "isFree": true,
+      "isFree": false,
       "website": "https://pe.jimjam.tv/",
       "priority": 5
     },
     {
       "name": "JimJam MEA",
-      "isFree": true,
+      "isFree": false,
       "website": "https://me.jimjam.tv/",
       "priority": 5
     },
     {
       "name": "Kids Series",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Lolly Kids",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Mr Bean Animated",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Nickelodeon Global",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.nick.com/global",
       "priority": 5
     },
     {
       "name": "Pop Up",
-      "isFree": true,
+      "isFree": null,
       "website": "https://pop.co.uk/",
       "priority": 5
     },
     {
       "name": "Shaun the Sheep & Friends",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.aardman.com/film-tv-games/shaun-the-sheep/",
       "priority": 5
     },
     {
       "name": "Tiny Pop",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tinypop.com/",
       "priority": 5
     },
     {
       "name": "YAAAS!",
-      "isFree": true,
+      "isFree": null,
       "website": "https://yaaas.tv",
       "priority": 5
     }
@@ -3212,22 +3223,22 @@
     },
     {
       "name": "Ahwazna",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "All Drama",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Anand",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Awraas",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -3238,6 +3249,7 @@
     },
     {
       "name": "BBC Earth",
+      "isFree": false,
       "website": "https://www.bbcearth.com",
       "priority": 5
     },
@@ -3251,32 +3263,32 @@
       "name": "BBC One Cambridge",
       "isFree": true,
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One Channel Islands",
       "isFree": true,
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One East",
       "isFree": true,
       "keywords": "bbc one east -midlands -yorkshire",
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One East Midlands",
       "isFree": true,
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One East Yorkshire",
       "isFree": true,
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One London",
@@ -3284,81 +3296,81 @@
       "retransmits": "BBC One",
       "shortName": "BBC One",
       "website": "https://www.bbc.co.uk/iplayer",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One North East",
       "isFree": true,
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One North West",
       "isFree": true,
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One Northern Ireland",
       "isFree": true,
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One Oxford",
       "isFree": true,
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One Scotland",
       "isFree": true,
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One South",
       "isFree": true,
       "keywords": "bbc one south -east -west",
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One South East",
       "isFree": true,
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One South West",
       "isFree": true,
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One Wales",
       "isFree": true,
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One West",
       "isFree": true,
       "keywords": "bbc one west -midlands",
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One West Midlands",
       "isFree": true,
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC One Yorks",
       "isFree": true,
       "retransmits": "BBC One",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC Parliament",
@@ -3506,25 +3518,25 @@
       "isFree": true,
       "retransmits": "BBC Two",
       "shortName": "BBC Two",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC Two Northen Ireland",
       "isFree": true,
       "retransmits": "BBC Two",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC Two Northern Ireland",
       "isFree": true,
       "retransmits": "BBC Two",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC Two Wales",
       "isFree": true,
       "retransmits": "BBC Two",
-      "priority": 5
+      "priority": 8
     },
     {
       "name": "BBC UHD Trial",
@@ -3553,27 +3565,27 @@
     },
     {
       "name": "BT Sport",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "BT Sport 2",
-      "isFree": true,
+      "isFree": false,
       "priority": 10
     },
     {
       "name": "Beano",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Big Names",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Brit Asia Live",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -3596,112 +3608,112 @@
     },
     {
       "name": "Channel S",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Chelsea",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Clubbing",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Crime",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Discover",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Diy Daily",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Drama",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Dust",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Edge Sport",
-      "isFree": true,
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "FTF For the fans",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Failarmy",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Fashion",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Filmon 360",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Filmstream",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Filmzie",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Garshom",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Go USA",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "GustoTV",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Hala London",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Horse and Country",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Humanity",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ITV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.itv.com",
       "priority": 5
     },
@@ -3722,32 +3734,32 @@
     },
     {
       "name": "Insight",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Inspiration",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Introuble",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Inwild",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Inwonder",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Iqraa",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -3757,120 +3769,120 @@
     },
     {
       "name": "Kanshi",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kerrang",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kid Gamer",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kidoodle",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Kiss",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.boxplus.com/",
       "priority": 5
     },
     {
       "name": "Latest",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Luxe",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MMA",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MTA",
-      "isFree": true,
+      "isFree": null,
       "keywords": "mta 1 -english -original -urdu",
       "priority": 5
     },
     {
       "name": "MTA 1 English",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MTA 1 Original",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MTA 1 Urdu",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MTA 2",
-      "isFree": true,
+      "isFree": null,
       "keywords": "mta 2 -urdu",
       "priority": 5
     },
     {
       "name": "MTA 2 Urdu",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MTA 3",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MTA Africa",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Magic",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Manoto",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Masters of Food",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Mav",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "My5 Documentaries",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "My5 GP's",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Noor",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -3880,27 +3892,27 @@
     },
     {
       "name": "People are Awesome",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Planet Knowledge",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Players",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Pocket watch",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Press",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -3920,48 +3932,48 @@
     },
     {
       "name": "Real Stories",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Red Bull",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Reel Truth",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Relevation",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Reuters",
-      "isFree": true,
+      "isFree": null,
       "keywords": "reuters -now",
       "priority": 5
     },
     {
       "name": "Reuters Now",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rugby Men's Sevens",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rugby Women's Sevens",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Rugby World",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -3971,139 +3983,139 @@
     },
     {
       "name": "Sangat Television",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Screamfest",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sky 1 Racing",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sky 2 Racing",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Sofy",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Spark",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Spike",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sports Channel Network",
-      "isFree": true,
+      "isFree": null,
       "priority": 10
     },
     {
       "name": "Spotlight",
-      "isFree": true,
+      "isFree": null,
       "keywords": "spotlight",
       "priority": 5
     },
     {
       "name": "Sterling Drama",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Stingray Karaoke",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sunburn",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Supertoons",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV Classical",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TV MIX",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Tastemade",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Teletubbies",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Tennis",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "The Boat Show",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "The Box",
-      "isFree": true,
+      "isFree": null,
       "keywords": "the box -uk",
       "priority": 5
     },
     {
       "name": "The Tennis",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Time Line",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Toongoggles",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Travel XP",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Truly",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Unbeaten",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "V2Beat",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -4120,64 +4132,64 @@
     },
     {
       "name": "Wonder",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "iON",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "n",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "4seven",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.channel4.com/",
       "priority": 5
     },
     {
       "name": "5Action",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.channel5.com/channels/5action",
       "priority": 5
     },
     {
       "name": "5SELECT",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.channel5.com/channels/5select",
       "priority": 5
     },
     {
       "name": "5STAR",
-      "isFree": true,
+      "isFree": null,
       "website": "http://channel5.com/5star",
       "priority": 5
     },
     {
       "name": "5USA",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.channel5.com/channels/5usa",
       "priority": 5
     },
     {
       "name": "Aathavan",
-      "isFree": true,
+      "isFree": null,
       "website": "https://athavantv.com/",
       "priority": 5
     },
     {
       "name": "Alb UK",
-      "isFree": true,
+      "isFree": null,
       "website": "https://albuk.tv/",
       "priority": 5
     },
     {
       "name": "Al Shoub",
-      "isFree": true,
+      "isFree": null,
       "website": "https://alshoub.tv/",
       "priority": 5
     },
@@ -4195,7 +4207,7 @@
     },
     {
       "name": "ARISEPlay",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ariseplay.com/live",
       "priority": 5
     },
@@ -4207,7 +4219,7 @@
     },
     {
       "name": "Ayozat",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.ayozat.com/live-tv/ayozat-tv",
       "priority": 5
     },
@@ -4219,7 +4231,7 @@
     },
     {
       "name": "Balag",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -4242,7 +4254,7 @@
     },
     {
       "name": "BBC",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.bbchd.com/",
       "priority": 5
     },
@@ -4268,13 +4280,13 @@
       "name": "BBC One",
       "isFree": true,
       "keywords": "bbc one -cambridge -channel -islands -east -midlands -yorkshire -london -north -west -northern -ireland -oxford -scotland -south -wales -yorks",
+      "shortName": "BBC One",
       "website": "https://www.bbc.co.uk/iplayer",
-      "priority": 5,
-      "shortName": "BBC One"
+      "priority": 5
     },
     {
       "name": "BBC Pie",
-      "isFree": null,
+      "isFree": true,
       "website": "https://bbcpie.com/",
       "priority": 5
     },
@@ -4288,9 +4300,9 @@
       "name": "BBC Two",
       "isFree": true,
       "keywords": "bbc two -england -northen -ireland -northern -hd -wales",
+      "shortName": "BBC Two",
       "website": "https://www.bbc.co.uk/iplayer",
-      "priority": 5,
-      "shortName": "BBC Two"
+      "priority": 5
     },
     {
       "name": "BBC UHD",
@@ -4324,72 +4336,72 @@
     },
     {
       "name": "BEN Television",
-      "isFree": true,
+      "isFree": null,
       "website": "https://bentelevision.com/",
       "priority": 5
     },
     {
       "name": "Best Direct",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.bestdirect.co.uk/",
       "priority": 5
     },
     {
       "name": "BFBS Extra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bfbs.com/",
       "priority": 5
     },
     {
       "name": "BITE",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bitetv.uk/",
       "priority": 5
     },
     {
       "name": "Brit Asia",
-      "isFree": true,
+      "isFree": null,
       "website": "https://britasia.tv/",
       "priority": 5
     },
     {
       "name": "Canaf 54",
-      "isFree": true,
+      "isFree": null,
       "website": "https://canaf54.tv/",
       "priority": 5
     },
     {
       "name": "Carlton Food Network",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Carlton Select",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Cars & Stars",
-      "isFree": true,
+      "isFree": null,
       "website": "https://carsandstars.tv/",
       "priority": 5
     },
     {
       "name": "CBS Reality",
-      "isFree": true,
+      "isFree": false,
       "keywords": "cbs reality -africa -emea",
       "website": "https://www.cbsreality.tv/uk/",
       "priority": 5
     },
     {
       "name": "CBS Reality Africa",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cbsreality.tv/eu_2/",
       "priority": 5
     },
     {
       "name": "CBS Reality EMEA",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.cbsreality.tv/eu/",
       "priority": 5
     },
@@ -4413,13 +4425,13 @@
     },
     {
       "name": "Chl Line up",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.sky.com/",
       "priority": 5
     },
     {
       "name": "Cinemachi Comedy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
@@ -4431,26 +4443,26 @@
     },
     {
       "name": "Comedy Central Extra",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.comedycentral.co.uk/",
       "priority": 5
     },
     {
       "name": "Crime + Investigation",
-      "isFree": true,
+      "isFree": false,
       "keywords": "crime plus investigation -benelux -cee",
       "website": "https://www.crimeandinvestigation.co.uk/",
       "priority": 5
     },
     {
       "name": "Crime + Investigation Benelux",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.crimeandinvestigation.nl/",
       "priority": 5
     },
     {
       "name": "Crime + Investigation CEE",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.crimeandinvestigation.nl/",
       "priority": 5
     },
@@ -4462,12 +4474,12 @@
     },
     {
       "name": "DAZN Women's Football",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Deen",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.deentv.uk/",
       "priority": 5
     },
@@ -4478,24 +4490,24 @@
     },
     {
       "name": "Discovery Channel Europe",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
     },
     {
       "name": "Discovery Science Europe",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.discoveryuk.com/",
       "priority": 7
     },
     {
       "name": "Discovery Science Middle East",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.sciencechannel.com/",
       "priority": 7
     },
     {
       "name": "Discovery Turbo",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.discoveryuk.com/",
       "priority": 7
     },
@@ -4507,36 +4519,36 @@
     },
     {
       "name": "E!",
-      "isFree": true,
+      "isFree": false,
       "website": "http://uk.eonline.com/",
       "priority": 5
     },
     {
       "name": "E4 Extra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.channel4.com/",
       "priority": 5
     },
     {
       "name": "ENT",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.40mediagroup.com",
       "priority": 5
     },
     {
       "name": "ENT Family",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.40mediagroup.com",
       "priority": 5
     },
     {
       "name": "Eryal",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Eurochannel",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.eurochannel.com/",
       "priority": 5
     },
@@ -4548,86 +4560,86 @@
     },
     {
       "name": "Fashion One",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashionone.com/",
       "priority": 5
     },
     {
       "name": "Fashion Television",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.fashion.tv/",
       "priority": 5
     },
     {
       "name": "Foodies",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Foodxp",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.foodxp.com/",
       "priority": 5
     },
     {
       "name": "Glazy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Hasti",
-      "isFree": true,
+      "isFree": null,
       "website": "https://hastitv.com/",
       "priority": 5
     },
     {
       "name": "Health & Wellness",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Hellenic",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.hellenictv.net/",
       "priority": 5
     },
     {
       "name": "HGTV",
-      "isFree": true,
+      "isFree": false,
       "website": "https://hgtv.co.uk/",
       "priority": 5
     },
     {
       "name": "Homey's",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "IBC Comedy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvibctamil.com/",
       "priority": 5
     },
     {
       "name": "IBC Tamil",
-      "isFree": true,
+      "isFree": null,
       "keywords": "ibc tamil -canada -sri -lanka",
       "website": "https://tvibctamil.com/",
       "priority": 5
     },
     {
       "name": "IBC Tamil Canada",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvibctamil.com/",
       "priority": 5
     },
     {
       "name": "IBC Tamil Sri Lanka",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvibctamil.com/",
       "priority": 5
     },
@@ -4644,19 +4656,19 @@
     },
     {
       "name": "JSTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.jstv.co.uk/",
       "priority": 5
     },
     {
       "name": "JSTV 2",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.jstv.co.uk/",
       "priority": 5
     },
     {
       "name": "Kanal Jadid",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kanaljadid.com/",
       "priority": 5
     },
@@ -4674,138 +4686,138 @@
     },
     {
       "name": "London Live",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.londonlive.co.uk/",
       "priority": 5
     },
     {
       "name": "Luxe & Life",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Magnavision",
-      "isFree": true,
+      "isFree": null,
       "website": "https://magnavision.tv/",
       "priority": 5
     },
     {
       "name": "Manchester",
-      "isFree": true,
+      "isFree": null,
       "website": "https://uklocal.tv/manchester-tv/",
       "priority": 5
     },
     {
       "name": "MBC",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mybingechannel.co.uk/",
       "priority": 5
     },
     {
       "name": "MM Somali",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mmsomalitv.com/",
       "priority": 5
     },
     {
       "name": "More 4",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.channel4.com/",
       "priority": 5
     },
     {
       "name": "Mr Bean Live Action",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "MTV Global",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mtv.com/",
       "priority": 5
     },
     {
       "name": "Mutembei",
-      "isFree": true,
+      "isFree": null,
       "website": "https://mutembeitv.com/",
       "priority": 5
     },
     {
       "name": "Nepali",
-      "isFree": true,
+      "isFree": null,
       "website": "http://nepalitv.com/",
       "priority": 5
     },
     {
       "name": "Nicely",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Nicktoonsters",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "North Africa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://nafrica.tv/",
       "priority": 5
     },
     {
       "name": "Notts",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.nottstv.com/",
       "priority": 5
     },
     {
       "name": "NVTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nvtv.co.uk/",
       "priority": 5
     },
     {
       "name": "Pet & Pal",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Pick",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.sky.com/watch/channel/pick",
       "priority": 5
     },
     {
       "name": "Planet Eat",
-      "isFree": true,
+      "isFree": null,
       "website": "https://terms.planeteat.com/",
       "priority": 5
     },
     {
       "name": "Planet Fun",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Politics Punjab",
-      "isFree": true,
+      "isFree": null,
       "website": "https://politicspunjab.com",
       "priority": 5
     },
     {
       "name": "Pop",
-      "isFree": true,
+      "isFree": null,
       "keywords": "pop -max -up",
       "website": "https://www.popfun.co.uk/",
       "priority": 5
     },
     {
       "name": "Pop Max",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.popmax.co.uk/",
       "priority": 5
     },
@@ -4817,49 +4829,49 @@
     },
     {
       "name": "RAW",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "ROK",
-      "isFree": true,
+      "isFree": null,
       "keywords": "rok -2 -gh -uk",
       "website": "http://www.rokchannels.tv/rok/",
       "priority": 5
     },
     {
       "name": "ROK 2",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.rokchannels.tv/rok2/",
       "priority": 5
     },
     {
       "name": "ROK GH",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.rokchannels.tv/rokgh/",
       "priority": 5
     },
     {
       "name": "ROK UK",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.rokchannels.tv/rokuk/",
       "priority": 5
     },
     {
       "name": "RTN Somali",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtnsomalitv.net/",
       "priority": 5
     },
     {
       "name": "RTV Diamant",
-      "isFree": true,
+      "isFree": null,
       "website": "https://rtvdiamant.live/",
       "priority": 5
     },
     {
       "name": "RugbyPass",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -4870,31 +4882,31 @@
     },
     {
       "name": "Sangat",
-      "isFree": true,
+      "isFree": null,
       "website": "http://sangattelevision.org/",
       "priority": 5
     },
     {
       "name": "Sawt Alitra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sawtalitra.tv/",
       "priority": 5
     },
     {
       "name": "Shots!",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.shotstv.com",
       "priority": 5
     },
     {
       "name": "Sikh",
-      "isFree": true,
+      "isFree": null,
       "website": "https://sikhchannel.tv/",
       "priority": 5
     },
     {
       "name": "Simaye Azadi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://iranntv.com/",
       "priority": 5
     },
@@ -4906,25 +4918,25 @@
     },
     {
       "name": "Sky Arts",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.com/watch/channel/sky-arts",
       "priority": 5
     },
     {
       "name": "Sky Atlantic",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.sky.com/watch/channel/sky-atlantic",
       "priority": 5
     },
     {
       "name": "Sky Comedy",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.com/",
       "priority": 5
     },
     {
       "name": "Sky Max",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.skymedia.co.uk/channels/sky-max/",
       "priority": 5
     },
@@ -4936,60 +4948,60 @@
     },
     {
       "name": "Sky One",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.com/watch/channel/sky-one",
       "priority": 5
     },
     {
       "name": "Sky Pal",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Sky Replay",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.com/watch/channel/sky-one",
       "priority": 5
     },
     {
       "name": "Sky Sci Fi",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.com/",
       "priority": 5
     },
     {
       "name": "Sky Showcase",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.com/watch/channel/sky-showcase",
       "priority": 5
     },
     {
       "name": "Sky Witness",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.com/watch/channel/sky-witness",
       "priority": 5
     },
     {
       "name": "Smilie",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Smithsonian",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.smithsonianchannel.com/",
       "priority": 5
     },
     {
       "name": "Somali Cable",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Sony Max",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.sonymax.tv/en_uk/",
       "priority": 5
     },
@@ -5007,66 +5019,66 @@
     },
     {
       "name": "Takbeer",
-      "isFree": true,
+      "isFree": null,
       "website": "http://takbeer.tv/",
       "priority": 5
     },
     {
       "name": "TalkBirmingham",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.birminghamlocal.tv/",
       "priority": 5
     },
     {
       "name": "TalkBristol",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.bristollocal.tv/",
       "priority": 5
     },
     {
       "name": "TalkCardiff",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.cardifflocal.tv/",
       "priority": 5
     },
     {
       "name": "Talking Pictures",
-      "isFree": true,
+      "isFree": null,
       "website": "https://talkingpicturestv.co.uk/",
       "priority": 5
     },
     {
       "name": "TalkLeeds",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.leedslocal.tv/",
       "priority": 5
     },
     {
       "name": "TalkLiverpool",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.liverpoollocal.tv/",
       "priority": 5
     },
     {
       "name": "TalkNorthWales",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.northwaleslocal.tv/",
       "priority": 5
     },
     {
       "name": "TalkTeesside",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "TalkTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://talk.tv/",
       "priority": 5
     },
     {
       "name": "TalkTyne&Wear",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -5077,25 +5089,25 @@
     },
     {
       "name": "Thane Direct",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.thanedirect.co.uk/",
       "priority": 5
     },
     {
       "name": "That's",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.thats.tv/",
       "priority": 5
     },
     {
       "name": "The Craft Store",
-      "isFree": true,
+      "isFree": null,
       "website": "https://thecraftstore.com/",
       "priority": 5
     },
     {
       "name": "The Graham Norton Show",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
@@ -5106,25 +5118,25 @@
     },
     {
       "name": "TNT Africa",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.tnt.africa/",
       "priority": 5
     },
     {
       "name": "Together",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.togethertv.com/",
       "priority": 5
     },
     {
       "name": "Top Gear",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.topgear.com/",
       "priority": 5
     },
     {
       "name": "Travel Channel EMEA",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.travelchanneltv.eu/",
       "priority": 5
     },
@@ -5136,103 +5148,103 @@
     },
     {
       "name": "TV One",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.tvoneuk.tv/",
       "priority": 5
     },
     {
       "name": "TV Warehouse",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.tvwarehouse.com/",
       "priority": 5
     },
     {
       "name": "Tyne & Wear",
-      "isFree": true,
+      "isFree": null,
       "website": "https://uklocal.tv/tyne-and-wear-tv/",
       "priority": 5
     },
     {
       "name": "U&Dave",
-      "isFree": true,
+      "isFree": null,
       "website": "https://dave.uktv.co.uk/",
       "priority": 5
     },
     {
       "name": "U&DaveJaVu",
-      "isFree": true,
+      "isFree": null,
       "website": "https://dave.uktv.co.uk/",
       "priority": 5
     },
     {
       "name": "U&Drama",
-      "isFree": true,
+      "isFree": null,
       "website": "https://u.co.uk/channel/drama",
       "priority": 5
     },
     {
       "name": "U&Eden",
-      "isFree": true,
+      "isFree": null,
       "website": "https://u.co.uk/",
       "priority": 5
     },
     {
       "name": "U&Gold",
-      "isFree": true,
+      "isFree": null,
       "website": "https://u.co.uk/",
       "priority": 5
     },
     {
       "name": "UK 44",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.uk44.tv/",
       "priority": 5
     },
     {
       "name": "Universal Somali",
-      "isFree": true,
+      "isFree": null,
       "website": "https://universaltvsomali.net/",
       "priority": 5
     },
     {
       "name": "Utsav Bharat",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.hotstar.com/",
       "priority": 5
     },
     {
       "name": "Utsav Plus",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.hotstar.com/",
       "priority": 5
     },
     {
       "name": "U&W",
-      "isFree": true,
+      "isFree": null,
       "website": "https://u.co.uk/channel/w",
       "priority": 5
     },
     {
       "name": "U&Yesterday",
-      "isFree": true,
+      "isFree": null,
       "website": "https://u.co.uk/channel/yesterday",
       "priority": 5
     },
     {
       "name": "VoxAfrica",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.voxafrica.com/",
       "priority": 5
     },
     {
       "name": "WildEarth",
-      "isFree": true,
+      "isFree": null,
       "website": "https://wildearth.tv/",
       "priority": 5
     },
     {
       "name": "Wisal Hausa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://wisalhausa.tv",
       "priority": 5
     },
@@ -5262,342 +5274,377 @@
     },
     {
       "name": "Yanga!",
-      "isFree": true,
+      "isFree": null,
       "website": "https://yangatv.com/",
       "priority": 5
     },
     {
       "name": "Zee One",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Zee TV UK",
-      "isFree": true,
+      "isFree": false,
       "website": "http://zeetv.zeeuk.com/",
       "priority": 5
     },
     {
       "name": "Zing!",
-      "isFree": true,
+      "isFree": null,
       "website": "https://zingtv.co.uk",
+      "priority": 5
+    },
+    {
+      "name": "alibi",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Eden",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "HUM Masala",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Utsav Gold",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pitaara",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viaplay Sports 1",
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "Viaplay Sports 2",
+      "isFree": false,
       "priority": 5
     }
   ],
   "Music Videos": [
     {
       "name": "Box Hits",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Qello Concerts by Stingray",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Qwest TV Classical",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Qwest TV Jazz & Beyond",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Qwest TV Mix",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "The Box UK",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "4Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.boxplus.com/",
       "priority": 5
     },
     {
       "name": "Africayo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Afrobeat TV Entertainment",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Bangers",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Black Diamondz",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Capital",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Chillayo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Classical Harmony",
-      "isFree": true,
+      "isFree": null,
       "website": "https://english-club.tv/channels/classical-harmony/",
       "priority": 5
     },
     {
       "name": "Clubland",
-      "isFree": true,
+      "isFree": null,
       "website": "http://aatw.com/",
       "priority": 5
     },
     {
       "name": "Club MTV Europe",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.mtv.co.uk/club-mtv",
       "priority": 5
     },
     {
       "name": "Cubayo",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Flame",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "FMTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.frecuenciamusicaltv.com/",
       "priority": 5
     },
     {
       "name": "Heart",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.heart.co.uk/tv",
       "priority": 5
     },
     {
       "name": "IBC Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://tvibctamil.com/",
       "priority": 5
     },
     {
       "name": "Kerrang!",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.boxplus.com/?channel=kerrang",
       "priority": 5
     },
     {
       "name": "Kick",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Kurd Music",
-      "isFree": true,
+      "isFree": null,
       "website": "https://kurdmusic.com/",
       "priority": 5
     },
     {
       "name": "Melodia RU",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "MTV 00s",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mtv.tv/",
       "priority": 5
     },
     {
       "name": "MTV 80s",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV 90s",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "MTV Base",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.mtv.co.uk/mtv-base",
       "priority": 5
     },
     {
       "name": "MTV Classic",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.mtv.co.uk/mtv-classic",
       "priority": 5
     },
     {
       "name": "MTV Hits",
-      "isFree": true,
+      "isFree": false,
       "keywords": "mtv hits -europe",
       "website": "http://www.mtv.co.uk/channels/mtv-hits",
       "priority": 5
     },
     {
       "name": "MTV Hits Europe",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.mtv.co.uk/channels/mtv-hits",
       "priority": 5
     },
     {
       "name": "MTV Live",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.mtv.ru/mtv-live-hd",
       "priority": 5
     },
     {
       "name": "MTV Music",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.mtv.co.uk/mtv-music",
       "priority": 5
     },
     {
       "name": "MTV Rocks Europe",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mtv.com/",
       "priority": 5
     },
     {
       "name": "Music & Memories",
-      "isFree": true,
+      "isFree": null,
       "website": "https://musicandmemories.uk/",
       "priority": 5
     },
     {
       "name": "Now 70s",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nowmusic.com/",
       "priority": 5
     },
     {
       "name": "Now 80s",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nowmusic.com/",
       "priority": 5
     },
     {
       "name": "Now 90s00s",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nowmusic.com/",
       "priority": 5
     },
     {
       "name": "NOW Rock",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.nowmusic.com/",
       "priority": 5
     },
     {
       "name": "Party's",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Songbird",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "That's 60s",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.thats.tv/",
       "priority": 5
     },
     {
       "name": "That's 70s",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.thats.tv/",
       "priority": 5
     },
     {
       "name": "That's 80s",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.thats.tv/",
       "priority": 5
     },
     {
       "name": "That's 90s",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.thats.tv/",
       "priority": 5
     },
     {
       "name": "That's Melody",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.thats.tv/",
       "priority": 5
     },
     {
       "name": "That's Oldies",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.thats.tv/",
       "priority": 5
     },
     {
       "name": "Totalmusic",
-      "isFree": true,
+      "isFree": null,
       "keywords": "totalmusic -2000s -80s -concerts -dance",
       "website": "https://www.40mediagroup.com",
       "priority": 5
     },
     {
       "name": "Totalmusic 2000s",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.40mediagroup.com",
       "priority": 5
     },
     {
       "name": "Totalmusic 80s",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.40mediagroup.com",
       "priority": 5
     },
     {
       "name": "Totalmusic Concerts",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.40mediagroup.com",
       "priority": 5
     },
     {
       "name": "Totalmusic Dance",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.40mediagroup.com",
       "priority": 5
     },
     {
       "name": "Trace Hits",
-      "isFree": true,
+      "isFree": null,
       "website": "https://trace.tv/uk/",
       "priority": 5
     },
@@ -5609,71 +5656,81 @@
     },
     {
       "name": "Trace Vault",
-      "isFree": true,
+      "isFree": null,
       "website": "https://trace.tv/uk/",
       "priority": 5
     },
     {
       "name": "Trace Xmas",
-      "isFree": true,
+      "isFree": null,
       "website": "https://trace.tv/uk/",
       "priority": 5
     },
     {
       "name": "VH",
-      "isFree": true,
+      "isFree": null,
       "keywords": "vh1 -adria -classic -europe",
       "website": "http://vh1e.com/",
       "priority": 5
     },
     {
       "name": "VH1 Adria",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "VH1 Classic Europe",
-      "isFree": true,
+      "isFree": false,
+      "priority": 5
+    },
+    {
+      "name": "NOW 90s",
+      "isFree": null,
       "priority": 5
     }
   ],
   "Movies & Series": [
     {
       "name": "Action Movies",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Comedy Movies",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Dark Matter",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Family Movies",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Movies Central",
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "African Movie",
-      "isFree": true,
+      "isFree": null,
       "keywords": "african movie channel -series",
       "website": "https://www.africanmoviechannel.tv/",
       "priority": 5
     },
     {
       "name": "African Movie Channel Series",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.africanmoviechannel.tv/",
       "priority": 5
     },
     {
       "name": "AMC Europe",
-      "isFree": true,
+      "isFree": false,
       "website": "https://uk.amc.com/",
       "priority": 5
     },
@@ -5685,104 +5742,104 @@
     },
     {
       "name": "Carlton Cinema",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "CBS Justice",
-      "isFree": true,
+      "isFree": null,
       "keywords": "cbs justice -africa",
       "website": "http://www.cbsjustice.tv/uk/",
       "priority": 5
     },
     {
       "name": "CBS Justice Africa",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.cbsjustice.tv/",
       "priority": 5
     },
     {
       "name": "Cinemachi",
-      "isFree": true,
+      "isFree": null,
       "keywords": "cinemachi -action -comedy -crime -docu -drama -family -fantasy -junior -kids -max -romance -scream -series -urban -xtra",
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Cinemachi Action",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Cinemachi Crime",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Cinemachi Drama",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Cinemachi Fantasy",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Cinemachi Max",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Cinemachi Romance",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Cinemachi Scream",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Cinemachi Series",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Cinemachi Urban",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Cinemachi Xtra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Discover Film",
-      "isFree": true,
+      "isFree": null,
       "website": "https://discover.film/",
       "priority": 5
     },
     {
       "name": "Epic Drama",
-      "isFree": true,
+      "isFree": null,
       "website": "https://epicdrama.eu/",
       "priority": 5
     },
     {
       "name": "Film 4",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.channel4.com/collection/film4",
       "priority": 5
     },
@@ -5794,66 +5851,66 @@
     },
     {
       "name": "Hala London TV Movies",
-      "isFree": true,
+      "isFree": null,
       "website": "https://halalondon.com/",
       "priority": 5
     },
     {
       "name": "Hala London TV Series",
-      "isFree": true,
+      "isFree": null,
       "website": "https://halalondon.com/",
       "priority": 5
     },
     {
       "name": "HorrorXtra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.horrorxtra.co.uk/",
       "priority": 5
     },
     {
       "name": "Lady Series",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Men Series",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.mimyuni.com/",
       "priority": 5
     },
     {
       "name": "Morphle",
-      "isFree": true,
+      "isFree": null,
       "website": "https://pluto.tv/en/live-tv/morphle-gb",
       "priority": 5
     },
     {
       "name": "Movie Mix",
-      "isFree": true,
+      "isFree": null,
       "priority": 5
     },
     {
       "name": "Movies 24",
-      "isFree": true,
+      "isFree": null,
       "keywords": "movies 24 -plus",
       "website": "https://www.tvmovies24.com/",
       "priority": 5
     },
     {
       "name": "Nolly Africa",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.africanmoviechannel.tv/products-and-services",
       "priority": 5
     },
     {
       "name": "Paramount Network",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "RealityXtra",
-      "isFree": true,
+      "isFree": null,
       "website": "https://www.realityxtra.co.uk/",
       "priority": 5
     },
@@ -5865,31 +5922,31 @@
     },
     {
       "name": "ShortsTV",
-      "isFree": true,
+      "isFree": null,
       "website": "https://shorts.tv/",
       "priority": 5
     },
     {
       "name": "Sky Cinema Sci Fi",
-      "isFree": true,
+      "isFree": false,
       "keywords": "sky cinema sci-fi-horror",
       "website": "https://www.sky.com/tv/cinema",
       "priority": 5
     },
     {
       "name": "Sky Crime",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.com/tv/cinema",
       "priority": 5
     },
     {
       "name": "Sky Movies Classics",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "TCM Movies",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.tcmuk.tv/",
       "priority": 5
     },
@@ -5901,19 +5958,19 @@
     },
     {
       "name": "U&Alibi",
-      "isFree": true,
+      "isFree": null,
       "website": "https://u.co.uk/",
       "priority": 5
     },
     {
       "name": "Universal",
-      "isFree": true,
+      "isFree": null,
       "website": "http://www.universaltv.co.uk/",
       "priority": 5
     },
     {
       "name": "Viasat Kino World",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     }
   ],
@@ -5931,12 +5988,12 @@
     },
     {
       "name": "Animal Planet Europe",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
       "name": "Animal Planet Nordic",
-      "isFree": true,
+      "isFree": false,
       "priority": 5
     },
     {
@@ -5987,13 +6044,13 @@
     },
     {
       "name": "Discovery History",
-      "isFree": true,
+      "isFree": false,
       "website": "http://www.yourdiscovery.com/web/discovery-history/",
       "priority": 7
     },
     {
       "name": "Discovery Wings",
-      "isFree": true,
+      "isFree": false,
       "priority": 7
     },
     {
@@ -6004,7 +6061,7 @@
     },
     {
       "name": "Docu History",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.mimyuni.com/",
       "priority": 7
     },
@@ -6075,20 +6132,20 @@
     },
     {
       "name": "National Geographic Middle East",
-      "isFree": true,
+      "isFree": false,
       "website": "http://natgeotv.com/me",
       "priority": 7
     },
     {
       "name": "National Geographic Wild",
-      "isFree": true,
+      "isFree": false,
       "keywords": "national geographic wild -middle -east",
       "website": "http://www.natgeowild.co.uk/",
       "priority": 7
     },
     {
       "name": "National Geographic Wild Middle East",
-      "isFree": true,
+      "isFree": false,
       "website": "http://natgeotv.com/me",
       "priority": 7
     },
@@ -6106,13 +6163,13 @@
     },
     {
       "name": "Sky Documentaries",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.com/watch/sky-documentaries",
       "priority": 5
     },
     {
       "name": "Sky Nature",
-      "isFree": true,
+      "isFree": false,
       "website": "https://www.sky.com/watch/sky-nature",
       "priority": 5
     },
