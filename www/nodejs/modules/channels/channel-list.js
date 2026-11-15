@@ -18,7 +18,9 @@ export class ChannelsList extends EventEmitter {
         this.profile = profile
         this.isChannelCache = {}
         this.generatedCache = new Map();
-        this.channelsIndex = {}        
+        this.channelsIndex = {}
+        this.channelsIndexAll = {}
+        this.referenceBase = null
         this.affiliatesIndex = null
         this.affiliatesParents = {}
         this.categories = {}
@@ -51,6 +53,14 @@ export class ChannelsList extends EventEmitter {
             this.categories = {}
         } else {
             const mods = await storage.get(this.userModsKey).catch(err => console.error(err)) || { additions: {}, removals: {}, renames: {}, termChanges: {} }
+            this.userMods = mods
+            // Paid channels are hidden from the list in public mode, but identification
+            // still needs them: 'Globo News' is a different channel from 'Globo', and its
+            // terms ('news') are what keeps the two from being confused.
+            this.referenceBase = this.onlyFree ? await this.get(false).catch(err => {
+                console.error('channelsList.load: failed to build the reference list: ' + err)
+                return base
+            }) : base
             this.categories = this.applyMods(base, mods)
             // Sort categories and channels like in save()
             let ordering = {};
@@ -67,6 +77,7 @@ export class ChannelsList extends EventEmitter {
             this.categories = ordering;
             this.baseCache = base
             this.channelsIndex = null
+            this.channelsIndexAll = null
             this.isChannelCache = {}
             if (refresh) {
                 changed = true
@@ -102,8 +113,16 @@ export class ChannelsList extends EventEmitter {
             ])
         )
     }
+    // Categories applying the user edits, keeping the channels left out of the
+    // displayed list (public mode) so they can still be told apart.
+    referenceCategories() {
+        if (!this.onlyFree) return this.categories
+        return this.applyMods(this.referenceBase || this.categories, this.userMods)
+    }
     async getKeywords(size = 64) {
-        const list = await this.generate()
+        // generated without the free-only filter so the keywords of paid siblings
+        // (and their exclusions) are not lost in public mode
+        const list = await this.generate({ freeOnly: false })
         const keywords = []
         for (const ch of list) {
             const ts = ch.keywords.split(' ')
@@ -199,9 +218,9 @@ export class ChannelsList extends EventEmitter {
             .map(key => `${key}:${JSON.stringify(opts[key])}`)
             .join('|');
     }
-    async get(onlyFree = false) {
+    async get(onlyFree = this.onlyFree === true) {
         const list = await this.generate({
-            freeOnly: onlyFree === true || this.onlyFree === true
+            freeOnly: onlyFree === true
         }).catch(e => console.error(e)) || []
         const ret = {}
         for (const ch of list) {
@@ -212,19 +231,78 @@ export class ChannelsList extends EventEmitter {
         return ret
     }
     updateChannelsIndex(refresh) {
-        if (refresh === true || !this.channelsIndex || !Object.keys(this.channelsIndex).length) {
-            let index = {};
-            this.getCategories().forEach(cat => {
-                cat.entries.forEach(e => {
-                    index[e.name] = e.terms;
+        if (refresh === true || !this.channelsIndex || !Object.keys(this.channelsIndex).length || !this.channelsIndexAll || !Object.keys(this.channelsIndexAll).length) {
+            this.generatedCache.clear();
+            this.isChannelCache = {};
+            const displayed = this.buildChannelsIndex(this.categories);
+            // the identification vocabulary always covers the full list, even in
+            // public mode, where paid channels are missing from the displayed one
+            this.channelsIndexAll = this.applySiblingExclusions(this.buildChannelsIndex(this.referenceCategories()));
+            this.channelsIndex = {};
+            Object.keys(this.channelsIndexAll).forEach(name => {
+                if (displayed[name]) this.channelsIndex[name] = this.channelsIndexAll[name];
+            });
+        }
+    }
+    // Appends the keywords of every sibling channel as '-exclusions' (the same
+    // disambiguation channels.isChannel() builds), so a paid sibling such as
+    // 'Globo News' can never be scored as its free parent 'Globo' just because it
+    // is not part of the displayed list.
+    applySiblingExclusions(index) {
+        const names = Object.keys(index);
+        const byTerm = {};
+        names.forEach(name => {
+            (index[name] || []).forEach(t => {
+                if (!t || t.charAt(0) == '-') return;
+                if (!byTerm[t]) byTerm[t] = [];
+                byTerm[t].push(name);
+            });
+        });
+        const ret = {};
+        names.forEach(name => {
+            const terms = index[name] || [];
+            const candidates = new Set();
+            terms.forEach(t => {
+                (byTerm[t] || []).forEach(other => {
+                    if (other != name) candidates.add(other);
                 });
             });
-            let keys = Object.keys(index);
-            keys.sort((a, b) => { return index[a].length > index[b].length ? -1 : (index[a].length < index[b].length) ? 1 : 0; });
-            this.generatedCache.clear();
-            this.channelsIndex = {};
-            keys.forEach(k => this.channelsIndex[k] = index[k]);
-        }
+            const excludes = [];
+            const push = t => {
+                if (!t || !/^[a-z0-9]/i.test(t) || terms.includes(t) || excludes.includes(t)) return;
+                excludes.push(t);
+            };
+            candidates.forEach(other => {
+                const otherTerms = index[other];
+                if (!global.lists.tools.match(terms, otherTerms, false)) return;
+                otherTerms.forEach(push);
+                // EPG channel names often run the sibling name together ('GloboNews HD'),
+                // which the plain word-by-word exclusion cannot see
+                push(otherTerms.join(''));
+            });
+            ret[name] = terms.concat(excludes.map(t => '-' + t));
+        });
+        return ret;
+    }
+    // Whether a channel belongs to the list actually being displayed. In public
+    // mode paid channels are filtered out of it: they stay identifiable (so they
+    // can be told apart) but must not be offered back to the user.
+    isDisplayed(name) {
+        if (!this.channelsIndex || !Object.keys(this.channelsIndex).length) return true
+        return !!this.channelsIndex[name]
+    }
+    buildChannelsIndex(data) {
+        const index = {};
+        this.expand(data && typeof (data) == 'object' ? data : {}).forEach(cat => {
+            cat.entries.forEach(e => {
+                index[e.name] = e.terms;
+            });
+        });
+        let keys = Object.keys(index);
+        keys.sort((a, b) => { return index[a].length > index[b].length ? -1 : (index[a].length < index[b].length) ? 1 : 0; });
+        const ret = {};
+        keys.forEach(k => ret[k] = index[k]);
+        return ret;
     }
     normalizeChannelName(name) {
         return String(name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim()

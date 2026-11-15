@@ -19,7 +19,9 @@ import lang from '../lang/lang.js'
 
 const GENERAL = ''
 
-const PROFILES = [GENERAL, 'adult', 'sports', 'movies', 'series', 'kids', 'anime', 'news', 'music-video', 'religious']
+// Adult goes last: it is the riskiest choice and the profile dialogs list these
+// codes in order, with the selection resting on the first entry.
+const PROFILES = [GENERAL, 'sports', 'movies', 'series', 'kids', 'anime', 'news', 'music-video', 'religious', 'adult']
 
 const FALLBACK_LABELS = {
     pt: {
@@ -180,6 +182,13 @@ class ContentProfile extends EventEmitter {
             if (normalized && !ret.includes(normalized)) {
                 ret.push(normalized)
             }
+        }
+        // Cloud-declared profiles are appended above, so re-pin adult to the end:
+        // it must always be the last option offered.
+        const adultIndex = ret.indexOf('adult')
+        if (adultIndex > -1 && adultIndex != ret.length - 1) {
+            ret.splice(adultIndex, 1)
+            ret.push('adult')
         }
         return ret
     }

@@ -87,7 +87,7 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         this.cacheMaxAge = this.cacheTTLSeconds * 1000  // same in ms for isCacheValid
         // Bump whenever the scoring changes: a cache written by an older scoring
         // would otherwise be served for up to 7 days.
-        this.cacheVersion = 8
+        this.cacheVersion = 9 // channel identity now carries its sibling exclusions, older caches may hold misattributed programmes
 
         // Update queue system using p-queue (prevents simultaneous updates)
         this.updateQueue = new PQueue({
@@ -2303,6 +2303,9 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             if (typeof rec.channel === 'string') {
                 channelName = rec.channel
                 channelObj = global.channels?.isChannel?.(rec.channel) || { name: rec.channel }
+                if (channelObj.available === false) {
+                    return null; // paid channel, absent from a public-lists setup
+                }
             } else if (rec.channel?.name) {
                 channelName = rec.channel.name
                 channelObj = rec.channel
@@ -2730,6 +2733,9 @@ class SmartRecommendationsCompatibility extends EventEmitter {
 
             for (const ch in data) {
                 let channel = global.channels?.isChannel(ch)
+                if (channel && channel.available === false) {
+                    continue; // paid channel, absent from a public-lists setup
+                }
                 if (channel) {
                     let t
                     for (const programme of data[ch]) {
@@ -2765,6 +2771,9 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             const chs = {}, now = Date.now() / 1000
             for (const ch in data) {
                 let channel = global.channels?.isChannel(ch)
+                if (channel && channel.available === false) {
+                    continue; // paid channel, absent from a public-lists setup
+                }
                 if (channel) {
                     if (typeof (chs[channel.name]) === 'undefined') {
                         chs[channel.name] = global.channels?.epgPrepareSearch(channel)

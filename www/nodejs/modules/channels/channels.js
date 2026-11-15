@@ -198,10 +198,19 @@ class ChannelsEPG extends ChannelsData {
             }
         })
     }
+    // EPG candidates are names coming from the EPG lists, not from our channel list. When
+    // one of them resolves to a channel outside the displayed list (a paid sibling such as
+    // "Globo News" while picking the EPG source for "Globo"), it must not be offered nor
+    // used: its programmes belong to another channel.
+    epgCandidateAllowed(name) {
+        if (!name || name === '-') return true
+        const ch = this.isChannel(name)
+        return !ch || ch.available !== false
+    }
     epgPrepareSearch(e) {
-        let ret = { name: e.originalName || e.name }, map = config.get('epg-map');
-        if (map[ret.name]) {
-            ret.searchName = map[ret.name];
+        let ret = { name: e.originalName || e.name }, map = config.get('epg-map'), mapped = map[ret.name];
+        if (mapped && this.epgCandidateAllowed(mapped)) {
+            ret.searchName = mapped;
         }
         ret.terms = this.entryTerms(e, true)
         ret.terms = this.expandTerms(ret.terms)
@@ -354,7 +363,7 @@ class ChannelsEPG extends ChannelsData {
         const results = await global.lists.epgSearchChannel(terms, 99)
         Object.keys(results).forEach(name => {
             let keys = Object.keys(results[name]);
-            if (!keys.length)
+            if (!keys.length || !this.epgCandidateAllowed(name))
                 return;
             let details = results[name][keys[0]].title;
             details += '&nbsp;<span style="opacity: var(--opacity-level-3);">&middot;</span> <i class="fas fa-th" aria-hidden="true"></i> ' + keys.length
@@ -1032,7 +1041,10 @@ class Channels extends ChannelsKids {
         if (!this.channelList || !terms) return
         if (terms.isChannel) return terms.isChannel
 
-        let tms, tmsKey, chs = this.channelList.channelsIndex || {};
+        // identification uses the full index (paid siblings included): in public mode the
+        // displayed list lacks them, and without 'Globo News' a 'Globo News' entry would be
+        // taken for 'Globo' and inherit its stream and EPG
+        let tms, tmsKey, chs = this.channelList.channelsIndexAll || this.channelList.channelsIndex || {};
         if (Array.isArray(terms)) {
             tms = terms;
             tmsKey = tms.join(' ')
@@ -1061,6 +1073,10 @@ class Channels extends ChannelsKids {
             if (typeof (this.channelList.isChannelCache[chosen]) == 'undefined') {
                 let alts = {}, excludes = [], chTerms = clone(chs[chosen]?.name || chs[chosen]);
                 if (!Array.isArray(chTerms)) chTerms = [];
+                // the index may already carry exclusions ('-news'), keep them apart so
+                // sibling detection still works on the plain terms
+                chTerms = chTerms.filter(t => typeof (t) == 'string' && t.charAt(0) != '-');
+                excludes = clone(chs[chosen]?.name || chs[chosen]).filter(t => typeof (t) == 'string' && t.charAt(0) == '-').map(t => t.substr(1));
                 Object.keys(chs).forEach(name => {
                     if (name == chosen)
                         return;
@@ -1092,7 +1108,7 @@ class Channels extends ChannelsKids {
                         return t;
                     }).map(s => s.join(' ')).join(' | ').split(' ');
                 }
-                this.channelList.isChannelCache[chosen] = { name: chosen, terms: chTerms, alts, excludes };
+                this.channelList.isChannelCache[chosen] = { name: chosen, terms: chTerms, alts, excludes, available: this.channelList.isDisplayed(chosen) };
             }
             if (tmsKey != chosen) {
                 this.channelList.isChannelCache[tmsKey] = this.channelList.isChannelCache[chosen]
@@ -1217,6 +1233,9 @@ class Channels extends ChannelsKids {
             const epgResults = await this.epgSearch(terms, true)
             epgEntries = epgResults.map(e => {
                 const ch = this.isChannel(e.programme.channel)
+                if (ch && ch.available === false) {
+                    return; // paid channel, absent from a public-lists setup
+                }
                 if (ch && typeof (already[ch.name]) === 'undefined') {
                     already[ch.name] = null
                     if (e.details) {

@@ -1155,12 +1155,16 @@
         .dialog-template-options.two-columns {
             flex-direction: row;
             flex-wrap: wrap;
+            /* the rows are separated by the options' 2px top+bottom margins (= 4px),
+               so use the same 4px between the columns instead of letting them touch */
+            column-gap: 4px;
         }
         .dialog-template-options.two-columns .dialog-template-option,
         .dialog-template-options.two-columns
             .dialog-template-option-detailed {
-            width: 50%;
-            border-width: 0 1px 1px 0;
+            /* two items plus the column gap must add up to 100% */
+            width: calc(50% - 2px);
+            border-width: 0;
         }
     }
     .dialog-template-slider a:first-child,

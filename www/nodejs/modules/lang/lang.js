@@ -88,10 +88,13 @@ class Language extends EventEmitter {
         const top = ranked[0]
         const primaryRegion = this.hints.countries && this.hints.countries[0]
         const regionMatches = !!top && !!this.systemRegion && top.code === this.systemRegion
+        // A region the user actually named (the OS region setting or the region subtag of the
+        // top system language) is not a guess, even when another hint scores close to it.
+        const trustedRegion = regionMatches || (!!top && countriesTz.includes(top.code) && top.code === primaryRegion)
         // A near tie means the winner was decided by the language weighting (or by population),
         // which is a guess: it is better to let the wizard ask the country than to silently keep
         // a wrong one. A region hint (pt-BR) or the OS region gives the winner a wide margin.
-        const ambiguous = !!top && ranked.length > 1 && (top.score - ranked[1].score) <= 3
+        const ambiguous = !!top && ranked.length > 1 && !trustedRegion && (top.score - ranked[1].score) <= 3
         this.isTrusted = !!top && !ambiguous && (regionMatches || (countriesTz.includes(top.code) && (ranked.length == 1 || top.code === primaryRegion)))
         return this.countryCode = top ? top.code : 'us';
     }
@@ -167,7 +170,13 @@ class Language extends EventEmitter {
             actives = await this.getCountries(languages)
         }
         actives = this.countries.getNearestPopulous(this.countryCode, actives.filter(c => c != this.countryCode), (limit - 1) || 999)
-        return [this.countryCode, ...actives]
+        // repeated codes would duplicate channels and country entries downstream
+        const seen = new Set()
+        return [this.countryCode, ...actives].map(c => String(c || '').toLowerCase()).filter(code => {
+            if (!code || seen.has(code)) return false
+            seen.add(code)
+            return true
+        })
     }
     async getCountriesMap(locale, additionalCountries) {
         const codes = await this.getCountries(locale);

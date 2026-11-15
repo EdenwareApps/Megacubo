@@ -215,11 +215,13 @@ class List extends EventEmitter {
         const index = this.index, values = {
             hits: 0
         };
+        // keep the url locally: destroy() nulls this.url, and this method keeps awaiting
+        const url = this.url;
         
         // Check cache for relevance
         const keywords = this.master && typeof this.master.relevantKeywords === 'function' ? await this.master.relevantKeywords() : null;
         const keywordsHash = keywords ? crypto.createHash('md5').update(JSON.stringify(keywords)).digest('hex') : '';
-        const cacheKey = 'list-relevance-' + this.url;
+        const cacheKey = 'list-relevance-' + url;
         const cached = await storage.get(cacheKey);
         if (cached && cached.keywordsHash === keywordsHash && cached.mtime === index.lastmtime) {
             this.relevance = cached;
@@ -298,20 +300,26 @@ class List extends EventEmitter {
         if (!Array.isArray(keywords) || !keywords.length) {
             return 0;
         }
+        // Relevance is computed across several awaits, and the list can be destroyed
+        // (releasing the indexer) meanwhile, so never assume the indexer is still around.
+        const db = this.indexer && this.indexer.db;
+        if (!db) {
+            return 0;
+        }
         const tiered = keywords.some(tier => tier && Array.isArray(tier.groups))
         if (!tiered) {
             const groups = keywords.filter(group => Array.isArray(group?.terms) && group.terms.length > 0)
             if (!groups.length) {
                 return 0;
             }
-            return await this.indexer.db.coverage('nameTerms', groups, { mediaType: ['live'] });
+            return await db.coverage('nameTerms', groups, { mediaType: ['live'] });
         }
         let sum = 0, weights = 0;
         for (const tier of keywords) {
             const groups = (tier?.groups || []).filter(group => Array.isArray(group?.terms) && group.terms.length > 0)
             if (!groups.length) continue;
             const weight = Number(tier.weight) > 0 ? Number(tier.weight) : 1;
-            const coverage = Number(await this.indexer.db.coverage('nameTerms', groups, { mediaType: ['live'] })) || 0;
+            const coverage = Number(await db.coverage('nameTerms', groups, { mediaType: ['live'] })) || 0;
             sum += coverage * weight;
             weights += weight;
         }

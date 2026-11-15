@@ -215,6 +215,11 @@ export default class Trending extends EntriesGroup {
         }
         data.forEach((entry, i) => {
             let ch = this.channels.isChannel(entry.nameTerms);
+            if (ch && ch.available === false) {
+                // known only through the full vocabulary (a paid channel in public
+                // mode): don't turn it into a channel group, it's not in the list
+                ch = null;
+            }
             if (popularSearches && !ch) {
                 searchTerms.some(terms => {
                     if (lists.tools.match(terms, entry.nameTerms)) {

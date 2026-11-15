@@ -561,16 +561,30 @@ class Options extends OptionsExportImport {
             const countries = lang.countries.getCountriesFromLanguage(locale);
             const pcountries = lang.countries.orderCodesBy(countries, 'population', true).slice(0, 4);
             // the detected country and the closest candidates are offered first, before the
-            // most populous countries of the chosen language
+            // most populous countries of the chosen language, which often overlap them
             const detected = [lang.countryCode, ...(lang.alternateCountries || [])].filter(c => c && lang.countries.countryCodeExists(c));
-            await this.country([...detected, ...pcountries, ...countries.filter(c => !pcountries.includes(c) && !detected.includes(c))], true).catch(err => console.error(err));
+            const suggestedCountries = this.uniqueCountryCodes([...detected, ...pcountries, ...countries]);
+            await this.country(suggestedCountries, true).catch(err => console.error(err));
             restart && energy.restart();
         }
+    }
+    // Country codes come from different sources (detected country, closest candidates,
+    // most populous countries of the language); drop repeats so a country is never
+    // listed twice in the country picker.
+    uniqueCountryCodes(codes) {
+        const seen = new Set()
+        return (Array.isArray(codes) ? codes : []).filter(code => {
+            const key = String(code || '').toLowerCase()
+            if (!key || seen.has(key)) return false
+            seen.add(key)
+            return true
+        })
     }
     async country(suggestedCountries, force) {
         if (!Array.isArray(suggestedCountries) || !suggestedCountries.length) {
             suggestedCountries = lang.alternateCountries;
         }
+        suggestedCountries = this.uniqueCountryCodes(suggestedCountries)
         if ((force || !config.get('country')) && suggestedCountries && suggestedCountries.length) {
             const to = lang.locale;
             const opts = [

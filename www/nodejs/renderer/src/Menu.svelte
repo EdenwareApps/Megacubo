@@ -41,6 +41,7 @@
     // Some icons are Font Awesome class names ("fas fa-plus") instead of image URLs.
     // Those can't be used as artwork, so the billboard falls back to the text title.
     const focusedArt = $derived((() => {
+        if (focusedItem?.type === 'back') return '';
         const url = (focusedItem && icons[focusedItem.path]?.url) || '';
         return (url && !/\s/.test(url) && !/^fa[slrbd]?-/i.test(url)) ? url : '';
     })());
@@ -100,7 +101,7 @@
     // happens after the entries are prepared; deriving the cover state from the reactive icon
     // map makes the entries stretch as soon as the artwork arrives, on the very first visit.
     function isCover(item) {
-        if (!item || item.side) return false;
+        if (!item || item.side || item.type === 'back') return false;
         const icon = icons && icons[item.path];
         if (icon && icon.cover) {
             return !!(main?.config?.['stretch-logos'] || item.class?.includes('entry-force-cover'));
@@ -1618,7 +1619,7 @@ body.side-menu #menu svelte-virtual-grid-contents a .entry-cover-container {
     inset: 0;
     background:
         linear-gradient(to bottom, rgba(11, 11, 14, 0.92) 0%, rgba(11, 11, 14, 0.32) 22%, rgba(11, 11, 14, 0) 46%),
-        linear-gradient(to top, rgba(11, 11, 14, 1) 0%, rgba(11, 11, 14, 0.86) 26%, rgba(11, 11, 14, 0.34) 68%, rgba(11, 11, 14, 0.12) 100%),
+        linear-gradient(to top, rgba(11, 11, 14, 1) 0%, rgba(11, 11, 14, 0.86) 26%, rgba(11, 11, 14, 0) 68%, rgba(11, 11, 14, 0.12) 100%),
         linear-gradient(to right, rgba(11, 11, 14, 0.9) 0%, rgba(11, 11, 14, 0.46) 44%, rgba(11, 11, 14, 0.08) 76%);
 }
 #menu-hero .hero-body {

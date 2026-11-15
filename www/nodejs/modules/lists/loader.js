@@ -39,6 +39,9 @@ class ListsLoader extends EventEmitter {
         this.results = {};
         this.progresses = {};
         this.processes = [];
+        this.pendingProcess = false;
+        this.retryTimeout = null;
+        this.retryAttempts = 0;
         this.myLists = config.get('lists').map(l => l[1]);
         this.publicListsActive = config.get('public-lists');
         this.communityListsAmount = master.communityListsAmount;
@@ -228,7 +231,37 @@ class ListsLoader extends EventEmitter {
         this.resetCommunityIdle();
         this.resetPublicIdle();
         this.master.processedLists.clear();
-        this.process();
+        this.retryAttempts = 0;
+        this.requestProcess();
+    }
+
+    /**
+     * Runs a processing pass, queueing the request when a pass is already running
+     * instead of dropping it. Dropping it left the app stuck on "starting lists"
+     * until the next launch (e.g. the wizard enables community lists while the
+     * boot pass is still downloading the public lists).
+     */
+    requestProcess() {
+        if (this.isProcessing) {
+            this.pendingProcess = true;
+            return;
+        }
+        this.pendingProcess = false;
+        this.process().catch(err => console.error('Error processing lists', err));
+    }
+
+    /**
+     * Retries a pass that ended while lists are still needed (preempted by newer
+     * work or by a superseded task), so the loader never stalls silently.
+     */
+    scheduleRetry(delayMs = 1000) {
+        if (this.retryTimeout || this.pendingProcess) return;
+        const delay = Math.min(delayMs * Math.pow(2, this.retryAttempts++), 30000);
+        this.retryTimeout = setTimeout(() => {
+            this.retryTimeout = null;
+            this.requestProcess();
+        }, delay);
+        this.retryTimeout.unref?.();
     }
 
     async process(recursion = 0) {
@@ -244,7 +277,8 @@ class ListsLoader extends EventEmitter {
             return;
         }
         if (recursion === 0 && this.isProcessing) {
-            console.log('[lists.loader] process() skip: already processing');
+            console.log('[lists.loader] process() skip: already processing, queueing another pass');
+            this.pendingProcess = true;
             return;
         }
         this.isProcessing = true;
@@ -336,7 +370,12 @@ class ListsLoader extends EventEmitter {
                 this.downloadQueue.onIdle(),
                 this.parseQueue.onIdle()
             ]);
-            if (this.currentTaskId !== taskId || this.downloadQueue.size || this.parseQueue.size) return;
+            if (this.currentTaskId !== taskId) return;
+            if (this.downloadQueue.size || this.parseQueue.size) {
+                // New work arrived meanwhile; finish it in another pass instead of stalling.
+                this.scheduleRetry();
+                return;
+            }
 
             this.maybeEmitCommunityIdle({
                 urls,
@@ -355,16 +394,32 @@ class ListsLoader extends EventEmitter {
             await new Promise(resolve => setTimeout(resolve, 200));
             if (this.currentTaskId !== taskId) return;
 
+            // Recompute state before deciding the round is over, so settings changed
+            // during this pass (e.g. community lists just enabled by the wizard) are
+            // taken into account instead of ending the round on a stale "satisfied".
+            this.master.updateState();
             let promise = 0;
             if (this.master.satisfied) {
+                this.retryAttempts = 0;
                 this.master.updaterFinished(true)
             } else {
                 promise = this.process(recursion + 1);
             }
-            this.master.updateState();
             await promise;
         } finally {
             this.isProcessing = false;
+            if (recursion === 0 && !global.isExiting) {
+                if (this.pendingProcess) {
+                    this.pendingProcess = false;
+                    // Let the current promise chain unwind before starting a new pass.
+                    setTimeout(() => this.requestProcess(), 0);
+                } else if (!this.master.satisfied && this.retryAttempts < 6) {
+                    // Pass ended while lists are still missing (e.g. a provider was
+                    // not ready yet); retry with backoff instead of stalling.
+                    console.log('[lists.loader] process() ended unsatisfied, scheduling retry', { attempt: this.retryAttempts });
+                    this.scheduleRetry();
+                }
+            }
         }
     }
 

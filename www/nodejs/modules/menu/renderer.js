@@ -921,7 +921,7 @@ export class Menu extends MenuNav {
         if (typeof(e.statusFlags) != 'string') e.statusFlags = ''
         if (typeof e.rawname === 'string' && e.rawname.includes('[')) e.rawname = this.parseBBCode(e.rawname)
         e.wrapperClass = 'entry-wrapper'
-        if (!e.side && this.icons[e.path] && this.icons[e.path].cover && (main.config['stretch-logos'] || (e.class && e.class.includes('entry-force-cover')))) {
+        if (e.type != 'back' && !e.side && this.icons[e.path] && this.icons[e.path].cover && (main.config['stretch-logos'] || (e.class && e.class.includes('entry-force-cover')))) {
             e.cover = true
             e.wrapperClass += ' entry-cover-active'
         } else {

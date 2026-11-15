@@ -837,10 +837,17 @@ class Menu extends EventEmitter {
     // can still be re-homed to the correct list page.
     absoluteEntryPath(item, pagePath) {
         const p = item.path
+        // A back entry already carries the absolute path it returns to (dirname of
+        // the page, set by addMetaEntries/applyFilters), so it must never be
+        // resolved as a list-relative path. Re-prefixing it turns a single-segment
+        // parent (e.g. "Manda Chuva" for "Manda Chuva/Programming guide") into
+        // "Manda Chuva/Programming guide/Manda Chuva", which collides with the
+        // channel entry of that name and makes Back share its artwork/icon key.
+        if (item.type === 'back') {
+            return (typeof p === 'string' && p) ? p : this.dirname(pagePath)
+        }
         if (typeof p !== 'string' || !p) {
-            return item.type === 'back'
-                ? this.dirname(pagePath)
-                : (pagePath ? `${pagePath}/${item.name}` : item.name)
+            return pagePath ? `${pagePath}/${item.name}` : item.name
         }
         if (!pagePath) {
             // Rendered on the home page. A list-relative single-segment path is

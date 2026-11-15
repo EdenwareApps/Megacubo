@@ -696,9 +696,17 @@ class Lists extends ListsEPGTools {
     }
     handleCommunityListsAmountChange(data, force) {
         if (force === true || this.communityListsAmount != data['community-mode-lists-amount']) {
+            const previousAmount = this.communityListsAmount;
             this.communityListsAmount = data['community-mode-lists-amount'];
+            this.isFirstRun = !this.communityListsAmount && !config.get('lists').length;
+            if (this.communityListsAmount > previousAmount) {
+                // Community lists were just enabled (e.g. by the setup wizard), so a
+                // previously finished round no longer satisfies the new quota.
+                this.updaterFinished(false);
+            }
             // Force trim to remove community lists if quota is now 0
             this.trim();
+            this.updateState();
         }
     }
     setCommunityRetryDismissed(dismissed = true) {

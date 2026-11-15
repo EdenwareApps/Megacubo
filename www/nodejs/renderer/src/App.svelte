@@ -83,7 +83,6 @@
     --controls-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 20%, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0.9) 50.5%, rgba(0, 0, 0, 0.3) 100%);
     --seekbar-height: calc(var(--padding) * 3);
     --solid-text-shadow: 1px 1px 0 black, -1px -1px 0 black, -1px 1px 0 black, 1px -1px 0 black, 2px 2px 0 black;
-    /* Streaming (Netflix-inspired) surface palette */
     --nf-black: #0b0b0e;
     --nf-bg: #141414;
     --nf-surface: #232323;
@@ -91,10 +90,10 @@
     --nf-line: rgba(255, 255, 255, 0.08);
     --nf-text: #ffffff;
     --nf-text-dim: #b3b3b3;
-    --nf-accent: #8b5cf6;
+    --nf-accent: #6437cc;
     --nf-accent-bright: #a78bfa;
     --nf-accent-soft: rgba(139, 92, 246, 0.42);
-    --nf-accent-dim: #6d28d9;
+    --nf-accent-dim: #23005d;
     --nf-accent-wash: rgba(139, 92, 246, 0.16);
     --nf-danger: #cc0849;
     --nf-radius: 6px;
@@ -140,7 +139,7 @@ html {
     height: 100vh;
     margin: 0;
     padding: 0;
-    background-color: var(--nf-black);
+    background-color: var(--nf-accent-dim);
 }
 body {
     position: fixed; /* prevents scroll bug */
@@ -222,7 +221,7 @@ button.button-alpha i {
     color: #930d42 !important;
 }
 .faclr-purple {
-    color: #af07c1 !important;
+    color: var(--nf-accent) !important;
 }
 .fa-blink-alpha {
     animation: blink-alpha 1.1s infinite linear;
