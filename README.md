@@ -83,7 +83,7 @@ Megacubo was designed as a flexible media player focused on accessibility, organ
 </p>
 
 <p align="center">
-  <img width="420" src="https://static.megacubo.tv/screenshots/megacubo-menu.png" alt="Megacubo main menu" title="Megacubo main menu" />&nbsp;&nbsp;
+  <img width="420" src="https://static.megacubo.tv/screenshots/megacubo-menu.png" alt="Megacubo main menu" title="Megacubo main menu" />&nbsp;
   <img width="420" src="https://static.megacubo.tv/screenshots/megacubo-options.png" alt="Megacubo options screen" title="Megacubo options screen" />
 </p>
 
