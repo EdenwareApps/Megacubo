@@ -737,7 +737,8 @@ switch (targetPlatform) {
     break;
   case 'linux':
     // Gerar todos os formatos Linux: AppImage, Snap e Flatpak
-    installerCommand = `npx electron-builder --config electron-builder.config.mjs --linux AppImage snap flatpak --publish=never --prepackaged "${unpackedDir}"`;
+    // LINUX_TARGETS permite limitar os formatos (ex.: CI que só empacota AppImage)
+    installerCommand = `npx electron-builder --config electron-builder.config.mjs --linux ${process.env.LINUX_TARGETS || 'AppImage snap flatpak'} --publish=never --prepackaged "${unpackedDir}"`;
     break;
   case 'mac':
     installerCommand = `npx electron-builder --config electron-builder.config.mjs --mac dmg --publish=never --prepackaged "${unpackedDir}"`;

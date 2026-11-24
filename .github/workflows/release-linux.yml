@@ -1,0 +1,106 @@
+name: Release Linux (AppImage)
+
+# Gera o AppImage num runner ubuntu-22.04 (libfuse2 + glibc recente) e publica-o
+# na GitHub Release. Sem CI o AppImage deixou de ser produzido depois da v17.6.2.
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload_release:
+        description: Publicar o AppImage numa GitHub Release (v<versão do package.json>)
+        type: boolean
+        default: true
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-linux-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  appimage:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependências de sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libfuse2 unzip squashfs-tools file
+
+      - name: Instalar appimagetool
+        run: |
+          set -euo pipefail
+          sudo wget -q -O /usr/local/bin/appimagetool-real \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          sudo chmod +x /usr/local/bin/appimagetool-real
+          # wrapper: não depende de FUSE no runner
+          printf '#!/bin/sh\nexec /usr/local/bin/appimagetool-real --appimage-extract-and-run "$@"\n' \
+            | sudo tee /usr/local/bin/appimagetool >/dev/null
+          sudo chmod +x /usr/local/bin/appimagetool
+
+      - name: Instalar dependências npm
+        run: npm ci --legacy-peer-deps
+
+      - name: Compilar aplicação
+        run: npm run build
+
+      - name: Empacotar AppImage
+        env:
+          LINUX_TARGETS: AppImage
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+        run: node scripts/build-electron.mjs linux
+
+      - name: Normalizar nome do AppImage
+        id: art
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          SRC="$(find dist -maxdepth 1 -name '*.AppImage' -print -quit)"
+          if [ -z "$SRC" ]; then
+            echo "::error::Nenhum AppImage foi gerado em dist/"
+            ls -la dist || true
+            exit 1
+          fi
+          OUT="dist/Megacubo-${VERSION}-x86_64.AppImage"
+          mv "$SRC" "$OUT"
+          # valida o squashfs extraindo o payload (falha se o AppImage estiver corrompido)
+          ( cd "$(mktemp -d)" && "$OLDPWD/$OUT" --appimage-extract >/dev/null )
+          ls -lh "$OUT"
+          echo "file=$OUT" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Guardar AppImage como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: appimage-x86_64
+          path: dist/Megacubo-*-x86_64.AppImage
+          if-no-files-found: error
+
+      - name: Publicar na GitHub Release
+        if: github.event_name == 'push' || inputs.upload_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG="${{ github.ref_name }}"
+          else
+            TAG="v${{ steps.art.outputs.version }}"
+          fi
+          gh release view "$TAG" >/dev/null 2>&1 \
+            || gh release create "$TAG" --target "$GITHUB_SHA" --title "Megacubo $TAG" --generate-notes
+          gh release upload "$TAG" "${{ steps.art.outputs.file }}" --clobber
+          echo "AppImage publicado em https://github.com/${{ github.repository }}/releases/tag/$TAG"
