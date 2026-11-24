@@ -1,0 +1,5 @@
+# Artefactos gerados pelo workflow (não versionar)
+/app/
+/icon.png
+/build-dir/
+/repo/

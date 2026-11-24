@@ -1,0 +1,192 @@
+name: Release Linux (Snap + Flatpak)
+
+# Empacota o Megacubo em .snap (electron-builder) e .flatpak (flatpak-builder)
+# num runner ubuntu-22.04 e publica ambos na GitHub Release.
+#
+# Publicação nas lojas continua manual:
+#   - Snap Store: precisa de SNAPCRAFT_STORE_CREDENTIALS (snapcraft export-login)
+#   - Flathub:    precisa de um PR em https://github.com/flathub/flathub
+# Aqui só se geram os pacotes e se anexam à release.
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload_release:
+        description: Publicar os pacotes numa GitHub Release (v<versão do package.json>)
+        type: boolean
+        default: true
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-snap-flatpak-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  snap:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependências de sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            squashfs-tools file libfuse2
+
+      - name: Instalar dependências npm
+        run: npm ci --legacy-peer-deps
+
+      - name: Compilar aplicação
+        run: npm run build
+
+      - name: Empacotar snap
+        env:
+          LINUX_TARGETS: snap
+        run: node scripts/build-electron.mjs linux
+
+      - name: Normalizar nome do snap
+        id: art
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          SRC="$(find dist -maxdepth 1 -name '*.snap' -print -quit)"
+          if [ -z "$SRC" ]; then
+            echo "::error::Nenhum .snap foi gerado em dist/"
+            ls -la dist || true
+            exit 1
+          fi
+          OUT="dist/Megacubo-${VERSION}-amd64.snap"
+          mv "$SRC" "$OUT"
+          # um snap é um squashfs: listar o conteúdo valida a integridade do pacote
+          unsquashfs -l "$OUT" > /dev/null
+          ls -lh "$OUT"
+          echo "file=$OUT" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Guardar snap como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: snap-amd64
+          path: dist/Megacubo-*-amd64.snap
+          if-no-files-found: error
+
+      - name: Publicar snap na GitHub Release
+        if: github.event_name == 'push' || inputs.upload_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG="${{ github.ref_name }}"
+          else
+            TAG="v${{ steps.art.outputs.version }}"
+          fi
+          gh release view "$TAG" >/dev/null 2>&1 \
+            || gh release create "$TAG" --target "$GITHUB_SHA" --title "Megacubo $TAG" --generate-notes
+          gh release upload "$TAG" "${{ steps.art.outputs.file }}" --clobber
+
+  flatpak:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependências de sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            flatpak flatpak-builder elfutils libfuse2
+
+      - name: Instalar runtime do Flatpak
+        run: |
+          set -euo pipefail
+          flatpak remote-add --user --if-not-exists flathub \
+            https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user --noninteractive -y flathub \
+            org.freedesktop.Platform//23.08 \
+            org.freedesktop.Sdk//23.08 \
+            org.electronjs.Electron2.BaseApp//23.08
+
+      - name: Instalar dependências npm
+        run: npm ci --legacy-peer-deps
+
+      - name: Compilar aplicação
+        run: npm run build
+
+      - name: Preparar diretório da aplicação
+        run: |
+          set -euo pipefail
+          npx electron-builder --config electron-builder.config.mjs \
+            --linux dir --publish=never
+          APP_DIR="$(find dist -maxdepth 1 -type d -name '*unpacked' -print -quit)"
+          if [ -z "$APP_DIR" ]; then
+            echo "::error::Nenhum diretório *unpacked foi gerado em dist/"
+            ls -la dist || true
+            exit 1
+          fi
+          echo "A usar $APP_DIR"
+          rm -rf flatpak/app
+          cp -a "$APP_DIR" flatpak/app
+          cp www/nodejs/default_icon.png flatpak/icon.png
+
+      - name: Compilar flatpak
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          flatpak-builder --user --force-clean --repo=repo \
+            --install-deps-from=flathub \
+            build-dir flatpak/tv.megacubo.Megacubo.yml
+          flatpak build-bundle repo "Megacubo-${VERSION}-x86_64.flatpak" tv.megacubo.Megacubo
+          ls -lh "Megacubo-${VERSION}-x86_64.flatpak"
+          echo "file=Megacubo-${VERSION}-x86_64.flatpak" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        id: build
+
+      - name: Validar flatpak
+        run: |
+          set -euo pipefail
+          FILE="${{ steps.build.outputs.file }}"
+          # instalar a partir do bundle prova que o pacote é válido e tem o runtime certo
+          flatpak install --user --noninteractive -y --bundle "$FILE"
+          flatpak info --user tv.megacubo.Megacubo
+          flatpak uninstall --user -y tv.megacubo.Megacubo
+
+      - name: Guardar flatpak como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-x86_64
+          path: Megacubo-*-x86_64.flatpak
+          if-no-files-found: error
+
+      - name: Publicar flatpak na GitHub Release
+        if: github.event_name == 'push' || inputs.upload_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG="${{ github.ref_name }}"
+          else
+            TAG="v${{ steps.build.outputs.version }}"
+          fi
+          gh release view "$TAG" >/dev/null 2>&1 \
+            || gh release create "$TAG" --target "$GITHUB_SHA" --title "Megacubo $TAG" --generate-notes
+          gh release upload "$TAG" "${{ steps.build.outputs.file }}" --clobber

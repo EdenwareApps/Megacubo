@@ -1,0 +1,38 @@
+app-id: tv.megacubo.Megacubo
+runtime: org.freedesktop.Platform
+runtime-version: '23.08'
+sdk: org.freedesktop.Sdk
+base: org.electronjs.Electron2.BaseApp
+base-version: '23.08'
+command: megacubo
+separate-locales: false
+finish-args:
+  - --share=ipc
+  - --share=network
+  - --socket=x11
+  - --socket=wayland
+  - --socket=pulseaudio
+  - --device=dri
+  - --filesystem=home
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --own-name=org.mpris.MediaPlayer2.megacubo
+modules:
+  - name: megacubo
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/megacubo
+      - cp -a . /app/megacubo
+      - rm -f /app/megacubo/megacubo.sh /app/megacubo/icon.png /app/megacubo/tv.megacubo.Megacubo.desktop
+      - install -Dm755 megacubo.sh /app/bin/megacubo
+      - install -Dm644 tv.megacubo.Megacubo.desktop /app/share/applications/tv.megacubo.Megacubo.desktop
+      - install -Dm644 icon.png /app/share/icons/hicolor/512x512/apps/tv.megacubo.Megacubo.png
+    sources:
+      - type: dir
+        path: app
+      - type: file
+        path: megacubo.sh
+      - type: file
+        path: tv.megacubo.Megacubo.desktop
+      - type: file
+        path: icon.png
