@@ -247,9 +247,12 @@ const appDistDir = join(appDir, 'dist');
 const premiumJsPath = join(appDistDir, 'premium.js');
 const premiumJscPath = join(appDistDir, 'premium.jsc');
 
-// Check if bytenode is available
+// premium.js is not part of the public sources, so the community build has nothing to obfuscate
+const hasPremiumSource = existsSync(premiumJsPath);
+
+// Check if bytenode is available (only needed when there is premium code to protect)
 const bytenodePath = join(appDistDir, 'node_modules', 'bytenode');
-if (!existsSync(bytenodePath)) {
+if (hasPremiumSource && !existsSync(bytenodePath)) {
   console.warn('  ⚠ Bytenode not found in app dist, copying...');
   const sourceBytenode = join(rootDir, 'node_modules', 'bytenode');
   if (existsSync(sourceBytenode)) {
@@ -275,6 +278,17 @@ switch (platform) {
     break;
   default: // linux
     electronExecutable = join(rootDirResolved, 'node_modules', 'electron', 'dist', 'electron');
+}
+
+// npm may skip electron's binary download (e.g. CI installs); the packaged runtime is equivalent
+if (!existsSync(electronExecutable)) {
+  const bundledCandidates = [
+    join(unpackedDir, 'electron'),
+    join(unpackedDir, 'electron.exe'),
+    join(unpackedDir, 'Electron.app', 'Contents', 'MacOS', 'Electron')
+  ];
+  const bundled = bundledCandidates.find(candidate => existsSync(candidate));
+  if (bundled) electronExecutable = bundled;
 }
 
 // Create temp script for compilation
@@ -308,34 +322,38 @@ try {
 }
 `;
 
-writeFileSync(tempScriptPath, scriptContent);
-
-try {
-  console.log('  🔨 Running bytenode compilation with Electron...');
-  execSync(`"${electronExecutable}" "${tempScriptPath}"`, {
-    cwd: appDir,
-    stdio: 'inherit',
-    env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
-  });
-  console.log('  ✅ Premium protection applied successfully');
-} catch (error) {
-  console.error('  ❌ Failed to compile premium:', error.message);
-  process.exit(1);
-        } finally {
-          // Clean up temp file
-          try {
-            rmSync(tempScriptPath, { force: true });
-          } catch (e) {
-            // Ignore cleanup errors
-          }
-        }
-
-// Verify final state
-if (existsSync(join(appDir, 'dist', 'premium.jsc'))) {
-  console.log('  ✅ premium.jsc ready for distribution');
+if (!hasPremiumSource) {
+  console.log('  ⚠ premium.js ausente no build comunitário — a saltar compilação bytenode');
 } else {
-  console.error('  ❌ premium.jsc not found after compilation!');
-  process.exit(1);
+  writeFileSync(tempScriptPath, scriptContent);
+
+  try {
+    console.log('  🔨 Running bytenode compilation with Electron...');
+    execSync(`"${electronExecutable}" "${tempScriptPath}"`, {
+      cwd: appDir,
+      stdio: 'inherit',
+      env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
+    });
+    console.log('  ✅ Premium protection applied successfully');
+  } catch (error) {
+    console.error('  ❌ Failed to compile premium:', error.message);
+    process.exit(1);
+  } finally {
+    // Clean up temp file
+    try {
+      rmSync(tempScriptPath, { force: true });
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+  }
+
+  // Verify final state
+  if (existsSync(join(appDir, 'dist', 'premium.jsc'))) {
+    console.log('  ✅ premium.jsc ready for distribution');
+  } else {
+    console.error('  ❌ premium.jsc not found after compilation!');
+    process.exit(1);
+  }
 }
 
 // Function to download and prepare ffmpeg binaries
