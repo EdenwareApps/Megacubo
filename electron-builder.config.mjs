@@ -288,7 +288,7 @@ exec "\${DIR}/megacubo.original" --no-sandbox --disable-dev-shm-usage --disable-
 export ELECTRON_DISABLE_SANDBOX=1
 export ELECTRON_NO_SANDBOX=1
 export DISABLE_SANDBOX=1
-exec "./AppRun" --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox "$@"
+exec "$(dirname "$0")/AppRun.original" --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox "$@"
 `;
 
             writeFileSync(join(tempDir, 'squashfs-root', 'AppRun-fixed'), wrapperScript);
