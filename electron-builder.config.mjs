@@ -153,7 +153,7 @@ export default {
   // Build hooks (optimized solution)
   beforeBuild: async (context) => {
     console.log('🔨 Starting Megacubo build...');
-    console.log('📦 Platform:', context.platform.nodeName);
+    console.log('📦 Platform:', context.platform?.nodeName || context.electronPlatformName || process.platform);
     console.log('🏗️ Architecture:', context.arch);
     console.log('📋 Build type:', context.targets.map(t => t.name).join(', '));
   },
@@ -161,8 +161,12 @@ export default {
   afterPack: async (context) => {
     console.error('🔥🔥🔥 AFTERPACK HOOK EXECUTED! 🔥🔥🔥');
     console.error('✅ Build finished - optimized files!');
+    // `platform` and `electronDistPath` are not part of the afterPack context in
+    // recent electron-builder releases (`electron-builder --linux dir` leaves both
+    // undefined), so derive the platform from what is always provided.
+    const platformName = context.platform?.nodeName || context.electronPlatformName || process.platform;
     console.error('🔍 DEBUG: afterPack hook called with context:', {
-      platform: context.platform?.nodeName,
+      platform: platformName,
       appOutDir: context.appOutDir,
       electronDistPath: context.electronDistPath
     });
@@ -176,15 +180,27 @@ export default {
 
     // Get Electron executable path for current platform
     let electronExecutable;
-    switch (context.platform.nodeName) {
-      case 'win32':
-        electronExecutable = join(context.electronDistPath, 'electron.exe');
-        break;
-      case 'darwin':
-        electronExecutable = join(context.electronDistPath, 'Electron.app', 'Contents', 'MacOS', 'Electron');
-        break;
-      default: // linux
-        electronExecutable = join(context.electronDistPath, 'electron');
+    if (context.electronDistPath) {
+      switch (platformName) {
+        case 'win32':
+          electronExecutable = join(context.electronDistPath, 'electron.exe');
+          break;
+        case 'darwin':
+          electronExecutable = join(context.electronDistPath, 'Electron.app', 'Contents', 'MacOS', 'Electron');
+          break;
+        default: // linux
+          electronExecutable = join(context.electronDistPath, 'electron');
+      }
+    } else {
+      // No electron distribution path in the context: the packaged app binary in
+      // appOutDir is the same Electron runtime, so use it (ELECTRON_RUN_AS_NODE=1).
+      const productFilename = context.packager?.appInfo?.productFilename || 'Megacubo';
+      electronExecutable =
+        platformName === 'win32'
+          ? join(appOutDir, `${productFilename}.exe`)
+          : platformName === 'darwin'
+            ? join(appOutDir, `${productFilename}.app`, 'Contents', 'MacOS', productFilename)
+            : join(appOutDir, context.packager?.executableName || 'megacubo');
     }
 
     console.log(`  📍 Electron executable: ${electronExecutable}`);
@@ -229,10 +245,9 @@ export default {
     }
 
     // Fix AppImage sandbox issues on Linux by creating a wrapper script
-    if (context.platform.nodeName === 'linux') {
+    if (platformName === 'linux') {
       console.log('  🛠️ Creating AppImage sandbox fix wrapper...');
 
-      const appOutDir = context.appOutDir;
       const electronBinPath = join(appOutDir, 'megacubo'); // Default electron executable name
 
       // Create a wrapper script that launches electron with --no-sandbox
