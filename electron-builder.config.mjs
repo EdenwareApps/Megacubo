@@ -136,6 +136,13 @@ export default {
     gatekeeperAssess: false
   },
 
+  linux: {
+    // electron-builder's icon-tool cannot read the JPEG2000 frame inside
+    // default_icon.icns, so point Linux at the 512x512 PNG instead.
+    icon: 'www/nodejs/default_icon.png',
+    category: 'AudioVideo'
+  },
+
   // Simplified hook - since node_modules is already excluded, this hook has limited effect
   // but it can be useful for other file types
   onNodeModuleFile: (file) => {
