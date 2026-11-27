@@ -22,8 +22,12 @@ modules:
   - name: megacubo
     buildsystem: simple
     build-commands:
+      - echo "pwd=$(pwd)"
+      - ls -la .
+      - find . -mindepth 1 -maxdepth 1 | sort
       - mkdir -p /app/megacubo
       - cp -a . /app/megacubo
+      - ls -la /app/megacubo
       # The upstream tarball ships its own launcher (adds --no-sandbox), an
       # installer that chmods 0777, a SUID helper and our build sources. None of
       # them belong in the sandbox: zypak provides the sandbox.
