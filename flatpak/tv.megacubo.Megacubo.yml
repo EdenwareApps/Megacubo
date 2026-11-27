@@ -24,9 +24,10 @@ modules:
     build-commands:
       - mkdir -p /app/megacubo
       - cp -a . /app/megacubo
-      # The upstream tarball ships its own launcher (adds --no-sandbox), an
-      # installer that chmods 0777, a SUID helper and our build sources. None of
-      # them belong in the sandbox: zypak provides the sandbox.
+      # The upstream tarball ships its own launcher (which appends --no-sandbox
+      # when the SUID helper is unavailable), a root installer that chmods 0777,
+      # a SUID chrome-sandbox, and the files of this manifest. None of them
+      # belong inside the sandbox: zypak provides the sandbox instead.
       - rm -rf /app/megacubo/megacubo /app/megacubo/install.sh /app/megacubo/megacubo-debug.sh /app/megacubo/chrome-sandbox
       - rm -f /app/megacubo/megacubo.sh /app/megacubo/icon.png /app/megacubo/tv.megacubo.Megacubo.desktop /app/megacubo/tv.megacubo.Megacubo.metainfo.xml
       - install -Dm755 megacubo.sh /app/bin/megacubo
@@ -37,10 +38,10 @@ modules:
       - type: archive
         url: https://github.com/EdenwareApps/Megacubo/releases/download/v17.8.0/Megacubo_17.8.0_linux_x64.tar.gz
         sha256: c11c1867f422a534c37b3e2d372d554f0a04eb56143962877e337dd7e9d17922
-        # O flatpak-builder assume `strip-components: 1` quando o campo falta,
-        # e este tarball nao tem diretorio de topo: a extraçao por omissao
-        # apagava `megacubo.real`, `resources.pak`, `icudtl.dat` e as .so e
-        # achatava `locales/`, `license/` e `resources/` na raiz.
+        # This tarball has no top level directory. flatpak-builder defaults
+        # strip-components to 1, which would drop megacubo.real, resources.pak,
+        # icudtl.dat and the shared objects, and would flatten locales/,
+        # license/ and resources/.
         strip-components: 0
         x-checker-data:
           type: json
