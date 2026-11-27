@@ -23,12 +23,7 @@ modules:
     buildsystem: simple
     build-commands:
       - mkdir -p /app/megacubo
-      # Este flatpak-builder entrega o arquivo ja achatado e sem os ficheiros
-      # da raiz (megacubo.real, resources.pak, icudtl.dat, *.so...), como se
-      # tivesse sido extraido com --strip-components=1. Extrair aqui, por
-      # `tar` e sem strip, nao depende desse comportamento.
-      - tar -xf Megacubo_*_linux_x64.tar.gz -C /app/megacubo --no-same-owner
-      - test -x /app/megacubo/megacubo.real
+      - cp -a . /app/megacubo
       # The upstream tarball ships its own launcher (adds --no-sandbox), an
       # installer that chmods 0777, a SUID helper and our build sources. None of
       # them belong in the sandbox: zypak provides the sandbox.
@@ -42,6 +37,11 @@ modules:
       - type: archive
         url: https://github.com/EdenwareApps/Megacubo/releases/download/v17.8.0/Megacubo_17.8.0_linux_x64.tar.gz
         sha256: c11c1867f422a534c37b3e2d372d554f0a04eb56143962877e337dd7e9d17922
+        # O flatpak-builder assume `strip-components: 1` quando o campo falta,
+        # e este tarball nao tem diretorio de topo: a extraçao por omissao
+        # apagava `megacubo.real`, `resources.pak`, `icudtl.dat` e as .so e
+        # achatava `locales/`, `license/` e `resources/` na raiz.
+        strip-components: 0
         x-checker-data:
           type: json
           url: https://api.github.com/repos/EdenwareApps/Megacubo/releases/latest
