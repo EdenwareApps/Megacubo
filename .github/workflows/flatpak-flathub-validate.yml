@@ -84,6 +84,24 @@ jobs:
           flatpak run --command=flatpak-builder-lint org.flatpak.Builder \
             manifest "$MANIFEST"
 
+      - name: Diagnostico do catalogo AppStream composto
+        run: |
+          set -euo pipefail
+          sudo chown -R "$USER" build-dir
+          echo "--- metainfo instalado ---"
+          grep -c "<screenshot" build-dir/files/share/metainfo/tv.megacubo.Megacubo.metainfo.xml || true
+          echo "--- app-info ---"
+          ls -la build-dir/files/share/app-info/xmls/ || true
+          for f in build-dir/files/share/app-info/xmls/*.xml.gz; do
+            [ -e "$f" ] || continue
+            echo "=== $f ==="
+            zcat "$f" | grep -n -i -E "screenshot|<image|<url|<id>|<name>" || true
+          done
+          echo "--- alcance dos URLs a partir do runner ---"
+          for u in $(grep -o 'https://static.megacubo.tv/screenshots/[^<]*' flatpak/tv.megacubo.Megacubo.metainfo.xml); do
+            curl -sS -o /dev/null -w "%{http_code} %{size_download} %{content_type} $u\n" --max-time 30 "$u" || echo "FALHOU $u"
+          done
+
       - name: Validar o build final (flatpak-builder-lint)
         run: |
           set -euo pipefail
