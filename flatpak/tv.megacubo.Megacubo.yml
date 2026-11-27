@@ -22,12 +22,13 @@ modules:
   - name: megacubo
     buildsystem: simple
     build-commands:
-      - echo "pwd=$(pwd)"
-      - ls -la .
-      - find . -mindepth 1 -maxdepth 1 | sort
       - mkdir -p /app/megacubo
-      - cp -a . /app/megacubo
-      - ls -la /app/megacubo
+      # Este flatpak-builder entrega o arquivo ja achatado e sem os ficheiros
+      # da raiz (megacubo.real, resources.pak, icudtl.dat, *.so...), como se
+      # tivesse sido extraido com --strip-components=1. Extrair aqui, por
+      # `tar` e sem strip, nao depende desse comportamento.
+      - tar -xf Megacubo_*_linux_x64.tar.gz -C /app/megacubo --no-same-owner
+      - test -x /app/megacubo/megacubo.real
       # The upstream tarball ships its own launcher (adds --no-sandbox), an
       # installer that chmods 0777, a SUID helper and our build sources. None of
       # them belong in the sandbox: zypak provides the sandbox.
