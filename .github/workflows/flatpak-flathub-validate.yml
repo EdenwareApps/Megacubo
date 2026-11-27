@@ -1,0 +1,94 @@
+name: Flatpak (Flathub manifest) validation
+
+# Valida o manifest que vai ser submetido ao Flathub — fontes remotas, runtime
+# 25.08, sem `type: dir`. Corre em cada PR que mexa em `flatpak/**`.
+on:
+  workflow_dispatch:
+  push:
+    branches: ['flathub-manifest']
+    paths:
+      - 'flatpak/**'
+      - '.github/workflows/flatpak-flathub-validate.yml'
+  pull_request:
+    paths:
+      - 'flatpak/**'
+      - '.github/workflows/flatpak-flathub-validate.yml'
+
+concurrency:
+  group: flatpak-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      MANIFEST: flatpak/tv.megacubo.Megacubo.yml
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar flatpak + linter + appstreamcli
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            flatpak flatpak-builder elfutils appstream
+          flatpak --version
+
+      - name: Adicionar remote flathub e runtimes
+        run: |
+          set -euo pipefail
+          flatpak remote-add --user --if-not-exists flathub \
+            https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user --noninteractive -y flathub \
+            org.freedesktop.Platform//25.08 \
+            org.freedesktop.Sdk//25.08 \
+            org.electronjs.Electron2.BaseApp//25.08
+          flatpak install --user --noninteractive -y flathub org.flatpak.Builder
+
+      - name: Validar AppStream
+        run: |
+          set -euo pipefail
+          appstreamcli validate --no-net --explain \
+            flatpak/tv.megacubo.Megacubo.metainfo.xml
+
+      - name: Compilar com flatpak-builder
+        run: |
+          set -euo pipefail
+          flatpak-builder --user --force-clean --repo=repo \
+            --install-deps-from=flathub \
+            build-dir "$MANIFEST"
+          flatpak build-bundle repo megacubo.flatpak tv.megacubo.Megacubo
+          ls -lh megacubo.flatpak
+
+      - name: Instalar o bundle e inspecionar o conteúdo
+        run: |
+          set -euo pipefail
+          flatpak install --user --noninteractive -y --bundle megacubo.flatpak
+          flatpak info --user tv.megacubo.Megacubo
+          test -x "$HOME/.local/share/flatpak/app/tv.megacubo.Megacubo/current/active/files/bin/megacubo"
+          test -x "$HOME/.local/share/flatpak/app/tv.megacubo.Megacubo/current/active/files/megacubo/megacubo.real"
+          echo "OK: launcher e binário presentes"
+
+      - name: Validar manifest (flatpak-builder-lint)
+        run: |
+          set -euo pipefail
+          flatpak run --command=flatpak-builder-lint org.flatpak.Builder \
+            manifest "$MANIFEST"
+
+      - name: Validar o build final (flatpak-builder-lint)
+        run: |
+          set -euo pipefail
+          sudo chown -R "$USER" build-dir
+          flatpak run --command=flatpak-builder-lint org.flatpak.Builder \
+            builddir build-dir
+
+      - name: Guardar o bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: megacubo-flathub-flatpak
+          path: megacubo.flatpak
+          if-no-files-found: error

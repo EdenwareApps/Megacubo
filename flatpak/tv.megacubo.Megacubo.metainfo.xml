@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>tv.megacubo.Megacubo</id>
+  <launchable type="desktop-id">tv.megacubo.Megacubo.desktop</launchable>
+  <name>Megacubo</name>
+  <summary>Free, open-source M3U/IPTV player for live TV, radio and personal playlists</summary>
+  <developer id="tv.megacubo">
+    <name>Edenware</name>
+  </developer>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <description>
+    <p>
+      Megacubo is a free, open-source IPTV player for live TV, radio and personal M3U
+      playlists. It plays the playlists and streams you or the community provide; it does
+      not sell, bundle or host TV content.
+    </p>
+    <p>
+      The internet already carries thousands of publicly available channels, radio stations
+      and live streams. Megacubo helps you organise and watch that open media in one place.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>M3U/M3U8 playlist player with live TV and radio</li>
+      <li>Community mode to discover public streams shared by other users</li>
+      <li>Miniplayer / picture-in-picture while you work</li>
+      <li>Bookmarks, watch history and a multi-language interface</li>
+      <li>Hardware accelerated playback</li>
+      <li>Optional add-ons: scheduled recordings and Cast support</li>
+    </ul>
+    <p>
+      Megacubo does not decide what you watch: you are responsible for the sources and
+      playlists you add.
+    </p>
+  </description>
+  <url type="homepage">https://megacubo.tv</url>
+  <url type="bugtracker">https://github.com/EdenwareApps/Megacubo/issues</url>
+  <url type="vcs-browser">https://github.com/EdenwareApps/Megacubo</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Home screen with live TV channels</caption>
+      <image type="source">https://static.megacubo.tv/screenshots/megacubo-home-top.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Main menu</caption>
+      <image type="source">https://static.megacubo.tv/screenshots/megacubo-menu.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Options and settings</caption>
+      <image type="source">https://static.megacubo.tv/screenshots/megacubo-options.png</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="17.8.0" date="2026-11-07">
+      <description>
+        <p>Current stable release of the 17.8 series.</p>
+      </description>
+    </release>
+  </releases>
+</component>

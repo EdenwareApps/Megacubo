@@ -1,10 +1,11 @@
 [Desktop Entry]
 Name=Megacubo
 Comment=Watch and organize IPTV channels
-Exec=megacubo %U
+Exec=megacubo
 Terminal=false
 Type=Application
 Icon=tv.megacubo.Megacubo
 StartupNotify=true
+StartupWMClass=megacubo
 Categories=AudioVideo;Video;Player;
-Keywords=IPTV;TV;Streaming;Player;
+Keywords=IPTV;TV;Streaming;Player;M3U;

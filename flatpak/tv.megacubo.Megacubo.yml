@@ -1,19 +1,20 @@
 app-id: tv.megacubo.Megacubo
 runtime: org.freedesktop.Platform
-runtime-version: '23.08'
+runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
 base: org.electronjs.Electron2.BaseApp
-base-version: '23.08'
+base-version: '25.08'
 command: megacubo
 separate-locales: false
 finish-args:
   - --share=ipc
   - --share=network
-  - --socket=x11
   - --socket=wayland
+  - --socket=fallback-x11
   - --socket=pulseaudio
   - --device=dri
-  - --filesystem=home
+  - --filesystem=xdg-download
+  - --filesystem=xdg-videos
   - --talk-name=org.freedesktop.Notifications
   - --talk-name=org.kde.StatusNotifierWatcher
   - --own-name=org.mpris.MediaPlayer2.megacubo
@@ -23,16 +24,29 @@ modules:
     build-commands:
       - mkdir -p /app/megacubo
       - cp -a . /app/megacubo
-      - rm -f /app/megacubo/megacubo.sh /app/megacubo/icon.png /app/megacubo/tv.megacubo.Megacubo.desktop
+      # The upstream tarball ships its own launcher (adds --no-sandbox), an
+      # installer that chmods 0777, a SUID helper and our build sources. None of
+      # them belong in the sandbox: zypak provides the sandbox.
+      - rm -rf /app/megacubo/megacubo /app/megacubo/install.sh /app/megacubo/megacubo-debug.sh /app/megacubo/chrome-sandbox
+      - rm -f /app/megacubo/megacubo.sh /app/megacubo/icon.png /app/megacubo/tv.megacubo.Megacubo.desktop /app/megacubo/tv.megacubo.Megacubo.metainfo.xml
       - install -Dm755 megacubo.sh /app/bin/megacubo
       - install -Dm644 tv.megacubo.Megacubo.desktop /app/share/applications/tv.megacubo.Megacubo.desktop
+      - install -Dm644 tv.megacubo.Megacubo.metainfo.xml /app/share/metainfo/tv.megacubo.Megacubo.metainfo.xml
       - install -Dm644 icon.png /app/share/icons/hicolor/512x512/apps/tv.megacubo.Megacubo.png
     sources:
-      - type: dir
-        path: app
+      - type: archive
+        url: https://github.com/EdenwareApps/Megacubo/releases/download/v17.8.0/Megacubo_17.8.0_linux_x64.tar.gz
+        sha256: c11c1867f422a534c37b3e2d372d554f0a04eb56143962877e337dd7e9d17922
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/EdenwareApps/Megacubo/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | endswith("_linux_x64.tar.gz")) | .browser_download_url
       - type: file
         path: megacubo.sh
       - type: file
         path: tv.megacubo.Megacubo.desktop
+      - type: file
+        path: tv.megacubo.Megacubo.metainfo.xml
       - type: file
         path: icon.png
