@@ -1,7 +1,7 @@
 name: Flatpak (Flathub manifest) validation
 
 # Valida o manifest que vai ser submetido ao Flathub — fontes remotas, runtime
-# 25.08, sem `type: dir`. Corre em cada PR que mexa em `flatpak/**`.
+# 26.08, sem `type: dir`. Corre em cada push/PR que mexa em `flatpak/**`.
 on:
   workflow_dispatch:
   push:
@@ -64,19 +64,35 @@ jobs:
           flatpak build-bundle repo megacubo.flatpak tv.megacubo.Megacubo
           ls -lh megacubo.flatpak
 
+      # Cada verificacao aqui falha o job: `test ... && echo` deixa passar uma
+      # ausencia, porque o `test` nao e o ultimo comando da lista e o `set -e`
+      # ignora-o. Foi assim que o `megacubo.real` em falta passou verde.
       - name: Instalar o bundle e inspecionar o conteudo
         run: |
           set -euo pipefail
           flatpak install --user --noninteractive -y --bundle megacubo.flatpak
           flatpak info --user tv.megacubo.Megacubo
-          ls -la build-dir/files build-dir/files/bin
-          echo "--- /app/megacubo ---"
+          du -sh build-dir/files build-dir/files/megacubo
+          find build-dir/files/megacubo | wc -l
           find build-dir/files/megacubo -maxdepth 1 | sort
-          test -x build-dir/files/bin/megacubo && echo "OK bin/megacubo"
-          test -x build-dir/files/megacubo/megacubo.real && echo "OK megacubo.real"
-          test -f build-dir/files/megacubo/resources/app.asar && echo "OK app.asar"
-          test ! -e build-dir/files/megacubo/chrome-sandbox && echo "OK sem chrome-sandbox"
-          test ! -e build-dir/files/megacubo/install.sh && echo "OK sem install.sh"
+          faltas=0
+          exigir_exec() {
+            if [ -x "$1" ]; then echo "OK $1"; else echo "::error::falta o executavel $1"; faltas=1; fi
+          }
+          exigir_dir() {
+            if [ -d "$1" ]; then echo "OK $1"; else echo "::error::falta o diretorio $1"; faltas=1; fi
+          }
+          exigir_ausente() {
+            if [ -e "$1" ]; then echo "::error::nao devia estar no pacote: $1"; faltas=1; fi
+          }
+          exigir_exec build-dir/files/bin/megacubo
+          exigir_exec build-dir/files/megacubo/megacubo.real
+          exigir_exec build-dir/files/megacubo/libffmpeg.so
+          exigir_dir build-dir/files/megacubo/resources/app
+          exigir_ausente build-dir/files/megacubo/chrome-sandbox
+          exigir_ausente build-dir/files/megacubo/install.sh
+          exigir_ausente build-dir/files/megacubo/megacubo
+          exit "$faltas"
 
       - name: Validar manifest (flatpak-builder-lint)
         run: |
