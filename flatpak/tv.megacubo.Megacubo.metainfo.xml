@@ -39,15 +39,15 @@
   <screenshots>
     <screenshot type="default">
       <caption>Home screen with live TV channels</caption>
-      <image type="source">https://static.megacubo.tv/screenshots/megacubo-home-top.png</image>
+      <image type="source">https://raw.githubusercontent.com/EdenwareApps/Megacubo/master/flatpak/screenshots/megacubo-home-top.png</image>
     </screenshot>
     <screenshot>
       <caption>Main menu</caption>
-      <image type="source">https://static.megacubo.tv/screenshots/megacubo-menu.png</image>
+      <image type="source">https://raw.githubusercontent.com/EdenwareApps/Megacubo/master/flatpak/screenshots/megacubo-menu.png</image>
     </screenshot>
     <screenshot>
       <caption>Options and settings</caption>
-      <image type="source">https://static.megacubo.tv/screenshots/megacubo-options.png</image>
+      <image type="source">https://raw.githubusercontent.com/EdenwareApps/Megacubo/master/flatpak/screenshots/megacubo-options.png</image>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1"/>

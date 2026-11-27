@@ -44,9 +44,9 @@ jobs:
           flatpak remote-add --user --if-not-exists flathub \
             https://flathub.org/repo/flathub.flatpakrepo
           flatpak install --user --noninteractive -y flathub \
-            org.freedesktop.Platform//25.08 \
-            org.freedesktop.Sdk//25.08 \
-            org.electronjs.Electron2.BaseApp//25.08
+            org.freedesktop.Platform//26.08 \
+            org.freedesktop.Sdk//26.08 \
+            org.electronjs.Electron2.BaseApp//26.08
           flatpak install --user --noninteractive -y flathub org.flatpak.Builder
 
       - name: Validar AppStream
@@ -84,30 +84,44 @@ jobs:
           flatpak run --command=flatpak-builder-lint org.flatpak.Builder \
             manifest "$MANIFEST"
 
-      - name: Diagnostico do catalogo AppStream composto
+      # O `appstreamcli compose` só mantém uma captura quando o URL responde uma
+      # imagem. O Cloudflare de `static.megacubo.tv` serve uma página HTML com
+      # 200 a IPs de datacenter (o runner perdia duas das três), por isso o
+      # metainfo aponta para `raw.githubusercontent.com`.
+      - name: As capturas do metainfo respondem uma imagem
         run: |
           set -euo pipefail
-          sudo chown -R "$USER" build-dir
-          echo "--- metainfo instalado ---"
-          grep -c "<screenshot" build-dir/files/share/metainfo/tv.megacubo.Megacubo.metainfo.xml || true
-          echo "--- app-info ---"
-          ls -la build-dir/files/share/app-info/xmls/ || true
-          for f in build-dir/files/share/app-info/xmls/*.xml.gz; do
-            [ -e "$f" ] || continue
-            echo "=== $f ==="
-            zcat "$f" | grep -n -i -E "screenshot|<image|<url|<id>|<name>" || true
+          erro=0
+          for u in $(grep -o 'https://[^<]*\.png' flatpak/tv.megacubo.Megacubo.metainfo.xml); do
+            lido=$(curl -sS -o /tmp/sc.bin -w "%{http_code} %{content_type}" --max-time 40 "$u" || echo "000 -")
+            echo "$lido $u"
+            case "$lido" in
+              "200 image/png") ;;
+              *) echo "::error::$u nao devolveu 200 image/png"; erro=1 ;;
+            esac
           done
-          echo "--- alcance dos URLs a partir do runner ---"
-          for u in $(grep -o 'https://static.megacubo.tv/screenshots/[^<]*' flatpak/tv.megacubo.Megacubo.metainfo.xml); do
-            curl -sS -o /dev/null -w "%{http_code} %{size_download} %{content_type} $u\n" --max-time 30 "$u" || echo "FALHOU $u"
-          done
+          exit "$erro"
 
       - name: Validar o build final (flatpak-builder-lint)
         run: |
           set -euo pipefail
           sudo chown -R "$USER" build-dir
-          flatpak run --command=flatpak-builder-lint org.flatpak.Builder \
-            builddir build-dir
+          # `appstream-external-screenshot-url` é o esperado aqui: quem espelha as
+          # capturas para dl.flathub.org/media é o pipeline do Flathub, e é lá que
+          # a verificação de espelho é saltada. As restantes falhas continuam a
+          # derrubar o job.
+          saida=$(flatpak run --command=flatpak-builder-lint org.flatpak.Builder \
+            builddir build-dir || true)
+          echo "$saida"
+          if [ -z "$saida" ]; then
+            echo "::error::o flatpak-builder-lint nao devolveu JSON"
+            exit 1
+          fi
+          restantes=$(echo "$saida" | jq '[.errors[]? | select(. != "appstream-external-screenshot-url")] | length')
+          if [ "$restantes" -ne 0 ]; then
+            echo "::error::$restantes erro(s) do linter alem do esperado"
+            exit 1
+          fi
 
       - name: Guardar o bundle
         uses: actions/upload-artifact@v4
