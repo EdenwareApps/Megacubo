@@ -69,12 +69,14 @@ jobs:
           set -euo pipefail
           flatpak install --user --noninteractive -y --bundle megacubo.flatpak
           flatpak info --user tv.megacubo.Megacubo
-          ls -la build-dir/files
-          test -x build-dir/files/bin/megacubo
-          test -x build-dir/files/megacubo/megacubo.real
-          test -f build-dir/files/megacubo/resources/app.asar
-          test ! -e build-dir/files/megacubo/chrome-sandbox
-          test ! -e build-dir/files/megacubo/install.sh
+          ls -la build-dir/files build-dir/files/bin
+          ls -la build-dir/files/megacubo | head -40
+          ls -la build-dir/files/megacubo | head -40
+          test -x build-dir/files/bin/megacubo || { echo "FALTA bin/megacubo"; exit 1; }
+          test -x build-dir/files/megacubo/megacubo.real || { echo "FALTA megacubo.real"; exit 1; }
+          test -f build-dir/files/megacubo/resources/app.asar || { echo "FALTA app.asar"; exit 1; }
+          test ! -e build-dir/files/megacubo/chrome-sandbox || { echo "chrome-sandbox presente"; exit 1; }
+          test ! -e build-dir/files/megacubo/install.sh || { echo "install.sh presente"; exit 1; }
           echo "OK: launcher, binario, app.asar presentes; SUID e install.sh ausentes"
 
       - name: Validar manifest (flatpak-builder-lint)
