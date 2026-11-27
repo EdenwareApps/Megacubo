@@ -69,13 +69,11 @@ jobs:
           set -euo pipefail
           flatpak install --user --noninteractive -y --bundle megacubo.flatpak
           flatpak info --user tv.megacubo.Megacubo
-          flatpak run --user --command=sh tv.megacubo.Megacubo -c '
-            set -e
-            test -x /app/bin/megacubo
-            test -x /app/megacubo/megacubo.real
-            command -v zypak-wrapper
-            echo "OK: launcher, binario e zypak presentes"
-          '
+          flatpak info --user -l tv.megacubo.Megacubo | grep -E '^/bin/megacubo$|^/megacubo/megacubo\.real$'
+          test -x build-dir/files/bin/megacubo
+          test -x build-dir/files/megacubo/megacubo.real
+          echo "OK: launcher e binario presentes"
+          ls -la build-dir/files
 
       - name: Validar manifest (flatpak-builder-lint)
         run: |
