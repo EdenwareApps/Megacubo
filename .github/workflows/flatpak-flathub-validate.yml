@@ -102,6 +102,14 @@ jobs:
           done
           exit "$erro"
 
+      - name: O catalogo composto tem as tres capturas
+        run: |
+          set -euo pipefail
+          sudo chown -R "$USER" build-dir
+          n=$(zcat build-dir/files/share/app-info/xmls/tv.megacubo.Megacubo.xml.gz | grep -c '<image ' || true)
+          echo "capturas no catalogo composto: $n"
+          test "$n" -ge 3
+
       - name: Validar o build final (flatpak-builder-lint)
         run: |
           set -euo pipefail
